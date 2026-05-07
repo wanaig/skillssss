@@ -36,15 +36,16 @@ memory: project
 - 测试的目标模块列表
 - 前端项目根目录 `FRONTEND_ROOT`
 - 后端项目根目录 `BACKEND_ROOT`
+- API 契约文档路径
 - integration-design-guide.md 路径
 - 测试报告输出目录 `{FRONTEND_ROOT}/fullstack-test-reports/`
 
 ### 2. 必读文件（按顺序）
 
 1. **integration-design-guide.md** 中目标模块的 "接口映射" 和 "数据转换要求" 部分
-2. **前端 API 类型文件**（`{FRONTEND_ROOT}/src/types/{module}.ts` 或 `src/types/api.ts`）
-3. **前端 API 调用文件**（`{FRONTEND_ROOT}/src/api/{module}.ts`）
-4. **API 契约文档**（通过 design-guide 中的映射或直接搜索 workspace 中的 `api-contract-outline.md`）
+2. **API 契约文档** — 确认端点定义、请求/响应字段、错误码
+3. **前端 API 类型文件**（`{FRONTEND_ROOT}/src/types/{module}.ts` 或 `src/types/api.ts`）
+4. **前端 API 调用文件**（`{FRONTEND_ROOT}/src/api/{module}.ts`）
 5. **后端接口代码**（`{BACKEND_ROOT}/src/controllers/{module}Controller.js` 和相关 service）
 
 ### 3. 契约对比维度
