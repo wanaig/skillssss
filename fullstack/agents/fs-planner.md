@@ -38,15 +38,19 @@ memory: project
 
 确认以下输入（由主Agent提供）：
 - API 契约文档路径，记为 `CONTRACT_FILE`
+- 技术栈文档路径，记为 `TECH_STACK_FILE`
+- 数据架构文档路径，记为 `DATA_ARCHITECTURE_FILE`
+- 实施路线图路径，记为 `IMPLEMENTATION_ROADMAP_FILE`
 - 前端项目根目录路径，记为 `FRONTEND_ROOT`
 - 后端项目根目录路径，记为 `BACKEND_ROOT`
 
 ### 2. 必读文件（按顺序）
 
 1. **CONTRACT_FILE** — 完整阅读 API 契约文档，理解所有端点、请求/响应结构、错误码体系、分页规范、认证方式
-2. **tech-stack.md**（`{architecture 输出目录}/tech-stack.md` 或搜索项目中的）— 确认前端框架/UI库/状态管理，后端框架/ORM/架构模式，共享类型生成方案
-3. **data-architecture.md**（`{architecture 输出目录}/data-architecture.md` 或搜索项目中的）— 确认数据实体 Schema，用于校验 API 响应字段与数据库字段的一致性
-4. **前端项目代码** — 用 Glob 了解 `{FRONTEND_ROOT}/src/` 下的目录结构，读 `package.json` 确认依赖
+2. **TECH_STACK_FILE** — 确认前端框架/UI库/状态管理，后端框架/ORM/架构模式，共享类型生成方案
+3. **DATA_ARCHITECTURE_FILE** — 确认数据实体 Schema，用于校验 API 响应字段与数据库字段的一致性
+4. **IMPLEMENTATION_ROADMAP_FILE** — 了解 Phased 实施顺序，据此确定对接优先级和批次划分
+5. **前端项目代码** — 用 Glob 了解 `{FRONTEND_ROOT}/src/` 下的目录结构，读 `package.json` 确认依赖
 5. **后端项目代码** — 用 Glob 了解 `{BACKEND_ROOT}/src/` 下的目录结构，特别是已有的路由、控制器、中间件
 6. **前端 store 和 views** — 搜索已有的 Pinia store 和页面组件，了解前端已有哪些数据消费方
 7. **后端已有接口** — 搜索已有的路由定义，了解后端已实现了哪些接口
@@ -62,6 +66,9 @@ memory: project
 
 ## 项目信息
 - 契约文档：{CONTRACT_FILE}
+- 技术栈文档：{TECH_STACK_FILE}
+- 数据架构文档：{DATA_ARCHITECTURE_FILE}
+- 实施路线图：{IMPLEMENTATION_ROADMAP_FILE}
 - 前端项目：{FRONTEND_ROOT}
 - 后端项目：{BACKEND_ROOT}
 - 总对接任务数：{N}
@@ -324,7 +331,7 @@ server: {
 **严格按以下顺序执行，完成一步再做下一步**：
 
 ```
-Step 1: Read CONTRACT_FILE（读 API 契约）
+Step 1: Read CONTRACT_FILE → TECH_STACK_FILE → DATA_ARCHITECTURE_FILE → IMPLEMENTATION_ROADMAP_FILE（按顺序读完）
 Step 2: Read 前端项目结构（Glob + 读关键文件）
 Step 3: Read 后端项目结构（Glob + 读关键文件）
 Step 4: 【补充步骤】比对后端已有接口与契约文档，标记实现状态

@@ -54,6 +54,7 @@ memory: project
 - dev-plan.md 路径
 - api-design-guide.md 路径
 - lessons-learned.md 路径
+- 需求文档路径
 - 项目根目录路径
 
 ### 2. 必读文件（按顺序）

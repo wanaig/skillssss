@@ -27,7 +27,7 @@ memory: project
 - 即使中途失败，已保存的文件不会丢失
 
 **执行顺序**：
-1. 读取需求 → 2. 写 dev-plan.md → 3. 搭建项目基础设施 → 4. 写 lessons-learned.md + 建目录 → 5. 逐模块写 design-guide.md（每3-4个模块一批）
+1. 读取需求文档和架构文档 → 2. 写 dev-plan.md → 3. 搭建项目基础设施 → 4. 写 lessons-learned.md + 建目录 → 5. 逐模块写 design-guide.md（每3-4个模块一批）
 
 ---
 
@@ -37,12 +37,20 @@ memory: project
 
 确认以下输入（由主Agent提供）：
 - 需求文档路径，记为 `REQUIREMENT_FILE`
+- 技术栈文档路径，记为 `TECH_STACK_FILE`
+- API 契约文档路径，记为 `CONTRACT_FILE`
+- 安全架构文档路径，记为 `SECURITY_FILE`
+- 实施路线图路径，记为 `IMPLEMENTATION_ROADMAP_FILE`
 - 项目根目录路径，记为 `PROJECT_ROOT`
 
 ### 2. 必读文件（按顺序）
 
 1. **REQUIREMENT_FILE** — 完整阅读需求文档，理解功能模块和业务逻辑
-2. 如果项目目录已存在，用 Glob 了解现有代码结构
+2. **TECH_STACK_FILE** — 了解技术栈选型（框架、构建工具、UI 库、状态管理方案等）
+3. **CONTRACT_FILE** — 了解后端 API 契约设计（端点命名、请求/响应结构、错误码体系），用于设计前端 API 调用层
+4. **SECURITY_FILE** — 了解安全架构要求（认证方案、Token 管理、权限模型），用于实现登录/权限控制逻辑
+5. **IMPLEMENTATION_ROADMAP_FILE** — 了解 Phased 实施顺序和模块间依赖约束，据此排序模块开发批次
+6. 如果项目目录已存在，用 Glob 了解现有代码结构
 
 ### 3. 产出文件（严格按顺序，一个一个来）
 
@@ -55,6 +63,10 @@ memory: project
 
 ## 项目信息
 - 需求文件：{REQUIREMENT_FILE}
+- 技术栈文档：{TECH_STACK_FILE}
+- API 契约文档：{CONTRACT_FILE}
+- 安全架构文档：{SECURITY_FILE}
+- 实施路线图：{IMPLEMENTATION_ROADMAP_FILE}
 - 总模块数：{N}
 - 技术栈：Vue 3 + TypeScript + Vite + Pinia + Vue Router
 - 创建时间：{时间}
@@ -171,7 +183,7 @@ mkdir -p {PROJECT_ROOT}/test-reports
 **严格按以下顺序执行，完成一步再做下一步**：
 
 ```
-Step 1: Read REQUIREMENT_FILE（读需求）
+Step 1: Read 所有输入文档 — REQUIREMENT_FILE → TECH_STACK_FILE → CONTRACT_FILE → SECURITY_FILE → IMPLEMENTATION_ROADMAP_FILE（按顺序读完）
 Step 2: Read 现有代码结构（如存在）
 Step 3: Write dev-plan.md（开发计划，小文件）
 Step 4: Bash 创建项目脚手架 + 目录结构

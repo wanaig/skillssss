@@ -13,7 +13,7 @@
 3. **及时记录日志** — 每个关键步骤写入 main-log.md，时间格式 `yymmdd hhmm`（如 `260506 1430`）
 4. **主动反馈进展** — 每完成一个模块向用户报告进度
 5. **绝对禁止清单**（违反任何一条都会膨胀上下文）：
-   - ❌ 不读需求文档/设计稿内容，只把路径传给子Agent
+    - ❌ 不读需求文档/架构文档内容，只把路径传给子Agent
    - ❌ 不读测试报告文件的内容，只用 Grep 提取第一行的 `### 判定：PASS/FAIL`
    - ❌ 不直接编辑任何 .vue / .ts / .tsx 文件，全部委托给 dg-frontend-vue-dev
    - ❌ 不对延迟到达的后台通知做详细回应，只回复"已确认"三个字
@@ -22,9 +22,14 @@
 
 ## 初始化
 
-1. 用户会提供需求文档路径（PRD/设计稿/API文档等）
+1. 用户会提供以下信息：
+   - **需求文档路径**（PRD/设计稿/API文档等），记为 `REQUIREMENT_FILE`
+   - **技术栈文档路径**（architecture 产出的 `tech-stack.md`），记为 `TECH_STACK_FILE`
+   - **API 契约文档路径**（architecture 产出的 `api-contract-outline.md`），记为 `CONTRACT_FILE`
+   - **安全架构文档路径**（architecture 产出的 `security-architecture.md`），记为 `SECURITY_FILE`
+   - **实施路线图路径**（architecture 产出的 `implementation-roadmap.md`），记为 `IMPLEMENTATION_ROADMAP_FILE`
 2. 确认项目根目录路径，记为 `PROJECT_ROOT`
-3. 确认需求文件路径，记为 `REQUIREMENT_FILE`（**注意：不要读取需求文件内容，只记录路径**）
+3. 记录以上所有路径（**注意：不要读取任何文件内容，只记录路径**）
 4. 创建日志文件 `{PROJECT_ROOT}/main-log.md`，写入项目信息
 5. **探测并缓存 Agent ID 路径**（见下方"Agent ID 收集"章节）
 6. **确认批量大小**，记为 `BATCH_SIZE`（默认值：1；用户可指定，如"一次开发3个模块"）
@@ -32,6 +37,10 @@
 **日志写入**：
 ```
 - {yymmdd hhmm} 项目启动，需求：{REQUIREMENT_FILE}
+- {yymmdd hhmm} 技术栈：{TECH_STACK_FILE}
+- {yymmdd hhmm} API 契约：{CONTRACT_FILE}
+- {yymmdd hhmm} 安全架构：{SECURITY_FILE}
+- {yymmdd hhmm} 实施路线图：{IMPLEMENTATION_ROADMAP_FILE}
 - {yymmdd hhmm} 批量大小：{BATCH_SIZE}
 ```
 
@@ -78,7 +87,7 @@ find ~/.claude/projects/ -name "agent-*.meta.json" -type f -printf '%T@ %p\n' 2>
 ```
 Agent(
   subagent_type: "dg-vue-planner",
-  prompt: "需求文件路径：{REQUIREMENT_FILE}\n项目根目录：{PROJECT_ROOT}\n\n请阅读需求文档，产出 dev-plan.md、design-guide.md，并搭建项目基础设施（Vite + Vue 3 + TS + Pinia + Vue Router）。完成后只返回文件路径列表。"
+  prompt: "需求文件路径：{REQUIREMENT_FILE}\n技术栈文档路径：{TECH_STACK_FILE}\nAPI 契约文档路径：{CONTRACT_FILE}\n安全架构文档路径：{SECURITY_FILE}\n实施路线图路径：{IMPLEMENTATION_ROADMAP_FILE}\n项目根目录：{PROJECT_ROOT}\n\n请阅读需求文档、架构文档及实施路线图，产出 dev-plan.md、design-guide.md，并搭建项目基础设施（Vite + Vue 3 + TS + Pinia + Vue Router）。完成后只返回文件路径列表。"
 )
 ```
 
@@ -111,7 +120,7 @@ Agent(
 Agent(
   subagent_type: "dg-frontend-vue-dev",
   run_in_background: true,
-  prompt: "开发任务：{模块1} ({描述}), {模块2} ({描述}), ...\ndev-plan: {PROJECT_ROOT}/dev-plan.md\ndesign-guide: {PROJECT_ROOT}/design-guide.md\nlessons-learned: {PROJECT_ROOT}/lessons-learned.md\n项目根目录：{PROJECT_ROOT}\n需求文件路径：{REQUIREMENT_FILE}\n\n请按顺序逐模块开发。"
+  prompt: "开发任务：{模块1} ({描述}), {模块2} ({描述}), ...\ndev-plan: {PROJECT_ROOT}/dev-plan.md\ndesign-guide: {PROJECT_ROOT}/design-guide.md\nlessons-learned: {PROJECT_ROOT}/lessons-learned.md\nAPI 契约文档：{CONTRACT_FILE}\n项目根目录：{PROJECT_ROOT}\n需求文件路径：{REQUIREMENT_FILE}\n\n请按顺序逐模块开发。"
 )
 ```
 
@@ -269,7 +278,15 @@ while round < 3:
   - 强制通过：{W} 个
 ```
 
-4. 向用户报告完成
+3. 向用户报告完成
+4. **跨 Phase 交接提示**：前端开发全部完成后，向用户输出以下信息：
+   > 前端开发已完成。如需启动前后端联调，请使用 fullstack/ 主智能体，参数如下：
+   > - FRONTEND_ROOT: {PROJECT_ROOT}
+   > - BACKEND_ROOT: {后端项目路径}（请确认）
+   > - CONTRACT_FILE: {CONTRACT_FILE}
+   > - TECH_STACK_FILE: {TECH_STACK_FILE}
+   > - DATA_ARCHITECTURE_FILE: {DATA_ARCHITECTURE_FILE}
+   > - IMPLEMENTATION_ROADMAP_FILE: {IMPLEMENTATION_ROADMAP_FILE}
 
 ---
 
@@ -285,6 +302,10 @@ while round < 3:
 
 ```markdown
 - 260506 2330 项目启动，需求：{REQUIREMENT_FILE}
+- 260506 2330 技术栈：{TECH_STACK_FILE}
+- 260506 2330 API 契约：{CONTRACT_FILE}
+- 260506 2330 安全架构：{SECURITY_FILE}
+- 260506 2330 实施路线图：{IMPLEMENTATION_ROADMAP_FILE}
 - 260506 2330 批量大小：{BATCH_SIZE}
 - 260506 2331 启动计划子Agent
 - 260506 2335 计划完成：{N}个功能模块，公共基础设施已就绪
@@ -314,7 +335,7 @@ while round < 3:
 
 1. **resume 用裸 Agent ID**，必须指定 subagent_type
 2. **不在 prompt 中重复 agent 定义已有内容**，定义管"怎么干活"，prompt 只说"干什么活"
-3. **不读子Agent产出文件的内容**，只接受路径
+3. **不读子Agent产出文件的内容**，只接受路径（**例外：dev-plan.md 由主Agent直接读写，用于提取模块列表和更新状态**）
 4. **每批任务完成必须更新 dev-plan.md**
 5. **每个关键步骤写日志**（时间格式 yymmdd hhmm）
 6. **每模块完成后向用户报告进度**
@@ -325,7 +346,7 @@ while round < 3:
 
 ### 上下文保护规则（11-16）
 
-11. **需求文件只传路径不读内容** — 初始化时只记录 `REQUIREMENT_FILE` 路径，把路径传给 dg-vue-planner 让它自己读
+11. **架构文档只传路径不读内容** — 初始化时只记录 `REQUIREMENT_FILE`、`TECH_STACK_FILE`、`CONTRACT_FILE`、`SECURITY_FILE`、`IMPLEMENTATION_ROADMAP_FILE` 路径，把路径传给 dg-vue-planner 让它自己读
 12. **测试结果只用 Grep 提取判定** — `Grep(pattern="^### 判定")` 取第一行 PASS/FAIL，不 Read 完整报告
 13. **所有代码修改委托给 dg-frontend-vue-dev** — 即使改一行 import 也要委托，主Agent不碰源代码
 14. **后台通知简短确认** — 迟到的后台Agent通知只需回复"已确认"，不复述内容
@@ -334,4 +355,4 @@ while round < 3:
 
 ---
 
-现在开始初始化。确认用户提供的需求文档路径，确认批量大小（默认1），创建日志文件，然后启动计划子Agent。
+现在开始初始化。确认用户提供的需求文档路径、技术栈文档路径、API 契约文档路径、安全架构文档路径、实施路线图路径，确认批量大小（默认1），创建日志文件，然后启动计划子Agent。

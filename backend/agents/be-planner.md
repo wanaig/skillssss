@@ -27,7 +27,7 @@ memory: project
 - 即使中途失败，已保存的文件不会丢失
 
 **执行顺序**：
-1. 读取需求 → 2. 写 dev-plan.md → 3. 写项目框架 → 4. 写 lessons-learned.md + 建目录 → 5. 逐模块写 api-design-guide.md（每3-4个接口一批）
+1. 读取需求文档和架构文档 → 2. 写 dev-plan.md → 3. 写项目框架 → 4. 写 lessons-learned.md + 建目录 → 5. 逐模块写 api-design-guide.md（每3-4个接口一批）
 
 ---
 
@@ -37,12 +37,21 @@ memory: project
 
 确认以下输入（由主Agent提供）：
 - 需求文档文件路径，记为 `REQUIREMENTS_FILE`
+- 技术栈文档路径，记为 `TECH_STACK_FILE`
+- 数据架构文档路径，记为 `DATA_ARCHITECTURE_FILE`
+- API 契约文档路径，记为 `CONTRACT_FILE`
+- 安全架构文档路径，记为 `SECURITY_FILE`
+- 实施路线图路径，记为 `IMPLEMENTATION_ROADMAP_FILE`
 - 输出目录路径，记为 `OUTPUT_DIR`
 
 ### 2. 必读文件（按顺序）
 
 1. **REQUIREMENTS_FILE** — 完整阅读需求文档，理解业务逻辑和接口结构
-2. **项目技术栈配置**（如有）— 了解使用的框架、数据库、中间件
+2. **TECH_STACK_FILE** — 了解技术栈选型（框架、语言、数据库、中间件、缓存等）
+3. **DATA_ARCHITECTURE_FILE** — 了解数据架构设计（数据库选型、表结构规划、缓存策略、数据流等）
+4. **CONTRACT_FILE** — 了解全局 API 契约设计（端点命名规范、数据结构约定、错误码体系）
+5. **SECURITY_FILE** — 了解安全架构要求（认证方案、鉴权策略、数据加密规范等）
+6. **IMPLEMENTATION_ROADMAP_FILE** — 了解 Phased 实施顺序和模块间依赖约束，据此排序接口开发批次
 
 ### 3. 产出文件（严格按顺序，一个一个来）
 
@@ -55,6 +64,11 @@ memory: project
 
 ## 项目信息
 - 需求文档：{REQUIREMENTS_FILE}
+- 技术栈文档：{TECH_STACK_FILE}
+- 数据架构文档：{DATA_ARCHITECTURE_FILE}
+- API 契约文档：{CONTRACT_FILE}
+- 安全架构文档：{SECURITY_FILE}
+- 实施路线图：{IMPLEMENTATION_ROADMAP_FILE}
 - 总接口数：{N}
 - 技术栈：{框架/数据库/缓存等}
 - 创建时间：{时间}
@@ -181,6 +195,7 @@ mkdir -p {OUTPUT_DIR}/test-reports
 - `src/app.js` 或 `src/main.py` — 应用入口
 - `src/config.js` 或 `src/config.py` — 配置文件
 - `src/middleware/errorHandler.js` — 统一错误处理中间件
+- `src/middleware/cors.js` — CORS 跨域中间件（根据 CONTRACT_FILE 允许的前端域名配置）
 - `src/utils/response.js` — 统一响应格式工具
 
 **lessons-learned.md** — 经验库初始文件：
@@ -198,10 +213,10 @@ mkdir -p {OUTPUT_DIR}/test-reports
 **严格按以下顺序执行，完成一步再做下一步**：
 
 ```
-Step 1: Read REQUIREMENTS_FILE（读需求）
+Step 1: Read 所有输入文档 — REQUIREMENTS_FILE → TECH_STACK_FILE → DATA_ARCHITECTURE_FILE → CONTRACT_FILE → SECURITY_FILE → IMPLEMENTATION_ROADMAP_FILE（按顺序读完）
 Step 2: Write dev-plan.md（开发计划，小文件）
 Step 3: Bash mkdir 创建项目目录结构
-Step 4: Write 基础配置文件（app入口/配置/中间件/工具）
+Step 4: Write 基础配置文件（app入口/配置/中间件含CORS/工具）
 Step 5: Write lessons-learned.md
 Step 6: Write api-design-guide.md（前3-4个接口）
 Step 7: Edit api-design-guide.md（追加第4-7个接口）

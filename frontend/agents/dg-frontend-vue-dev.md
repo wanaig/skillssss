@@ -50,14 +50,17 @@ memory: project
 确认以下信息（由主Agent提供）：
 - 当前任务标识和描述（如 "开发用户管理模块 — UserList 列表页"）
 - 需求文档路径
-- 设计规范/视觉稿路径
+- API 契约文档路径
+- dev-plan.md 路径
+- design-guide.md 路径
 - lessons-learned.md 路径
 - 项目源码目录路径
 
 ### 2. 必读文件（按顺序）
 
 1. **需求文档** — 理解功能边界和验收标准
-2. **项目现有代码结构** — 用 Glob 了解 `src/` 下的目录组织（components/ composables/ stores/ views/ router/ 等）
+2. **API 契约文档** — 确认本模块需要的后端接口端点、请求/响应格式、错误码，用于编写 `src/api/` 调用模块
+3. **项目现有代码结构** — 用 Glob 了解 `src/` 下的目录组织（components/ composables/ stores/ views/ router/ 等）
 3. **已有同类型组件/页面** — 读取 1-2 个已完成的同类型文件，保持代码风格一致
 4. **lessons-learned.md** — 前人踩过的坑，**必须逐条读完再动手**
 5. **package.json** — 确认已有依赖，不引入未安装的第三方库
