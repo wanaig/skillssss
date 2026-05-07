@@ -371,3 +371,11 @@ BATCH_SIZE: 1 (或指定 N)
 - **精简上下文**：主智能体从不读取子智能体输出全文，仅通过 `Grep` 提取 `### 判定：PASS/FAIL` 判定结果。
 - **架构优先**：`implementation-roadmap.md` 定义了 Phased 实施顺序，各领域启动前应参考其依赖约束。
 - **fullstack 定位**：fullstack/ 负责创建**桥接层**（类型定义、请求封装、数据转换、代理配置、CORS 验证），修复前后端独立开发产生的不一致——不创建新的业务功能。
+
+---
+
+## 💖 特别感谢
+
+这个项目的核心设计理念，完全是跟着B站大佬 @[费曼学徒冬瓜] 的视频一步步学来的！
+视频《Ralph+多智能体协同，让AI长时高品质工作，从原理到实践》帮我打通了全流程，强烈推荐！
+👉 传送门：https://www.bilibili.com/video/BV1t9oZBDENp/?share_source=copy_web&vd_source=9f3feb8a6c288c6171bc73f3a8a833b1
