@@ -484,7 +484,7 @@ while round < 2:
 >
 > **第 1 步（可并行）— 启动前端：**
 > ```
-> 使用 /frontend/主智能体提示词-Vue.md
+> 使用 /frontend/main-agent-prompt-vue.md
 > PROJECT_ROOT: {前端项目路径}
 > REQUIREMENT_FILE: {PRD 路径}
 > TECH_STACK_FILE: {OUTPUT_DIR}/tech-stack.md
@@ -495,7 +495,7 @@ while round < 2:
 >
 > **第 1 步（可并行）— 启动后端：**
 > ```
-> 使用 /backend/主智能体提示词.md
+> 使用 /backend/main-agent-prompt.md
 > OUTPUT_DIR: {后端项目路径}
 > REQUIREMENTS_FILE: {PRD 路径}
 > TECH_STACK_FILE: {OUTPUT_DIR}/tech-stack.md
@@ -507,7 +507,7 @@ while round < 2:
 >
 > **第 1 步（可并行）— 如需跨端应用：**
 > ```
-> 使用 /flutter/主智能体提示词-Flutter.md
+> 使用 /flutter/main-agent-prompt-flutter.md
 > PROJECT_ROOT: {Flutter 项目路径}
 > REQUIREMENT_FILE: {PRD 路径}
 > TECH_STACK_FILE: {OUTPUT_DIR}/tech-stack.md
@@ -518,7 +518,7 @@ while round < 2:
 >
 > **第 2 步（串行，需等前端+后端完成）— 启动前后端联调：**
 > ```
-> 使用 /fullstack/主智能体提示词-前后端联调.md
+> 使用 /fullstack/main-agent-prompt-fullstack.md
 > FRONTEND_ROOT: {前端项目路径}
 > BACKEND_ROOT: {后端项目路径}
 > CONTRACT_FILE: {OUTPUT_DIR}/api-contract-outline.md
