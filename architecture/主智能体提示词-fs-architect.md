@@ -370,11 +370,12 @@ while round < 2:
         - 参考文件：tech-stack.md（后端框架/ORM/架构模式）
         - 参考文件：data-architecture.md（完整表结构 Schema）
         - 参考文件：security-architecture.md（认证鉴权方案）
-      - fullstack/ 主智能体输入：
-        - FE_ROOT: {前端项目路径}
-        - BE_ROOT: {后端项目路径}
-        - API_DOC: api-contract-outline.md
+      - fullstack/ 主智能体输入（⚠️ 需等 frontend/ 和 backend/ 完成后再启动）：
+        - FRONTEND_ROOT: {前端项目路径}
+        - BACKEND_ROOT: {后端项目路径}
+        - CONTRACT_FILE: api-contract-outline.md
         - 参考文件：tech-stack.md（共享策略/类型生成方案/Monorepo）
+        - 参考文件：data-architecture.md（数据实体 Schema，用于校验类型一致性）
       - uniapp/ 主智能体输入：
         - REQUIREMENT_FILE: {PRD 路径}
         - PROJECT_ROOT: {uniapp 项目路径}

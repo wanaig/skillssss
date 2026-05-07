@@ -1,77 +1,352 @@
 # Harness Engineering — 多智能体协同开发系统
 
-基于 Claude Code 的**多智能体协同开发框架**，通过 **主智能体编排 + 专业化子智能体协作**，实现从需求到代码的全流程自动化研发。
+基于 Claude Code 的**多智能体协同开发框架**，通过 **1 个架构设计模块 + 4 个领域开发模块** 共 **24 个子智能体** 协作，实现从 PRD 需求文档到全栈代码的全流程自动化研发。
+
+---
 
 ## 核心设计理念
 
-- **主-从协同架构**：主智能体负责任务分解与调度，子智能体专注单一领域的编码/测试
-- **文件即记忆**：所有智能体输出持久化到文件，解决长时工作上下文丢失问题
-- **隔离即规范**：子智能体仅接收主智能体分发的信息，避免上下文污染
-- **日志即保障**：主-从智能体均记录完整日志，实现全链路可追溯
-- **纠错循环**：测试不通过 → 恢复开发智能体修复 → 重新测试（最多 5 轮）
+| 理念 | 说明 |
+|------|------|
+| **主-从协同架构** | 主智能体负责任务分解与调度，子智能体专注单一领域的编码/测试，主智能体绝不直接修改代码 |
+| **文件即记忆** | 所有智能体输出持久化到 markdown 文件（dev-plan.md / design-guide.md / lessons-learned.md），解决长时工作上下文丢失问题 |
+| **隔离即规范** | 子智能体仅接收主智能体分发的路径和参数，不读取完整上下文，避免信息污染 |
+| **日志即保障** | 主智能体记录 main-log.md，时间精确到分钟（yymmdd hhmm），实现全链路可追溯 |
+| **纠错闭环** | 开发 → 三维测试 → 不通过则 resume 同一开发Agent修复 → 重测，最多 3 轮 |
+| **测试只读** | 所有测试Agent设置为只读模式，仅输出 PASS/FAIL 判定报告，无权修改任何源代码 |
 
-## 系统架构
+---
+
+## 系统全局架构
 
 ```
-                    ┌─────────────────────────┐
-                    │   architecture/         │
-                    │   技术架构设计 (第一阶段) │
-                    └───────────┬─────────────┘
-                                │ 产出 architecture-design.md
-          ┌─────────┬───────────┼───────────┬─────────┐
-          ▼         ▼           ▼           ▼         ▼
-  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
-  │ backend/ │ │ frontend/│ │fullstack/│ │ uniapp/  │
-  │ 后端开发 │ │ Vue前端  │ │ 前后联调  │ │ 跨平台   │
-  └──────────┘ └──────────┘ └──────────┘ └──────────┘
+                        ┌──────────────────────────────────────┐
+                        │         Phase 0: architecture/       │
+                        │         技术架构设计（必须最先执行）    │
+                        │                                       │
+                        │  5 个子Agent 并行分析 5 个维度：        │
+                        │  techstack · data · infra             │
+                        │  security · api-design                │
+                        │                                       │
+                        │  产出：architecture-design.md          │
+                        │       + 5 份维度分析文档               │
+                        │       + implementation-roadmap.md     │
+                        └──────────────┬───────────────────────┘
+                                       │
+          ┌────────────────────────────┼────────────────────────────┐
+          │                            │                            │
+          ▼                            ▼                            ▼
+┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│  Phase 1a        │     │  Phase 1b        │     │  Phase 1c        │
+│  frontend/       │     │  backend/        │     │  uniapp/         │
+│  Vue 3 前端开发   │     │  后端 API 开发    │     │  uni-app 跨端    │
+│                  │     │                  │     │                  │
+│  5 个Agent:       │     │  5 个Agent:       │     │  5 个Agent:       │
+│  planner · dev   │     │  planner · dev   │     │  planner · dev   │
+│  + 3 testers     │     │  + 3 testers     │     │  + 3 testers     │
+└────────┬─────────┘     └────────┬─────────┘     └──────────────────┘
+         │                        │
+         │    前端页面 + 组件      │    后端 API 接口
+         └───────────┬────────────┘
+                     │ 两端代码均已产出
+                     ▼
+          ┌──────────────────┐
+          │  Phase 2         │
+          │  fullstack/      │
+          │  前后端联调       │  ← ⚠️ 必须在 frontend/ 和 backend/ 之后
+          │                  │
+          │  5 个Agent:       │
+          │  planner · dev   │
+          │  + 3 testers     │
+          │  (contract       │
+          │   dataflow       │
+          │   integration)   │
+          └──────────────────┘
 ```
+
+---
 
 ## 目录结构
 
 ```
 skillssss/
-├── architecture/            # 技术架构设计
-│   ├── 主智能体提示词-fs-architect.md
+│
+├── architecture/                    # Phase 0: 技术架构设计（最先执行）
+│   ├── 主智能体提示词-fs-architect.md     # 架构设计主编排者
 │   └── agents/
-│       ├── fa-techstack.md          # 技术栈评估
-│       ├── fa-data.md               # 数据架构设计
-│       ├── fa-infra.md              # 基础设施架构
-│       ├── fa-security.md           # 安全架构设计
-│       └── fa-api-design.md         # API 契约设计
-├── backend/                 # 后端 API 开发
-│   ├── 主智能体提示词.md
+│       ├── fa-techstack.md               # 技术栈评估（框架/语言/中间件）
+│       ├── fa-data.md                    # 数据架构设计（数据库/缓存/存储）
+│       ├── fa-infra.md                   # 基础设施架构（部署/CI-CD/网关）
+│       ├── fa-security.md                # 安全架构设计（认证/鉴权/加密）
+│       └── fa-api-design.md             # API 契约设计（端点/数据结构/错误码）
+│
+├── backend/                         # Phase 1b: 后端 API 开发
+│   ├── 主智能体提示词.md                  # 后端主编排者
 │   └── agents/
-│       ├── be-planner.md            # 基础设施与规划
-│       ├── be-api-dev.md            # API 开发
-│       ├── be-tester-functional.md  # 功能测试
-│       ├── be-tester-performance.md # 性能测试
-│       └── be-tester-security.md    # 安全测试
-├── frontend/                # Vue 3 前端开发
-│   ├── 主智能体提示词-Vue.md
+│       ├── be-planner.md                 # 基础设施与规划
+│       ├── be-api-dev.md                 # API 接口开发
+│       ├── be-tester-functional.md       # 功能测试
+│       ├── be-tester-performance.md      # 性能测试
+│       └── be-tester-security.md         # 安全测试
+│
+├── frontend/                        # Phase 1a: Vue 3 前端开发
+│   ├── 主智能体提示词-Vue.md              # 前端主编排者
 │   └── agents/
-│       ├── dg-vue-planner.md                # 规划与脚手架
-│       ├── dg-frontend-vue-dev.md           # 组件开发
-│       ├── dg-vue-tester-component.md       # 组件结构测试
-│       ├── dg-vue-tester-logic.md           # 逻辑与状态测试
-│       └── dg-vue-tester-style.md           # 样式与视觉测试
-├── fullstack/               # 前后端联调
-│   ├── 主智能体提示词-前后端联调.md
+│       ├── dg-vue-planner.md             # 规划与脚手架搭建
+│       ├── dg-frontend-vue-dev.md        # Vue 组件/Store/路由开发
+│       ├── dg-vue-tester-component.md    # 组件结构测试
+│       ├── dg-vue-tester-logic.md        # 业务逻辑与状态测试
+│       └── dg-vue-tester-style.md        # 样式与 UX 测试
+│
+├── fullstack/                       # Phase 2: 前后端联调（⚠️ 在 frontend+backend 之后）
+│   ├── 主智能体提示词-前后端联调.md         # 联调主编排者
 │   └── agents/
-│       ├── fs-planner.md            # 集成规划
-│       ├── fs-api-dev.md            # 接口对接开发
-│       ├── fs-tester-contract.md    # 契约测试
-│       ├── fs-tester-dataflow.md    # 数据流测试
-│       └── fs-tester-integration.md # 集成测试
-├── uniapp/                  # uni-app 跨平台开发
-│   ├── 主智能体提示词-uni-app.md
+│       ├── fs-planner.md                 # 集成规划与基础设施
+│       ├── fs-api-dev.md                 # 接口对接开发（双向操作前后端代码）
+│       ├── fs-tester-contract.md         # 契约一致性测试
+│       ├── fs-tester-dataflow.md         # 数据流完整性测试
+│       └── fs-tester-integration.md      # 端到端集成测试
+│
+├── uniapp/                          # Phase 1c: uni-app 跨平台开发
+│   ├── 主智能体提示词-uni-app.md          # uni-app 主编排者
 │   └── agents/
-│       ├── dg-uni-app-planner.md            # 规划与工程化
-│       ├── dg-uni-app-dev.md                # 跨平台组件开发
-│       ├── dg-uni-app-tester-crossplatform.md # 跨平台兼容测试
-│       ├── dg-uni-app-tester-logic.md       # 逻辑测试
-│       └── dg-uni-app-tester-style.md       # 样式测试
-└── 笔记-非最新仅参考-多智能体协同-长时工作设计.md  # 核心设计笔记
+│       ├── dg-uni-app-planner.md         # 规划与工程化配置
+│       ├── dg-uni-app-dev.md             # 跨平台组件开发
+│       ├── dg-uni-app-tester-crossplatform.md  # 跨端兼容测试
+│       ├── dg-uni-app-tester-logic.md    # 逻辑测试
+│       └── dg-uni-app-tester-style.md    # 样式测试
+│
+├── README.md                        # 本文件
+└── 笔记-非最新仅参考-多智能体协同-长时工作设计.md
 ```
+
+---
+
+## 执行顺序与依赖关系
+
+```
+Phase 0           Phase 1 (并行)        Phase 2 (串行)
+───────────      ──────────────        ─────────────
+
+                   ┌─ frontend/ ─┐
+                   │  Vue 前端    │────┐
+                   └─────────────┘    │
+                                      ├──▶ fullstack/
+architecture/ ──▶  ┌─ backend/  ─┐    │    前后端联调
+  架构设计          │  后端 API   │────┘
+                   └─────────────┘
+                   ┌─ uniapp/  ──┘
+                   │  跨平台开发  (独立并行)
+                   └─────────────┘
+```
+
+| 阶段 | 模块 | 依赖 | 可并行 | 说明 |
+|------|------|------|--------|------|
+| **Phase 0** | `architecture/` | 仅需 PRD 文档 | — | 必须最先执行，产出设计基线 |
+| **Phase 1a** | `frontend/` | `architecture/` 产出 | 可与 1b, 1c 并行 | Vue 3 页面和组件开发 |
+| **Phase 1b** | `backend/` | `architecture/` 产出 | 可与 1a, 1c 并行 | REST API 接口开发 |
+| **Phase 1c** | `uniapp/` | `architecture/` 产出 | 可与 1a, 1b 并行 | 跨平台应用开发（独立） |
+| **Phase 2** | `fullstack/` | `frontend/` **且** `backend/` 均完成 | **不可并行** | 需要两端代码均已存在 |
+
+### 为什么 fullstack/ 必须在之后？
+
+`fs-api-dev` 的职责是创建桥接层（前端 API 调用模块、共享类型定义、数据转换），以及修复两端独立开发产生的不一致——而非从零开发新功能。没有前后端代码，联调无从谈起。
+
+---
+
+## 智能体角色总览（24 个）
+
+### architecture/ — 5 个 Agent
+
+| Agent | 角色 | 产出 |
+|-------|------|------|
+| `fa-techstack` | 技术栈评估 | `tech-stack.md` |
+| `fa-data` | 数据架构设计 | `data-architecture.md` |
+| `fa-infra` | 基础设施架构 | `infra-architecture.md` |
+| `fa-security` | 安全架构设计 | `security-architecture.md` |
+| `fa-api-design` | API 契约设计 | `api-contract-outline.md` |
+| *(主Agent)* | 编排+一致性检查+整合 | `architecture-design.md` + `implementation-roadmap.md` |
+
+### backend/ — 5 个 Agent
+
+| Agent | 角色 | 测试维度 |
+|-------|------|---------|
+| `be-planner` | 项目规划与脚手架 | — |
+| `be-api-dev` | 接口开发 | — |
+| `be-tester-functional` | 功能测试 | 业务逻辑正确性 |
+| `be-tester-performance` | 性能测试 | 响应时间/并发/索引 |
+| `be-tester-security` | 安全测试 | 注入/鉴权/数据保护 |
+
+### frontend/ — 5 个 Agent
+
+| Agent | 角色 | 测试维度 |
+|-------|------|---------|
+| `dg-vue-planner` | 项目规划与脚手架 | — |
+| `dg-frontend-vue-dev` | 组件开发 | — |
+| `dg-vue-tester-component` | 组件结构测试 | Props/Emits/生命周期/组件树 |
+| `dg-vue-tester-logic` | 逻辑测试 | 响应式/Store/异步/类型安全 |
+| `dg-vue-tester-style` | 样式测试 | CSS作用域/响应式/无障碍/交互态 |
+
+### fullstack/ — 5 个 Agent
+
+| Agent | 角色 | 测试维度 |
+|-------|------|---------|
+| `fs-planner` | 集成规划与基础设施 | — |
+| `fs-api-dev` | 接口对接开发 | — |
+| `fs-tester-contract` | 契约测试 | 类型定义/字段名/请求响应结构一致性 |
+| `fs-tester-dataflow` | 数据流测试 | loading/error/data三态/状态链路 |
+| `fs-tester-integration` | 集成测试 | CORS/鉴权流通/路由挂载/错误穿透 |
+
+### uniapp/ — 5 个 Agent
+
+| Agent | 角色 | 测试维度 |
+|-------|------|---------|
+| `dg-uni-app-planner` | 项目规划与工程化 | — |
+| `dg-uni-app-dev` | 跨平台组件开发 | — |
+| `dg-uni-app-tester-crossplatform` | 跨端兼容测试 | H5/小程序/iOS/Android |
+| `dg-uni-app-tester-logic` | 逻辑测试 | 响应式/Store/异步 |
+| `dg-uni-app-tester-style` | 样式测试 | rpx适配/安全区/主题 |
+
+---
+
+## 各领域内部工作流程
+
+每个领域遵循统一的 **3 阶段流水线**：
+
+```
+Phase 1: 规划        Phase 2: 批量开发-测试循环          Phase 3: 收尾
+─────────────      ─────────────────────────────      ────────────
+
+Planner读取PRD     ┌─── 开发Agent实现模块 ───┐        汇总统计
+  ↓                │                          │        输出 lessons-learned.md
+产出 dev-plan.md   ├─── 3个测试Agent并行 ────┤
+  ↓                │   (各测不同维度)          │
+产出 design-guide  │          ↓               │
+  ↓                ├─── 任一FAIL? ──── YES ──▶ resume开发Agent修复
+搭建项目脚手架      │          ↓ NO            │         ↓
+                    │   标记PASS，继续下批      │    resume测试Agent重测
+                    └──────────────────────────┘         ↓
+                                                   最多3轮纠错
+
+BATCH_SIZE 默认=1，用户可指定一次开发N个模块（开发批量=测试批量）
+测试始终3个Agent并行，开发每批只启动1个Agent
+```
+
+### 关键机制
+
+| 机制 | 说明 |
+|------|------|
+| **Agent Resume** | 修正时 resume 同一 Agent（复用 ID），保持上下文连续，不另起新 Agent |
+| **Agent ID 收集** | 子Agent 完成后 ID 写入 `~/.claude/projects/.../agent-*.meta.json`，主Agent 探测提取 |
+| **纠错循环** | 最多 3 轮，第 3 轮仍 FAIL → 标记 ⚠️ "低质量通过"，不阻塞整体进度 |
+| **上下文保护** | 主Agent 不读子Agent 产出内容，仅用 Grep 提取 `### 判定：PASS/FAIL` |
+| **文件即状态** | `dev-plan.md` / `integration-plan.md` 中的 ⏳/✅/⚠️ 标记是整个系统的进度来源 |
+| **经验积累** | `lessons-learned.md` 由开发Agent 在每次修正后更新，遵循"原则性 > 数值性、模式级 > 页面级、可迁移 > 可复制" |
+
+---
+
+## 使用方式
+
+### 前置条件
+
+- Claude Code 环境（支持 Agent / Task 功能）
+- `~/.claude/` 目录结构就绪
+
+### 标准流程
+
+#### 第 1 步：架构设计（必须最先执行）
+
+将以下提示词发送给 Claude Code，加载 architecture 主智能体：
+
+```
+使用 fs-architect 主智能体，PRD 路径: {你的需求文档路径}
+输出目录: {架构文档输出目录}
+```
+
+架构主智能体会：
+1. 收集项目约束信息（团队技能、规模、合规等）
+2. 并行启动 5 个维度分析Agent
+3. 进行一致性检查和需求覆盖度检查
+4. 产出 `architecture-design.md` + 5 份维度文档 + `implementation-roadmap.md`
+
+#### 第 2 步：前后端并行开发
+
+架构设计完成后，可同时启动前端和后端开发：
+
+**启动前端：**
+```
+使用 /frontend/主智能体提示词-Vue.md
+PROJECT_ROOT: {前端项目路径}
+REQUIREMENT_FILE: {PRD 路径}
+BATCH_SIZE: 1 (或指定 N)
+```
+
+**启动后端：**
+```
+使用 /backend/主智能体提示词.md
+OUTPUT_DIR: {后端项目路径}
+REQUIREMENTS_FILE: {PRD 路径}
+BATCH_SIZE: 1 (或指定 N)
+```
+
+**如需跨平台应用：**
+```
+使用 /uniapp/主智能体提示词-uni-app.md
+PROJECT_ROOT: {uniapp 项目路径}
+REQUIREMENT_FILE: {PRD 路径}
+```
+
+#### 第 3 步：前后端联调
+
+⚠️ **必须等 frontend/ 和 backend/ 全部完成后再执行此步骤。**
+
+```
+使用 /fullstack/主智能体提示词-前后端联调.md
+FRONTEND_ROOT: {前端项目路径}
+BACKEND_ROOT: {后端项目路径}
+CONTRACT_FILE: {architecture 产出的 api-contract-outline.md 路径}
+BATCH_SIZE: 1 (或指定 N)
+```
+
+联调主智能体会：
+1. 读取 API 契约文档 + 扫描两端代码现状
+2. 创建前端 API 调用层（`src/api/`、`src/types/api.ts`、`vite.config.ts` 代理）
+3. 逐模块对接接口：前端类型定义 ↔ 后端响应格式
+4. 三维测试：契约一致性 / 数据流完整性 / 端到端集成
+5. 修正循环确保两端完全对齐
+
+#### 第 4 步：验证收尾
+
+所有领域完成后，检查各领域的 `main-log.md` 确认：
+- 全部模块标记 ✅
+- 迭代统计汇总
+- `lessons-learned.md` 记录的经验可复用到下个项目
+
+---
+
+## 数据流与接口约定
+
+### 模块间传递的关键变量
+
+| 变量名 | 含义 | 来源 | 消费者 |
+|--------|------|------|--------|
+| `REQUIREMENT_FILE` | PRD 需求文档路径 | 用户提供 | architecture/ → frontend/ / backend/ / uniapp/ |
+| `CONTRACT_FILE` | API 契约文档路径 | architecture/ 产出 `api-contract-outline.md` | fullstack/ |
+| `FRONTEND_ROOT` | 前端项目根目录 | 用户提供/architecture 指定 | frontend/ / fullstack/ |
+| `BACKEND_ROOT` | 后端项目根目录 | 用户提供/architecture 指定 | backend/ / fullstack/ |
+| `OUTPUT_DIR` | 输出目录 | 架构设计阶段 | architecture/ / backend/ |
+| `BATCH_SIZE` | 批量开发大小 | 用户指定（默认 1） | 全部 4 个领域 |
+
+### architecture/ → 各领域的交接
+
+| 下游模块 | 需要的输入 | 依赖的参考文件 |
+|---------|-----------|---------------|
+| **frontend/** | `REQUIREMENT_FILE`, `PROJECT_ROOT` | `tech-stack.md`, `api-contract-outline.md`, `security-architecture.md` |
+| **backend/** | `REQUIREMENTS_FILE`, `OUTPUT_DIR` | `tech-stack.md`, `data-architecture.md`, `security-architecture.md` |
+| **fullstack/** | `FRONTEND_ROOT`, `BACKEND_ROOT`, `CONTRACT_FILE` | `tech-stack.md`, `data-architecture.md` |
+| **uniapp/** | `REQUIREMENT_FILE`, `PROJECT_ROOT` | `tech-stack.md`, `api-contract-outline.md`, `security-architecture.md` |
+
+---
 
 ## 目标技术栈
 
@@ -87,52 +362,12 @@ skillssss/
 | **CI/CD** | GitHub Actions / GitLab CI | — |
 | **跨平台** | uni-app (H5/微信小程序/iOS/Android) | — |
 
-## 工作流程
-
-每个领域遵循统一的三阶段流水线：
-
-### 阶段一：规划 (Planning)
-规划智能体读取需求文档，产出 `dev-plan.md`、`design-guide.md`，并搭建项目脚手架。
-
-### 阶段二：批量开发-测试循环
-1. **开发** — 开发智能体按批次实现模块
-2. **并行测试** — 3 个测试智能体从不同维度同时测试
-3. **纠错** — 测试不通过时恢复开发智能体修复（最多 3 轮）
-4. **更新计划** — 记录进度和问题总结
-
-### 阶段三：收尾
-- 汇总统计（总任务数、通过率、修复轮次）
-- 输出 `lessons-learned.md`（跨智能体知识积累）
-
-## 使用方式
-
-### 前置条件
-- Claude Code 环境（支持 Agent 功能）
-- `~/.claude/` 目录结构就绪
-
-### 开始一个项目
-
-1. **架构设计（必须最先执行）**
-   ```
-   使用 fs-architect 主智能体，提供 PRD 文档路径
-   ```
-
-2. **领域开发（可并行）**
-   根据架构设计文档，按需启动各领域主智能体：
-   - `/backend/主智能体提示词.md` — 启动后端开发
-   - `/frontend/主智能体提示词-Vue.md` — 启动前端开发
-   - `/fullstack/主智能体提示词-前后端联调.md` — 启动前后端联调
-   - `/uniapp/主智能体提示词-uni-app.md` — 启动跨平台开发
-
-3. **确认参数**
-   与主智能体确认项目目录、批次大小 (`BATCH_SIZE`) 等配置后，主智能体将自动编排全流程。
-
-### 智能体 Recovery 机制
-
-子智能体会将 ID 持久化到 `~/.claude/projects/.../agent-*.meta.json`，纠错循环时主智能体通过 `resume` 复用同一智能体会话，保持上下文连续性。
+---
 
 ## 设计说明
 
-- **测试智能体只读**：所有测试智能体设置为只读模式，仅输出 PASS/FAIL 判定，无权修改代码。
-- **语义化文件命名**：全项目使用固定规则命名的 markdown 文件（如 `dev-plan.md`）作为沟通载体，主智能体通过文件名了解执行状态。
-- **精简上下文**：主智能体从不读取子智能体输出全文，仅通过 `Grep` 提取关键判定结果。
+- **测试智能体只读**：全部 12 个测试Agent 设定为只读模式，仅输出测试报告到 `test-reports/` 或 `fullstack-test-reports/`，无权修改任何源代码。
+- **语义化文件命名**：全系统统一使用 `dev-plan.md`、`design-guide.md`、`integration-plan.md`、`lessons-learned.md` 等固定规则命名，主智能体通过文件名判断执行状态。
+- **精简上下文**：主智能体从不读取子智能体输出全文，仅通过 `Grep` 提取 `### 判定：PASS/FAIL` 判定结果。
+- **架构优先**：`implementation-roadmap.md` 定义了 Phased 实施顺序，各领域启动前应参考其依赖约束。
+- **fullstack 定位**：fullstack/ 负责创建**桥接层**（类型定义、请求封装、数据转换、代理配置、CORS 验证），修复前后端独立开发产生的不一致——不创建新的业务功能。
