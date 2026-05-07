@@ -273,9 +273,69 @@ Grep(pattern="proxy|/api") in FRONTEND_ROOT/vite.config.ts
   - 缺少全局错误处理导致未捕获异常返回 HTML 而非 JSON
 - **PASS**：所有模块的所有检查项全部通过
 
-### 7. 输出
+### 7. 输出给主Agent
 
-报告写入后，不需要返回内容给主Agent。主Agent会通过 Grep 提取判定结果。
+除了写入 markdown 报告文件，必须同时写入 JSON 格式的测试报告到 `{输出目录}/{模块名}-integration-report.json`。
+
+**JSON 报告格式**：
+
+PASS时：
+```json
+{
+  "module": "{模块名}",
+  "dimension": "integration",
+  "round": {N},
+  "verdict": "PASS",
+  "failures": [],
+  "max_severity": null
+}
+```
+
+FAIL时：
+```json
+{
+  "module": "{模块名}",
+  "dimension": "integration",
+  "round": {N},
+  "verdict": "FAIL",
+  "max_severity": "blocker",
+  "failures": [
+    {
+      "severity": "blocker",
+      "category": "{维度类别}",
+      "file": "src/controllers/userController.js",
+      "line": 15,
+      "reason": "缺少邮箱格式验证，可接受任意字符串",
+      "suggestion": "添加邮箱正则验证"
+    }
+  ]
+}
+```
+
+**字段说明**：
+- `verdict`: `"PASS"` 或 `"FAIL"`
+- `max_severity`: 本次测试中所有 failure 的最高严重级别（`"blocker"` > `"major"` > `"minor"`）。PASS 时为 `null`
+- `failures[].severity`: 单条问题的严重级别
+- `failures[].category`: 问题所属维度类别（如"数据库查询"、"响应式"、"CORS"等）
+
+**⚠️ 主Agent只读取 JSON 文件的 `verdict` 字段判定 PASS/FAIL，不读取 markdown 报告。你的 JSON 输出必须精确。**
+
+**Agent ID 写入**：
+完成测试并写入报告后，将你的 Agent ID 写入 `{输出目录}/../agent-registry.json`（即项目根目录下的 agent-registry.json），更新对应键位。
+
+写入方式：用 Bash 执行：
+```bash
+jq '.agents.test_integration.id = "{YOUR_AGENT_ID}" | .agents.test_integration.updated = "{CURRENT_TIME}"' {OUTPUT_DIR}/../agent-registry.json > tmp.json && mv tmp.json {OUTPUT_DIR}/../agent-registry.json
+```
+
+向主Agent输出时只返回：
+```
+测试结果：{PASS/FAIL}
+最高严重级别：{blocker/major/minor/-}
+失败项数：{N}
+JSON报告：{路径}
+Markdown报告：{路径}
+```
 
 ---
 

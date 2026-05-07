@@ -42,8 +42,20 @@ memory: project
 - 安全架构文档路径，记为 `SECURITY_FILE`
 - 实施路线图路径，记为 `IMPLEMENTATION_ROADMAP_FILE`
 - 项目根目录路径，记为 `PROJECT_ROOT`
+- **是否为增量开发**：检查项目目录是否已有代码。若有，标记为增量开发模式，产出 `existing-architecture-analysis.md`
 
 ### 2. 必读文件（按顺序）
+
+0. **项目现有结构**（增量开发场景）— 如果项目目录已存在代码：
+   - 用 Glob 扫描 `{PROJECT_ROOT}/src/` 下的完整目录树
+   - 读取 `package.json` 了解已有依赖
+   - 用 Grep 搜索已有的路由、store、组件清单
+   - 生成 `existing-architecture-analysis.md`，记录：
+     - 已有模块清单和功能描述
+     - 已有的数据模型/表结构
+     - 已有的 API 端点
+     - 代码组织惯例（命名规范、目录模式、lint 规则）
+   - 在 dev-plan.md 中标注哪些是新增模块、哪些是改造模块
 
 1. **REQUIREMENT_FILE** — 完整阅读需求文档，理解功能模块和业务逻辑
 2. **TECH_STACK_FILE** — 了解技术栈选型（框架、构建工具、UI 库、状态管理方案等）

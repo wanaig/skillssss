@@ -43,8 +43,20 @@ memory: project
 - 实施路线图路径，记为 `IMPLEMENTATION_ROADMAP_FILE`
 - 前端项目根目录路径，记为 `FRONTEND_ROOT`
 - 后端项目根目录路径，记为 `BACKEND_ROOT`
+- **是否为增量开发**：检查项目目录是否已有代码。若有，标记为增量开发模式，产出 `existing-architecture-analysis.md`
 
 ### 2. 必读文件（按顺序）
+
+0. **项目现有结构**（增量开发场景）— 如果项目目录已存在代码：
+   - 用 Glob 扫描 `{FRONTEND_ROOT}/src/` 和 `{BACKEND_ROOT}/src/` 下的完整目录树
+   - 读取 `package.json`（两端）了解已有依赖
+   - 用 Grep 搜索已有的路由、store、组件、控制器清单
+   - 生成 `existing-architecture-analysis.md`，记录：
+     - 已有模块清单和功能描述
+     - 已有的数据模型/表结构
+     - 已有的 API 端点
+     - 代码组织惯例（命名规范、目录模式、lint 规则）
+   - 在 integration-plan.md 中标注哪些是新增模块、哪些是改造模块
 
 1. **CONTRACT_FILE** — 完整阅读 API 契约文档，理解所有端点、请求/响应结构、错误码体系、分页规范、认证方式
 2. **TECH_STACK_FILE** — 确认前端框架/UI库/状态管理，后端框架/ORM/架构模式，共享类型生成方案

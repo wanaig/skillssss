@@ -27,7 +27,7 @@
 5. **双向代码感知** — 同时管理前端项目和后端项目的路径，子Agent需要同时操作两端代码
 6. **绝对禁止清单**（违反任何一条都会膨胀上下文）：
     - ❌ 不读 API 契约文档/架构文档内容，只把路径传给子Agent
-   - ❌ 不读测试报告文件的内容，只用 Grep 提取第一行的 `### 判定：PASS/FAIL`
+    - ❌ 不读测试报告文件的内容，只读取 test-report.json 中的 `verdict` 字段判定 PASS/FAIL
    - ❌ 不直接编辑任何 .vue / .ts / .tsx / .js / .json 文件，全部委托给 fs-api-dev
    - ❌ 不对延迟到达的后台通知做详细回应，只回复"已确认"三个字
 
@@ -56,6 +56,7 @@
 - {yymmdd hhmm} 前端项目：{FRONTEND_ROOT}
 - {yymmdd hhmm} 后端项目：{BACKEND_ROOT}
 - {yymmdd hhmm} 批量大小：{BATCH_SIZE}
+- {yymmdd hhmm} 成本追踪：本轮预计调用 {N} 个Agent
 ```
 
 ---
@@ -64,37 +65,45 @@
 
 修正循环必须 resume 同一个子Agent，而不是启动新Agent。这依赖 ID 的准确收集。
 
-### 获取方式：文件系统探测
+### 获取方式：agent-registry.json
 
-子Agent 完成后，其 agentId 会写入文件系统。用以下命令获取最新的 agent ID：
+子Agent 完成后，将自身的 Agent ID 写入项目目录下的 `agent-registry.json`。不再依赖文件系统时间戳扫描（`find ... | sort -rn | head -1` 在并发 Agent 同时完成时可能拿错 ID）。
 
-**Linux/macOS：**
+**agent-registry.json 格式**：
+```json
+{
+  "agents": {
+    "dev": { "id": "abc123", "type": "fs-api-dev", "updated": "260507 1430" },
+    "test_contract": { "id": "def456", "type": "fs-tester-contract", "updated": "260507 1432" },
+    "test_dataflow": { "id": "ghi789", "type": "fs-tester-dataflow", "updated": "260507 1432" },
+    "test_integration": { "id": "jkl012", "type": "fs-tester-integration", "updated": "260507 1432" }
+  }
+}
+```
+
+**主Agent的职责**：
+1. 初始化时在日志目录创建 `agent-registry.json`（初始内容 `{"agents":{}}`）
+2. 子Agent 完成后，读取 `agent-registry.json` 获取 Agent ID：
 ```bash
-find ~/.claude/projects/ -name "agent-*.meta.json" -type f -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-
+jq -r '.agents.dev.id' {FRONTEND_ROOT}/agent-registry.json
+```
+如果 `jq` 不可用，用 Grep 提取：
+```
+Grep(pattern=""id": "", path="{FRONTEND_ROOT}/agent-registry.json")
 ```
 
-**Windows PowerShell：**
-```powershell
-Get-ChildItem -LiteralPath "$env:USERPROFILE\.claude\projects" -Recurse -Filter "agent-*.meta.json" | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
-```
-
-文件名格式 `agent-abc123.meta.json`，提取裸 ID 即 `abc123`。
-
-收到返回后**第一时间执行上述命令，将 ID 写入日志**，不要先做其他事：
-
-```
-写日志：- {yymmdd hhmm} 对接完成：{模块名} 已集成 (DEV_ID: {DEV_ID})
-```
+**子Agent的职责**：
+- 在prompt中明确要求：完成后将 Agent ID 写入 `{FRONTEND_ROOT}/agent-registry.json` 的对应键
 
 如果获取不到 ID，**禁止跳过、禁止启动新Agent**。暂停并报告错误。
 
 ### ID 使用规则
 
-1. **resume 必须用裸 ID**（如 `abc123`），不带 `agent-` 前缀和 `.meta.json` 后缀
-2. **resume 必须指定 subagent_type**（如 `"fs-api-dev"`）
+1. **resume 必须用裸 ID**（如 `abc123`），不带 `agent-` 前缀
+2. **resume 必须指定 subagent_type**
 3. **每批开发轮次结束后，DEV_ID 失效**，新批重新启动开发Agent
 4. **同批修正循环中复用同一个 DEV_ID**，禁止启动新Agent
-5. **同批修正循环中复用测试Agent ID**（TEST_CONTRACT_ID / TEST_DATAFLOW_ID / TEST_INTEGRATION_ID），新批开发时重新启动
+5. **同批修正循环中复用测试Agent ID**，新批开发时重新启动
 
 ---
 
@@ -160,17 +169,17 @@ Agent(
 Agent A:
   subagent_type: "fs-tester-contract",
   run_in_background: true,
-  prompt: "契约测试：{本批所有模块，逗号分隔}\n前端项目：{FRONTEND_ROOT}\n后端项目：{BACKEND_ROOT}\nAPI 契约文档：{CONTRACT_FILE}\nintegration-design-guide: {FRONTEND_ROOT}/integration-design-guide.md\n输出目录: {FRONTEND_ROOT}/fullstack-test-reports/"
+  prompt: "契约测试：{本批所有模块，逗号分隔}\n前端项目：{FRONTEND_ROOT}\n后端项目：{BACKEND_ROOT}\nAPI 契约文档：{CONTRACT_FILE}\nintegration-design-guide: {FRONTEND_ROOT}/integration-design-guide.md\n输出目录: {FRONTEND_ROOT}/fullstack-test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {模块}-{dimension}-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。"
 
 Agent B:
   subagent_type: "fs-tester-dataflow",
   run_in_background: true,
-  prompt: "数据流测试：{本批所有模块，逗号分隔}\n前端项目：{FRONTEND_ROOT}\n后端项目：{BACKEND_ROOT}\nAPI 契约文档：{CONTRACT_FILE}\nintegration-design-guide: {FRONTEND_ROOT}/integration-design-guide.md\n输出目录: {FRONTEND_ROOT}/fullstack-test-reports/"
+  prompt: "数据流测试：{本批所有模块，逗号分隔}\n前端项目：{FRONTEND_ROOT}\n后端项目：{BACKEND_ROOT}\nAPI 契约文档：{CONTRACT_FILE}\nintegration-design-guide: {FRONTEND_ROOT}/integration-design-guide.md\n输出目录: {FRONTEND_ROOT}/fullstack-test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {模块}-{dimension}-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。"
 
 Agent C:
   subagent_type: "fs-tester-integration",
   run_in_background: true,
-  prompt: "集成测试：{本批所有模块，逗号分隔}\n前端项目：{FRONTEND_ROOT}\n后端项目：{BACKEND_ROOT}\nAPI 契约文档：{CONTRACT_FILE}\nintegration-design-guide: {FRONTEND_ROOT}/integration-design-guide.md\n输出目录: {FRONTEND_ROOT}/fullstack-test-reports/"
+  prompt: "集成测试：{本批所有模块，逗号分隔}\n前端项目：{FRONTEND_ROOT}\n后端项目：{BACKEND_ROOT}\nAPI 契约文档：{CONTRACT_FILE}\nintegration-design-guide: {FRONTEND_ROOT}/integration-design-guide.md\n输出目录: {FRONTEND_ROOT}/fullstack-test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {模块}-{dimension}-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。"
 ```
 
 > **并发上限 = 3**：无论批量大小，测试始终只有 3 个 Agent 并行运行。
@@ -181,11 +190,11 @@ Agent C:
 
 > **后台Agent完成时**：系统会自动通知，收到通知后立即提取结果并记录日志，不要等三个都完成再处理。
 
-> **超时应对策略**：如果 TaskOutput 超时（300s），**不要**用 Bash ls 或 Read 读取报告内容。改用 Grep 从报告文件提取判定结果：
+> **超时应对策略**：如果 TaskOutput 超时（300s），**不要**用 Bash ls 或 Read 读取报告内容。读取 JSON 测试报告提取判定：
+> ```bash
+> jq -r '.verdict' {FRONTEND_ROOT}/fullstack-test-reports/{模块}-{dimension}-report.json
 > ```
-> Grep(pattern="^### 判定", path="{FRONTEND_ROOT}/fullstack-test-reports/{模块}-{dimension}.md")
-> ```
-> 只看第一个匹配行的 PASS/FAIL，**绝不读完整报告**。报告路径传给修复Agent让它自己读。
+> 只看 verdict 字段，**绝不读完整报告**。报告路径传给修复Agent让它自己读。
 
 **日志写入**：
 ```
@@ -266,7 +275,18 @@ while round < 3:
 **循环结束判定**：
 
 - 模块全PASS → integration-plan.md 标记 ✅
-- 模块第3轮仍FAIL → integration-plan.md 标记 ⚠️（低质量通过）
+- 模块有 FAIL，检查 JSON 报告中的 severity 字段：
+  - **仅含 minor 级别 FAIL**：允许标记 ⚠️（低质量通过），不阻塞后续批次
+  - **含 blocker 或 major 级别 FAIL**：
+    - round < 3：继续修正循环
+    - round = 3（第3轮后仍有 blocker/major FAIL）：
+      - 向用户报告：`"{模块} 存在 blocker/major 级别问题，第3轮修正后仍未通过。建议：1) git revert 该批次并重启Agent 2) 手动介入"`
+      - 等待用户指示，不回退为低质量通过
+
+**回滚机制**：
+- 第2轮修正后如果仍有 blocker 或 major 级别 FAIL，在启动第3轮前询问用户：
+  > "{模块} 已修正 2 轮仍未通过（blocker/major）。选项：1) 继续第3轮修正 2) revert 本批Agent分支 (git revert)，重启开发Agent从零开始"
+- 用户选择 revert 时，执行 `git revert` 回退该 Agent 分支的提交，清除 `agent-registry.json` 中对应 ID，从 Step 1 重新启动开发Agent
 
 ### Step 4：批量状态更新 + 反馈
 
@@ -299,6 +319,7 @@ while round < 3:
   - 2次通过：{Y} 个
   - 3次通过：{Z} 个
   - 强制通过：{W} 个
+- {yymmdd hhmm} 总Agent调用次数：{X}（开发{N} + 测试{M} + 修改{K}）
 ```
 
 3. 向用户报告完成
@@ -361,11 +382,12 @@ while round < 3:
 ### 上下文保护规则（11-16）
 
 11. **架构文档只传路径不读内容** — 初始化时只记录 `CONTRACT_FILE`、`TECH_STACK_FILE`、`DATA_ARCHITECTURE_FILE`、`IMPLEMENTATION_ROADMAP_FILE` 路径，把路径传给 fs-planner 让它自己读
-12. **测试结果只用 Grep 提取判定** — `Grep(pattern="^### 判定")` 取第一行 PASS/FAIL，不 Read 完整报告
+12. **测试结果只读 JSON 判定** — 读取 test-report.json 中的 `verdict` 字段，不 Read 完整报告
 13. **所有代码修改委托给 fs-api-dev** — 即使改一行 import 也要委托，主Agent不碰任何代码文件
 14. **后台通知简短确认** — 迟到的后台Agent通知只需回复"已确认"，不复述内容
 15. **开发批量 = 测试批量** — 默认 BATCH_SIZE=1（单模块），用户可指定 N。开发N个模块时测试也是3个Agent各测N个，开发批量与测试批量保持一致
 16. **并发上限始终为3** — 测试阶段始终只有3个Agent并行（契约/数据流/集成各一个），每个Agent内部处理本批所有模块。开发阶段每批只启动1个开发Agent
+17. **成本追踪规则**：每批完成后在 main-log.md 追加该批Agent调用次数（开发+测试+修正），Phase 结束时汇总总调用次数。优先关注修正轮次成本——修正轮次越高说明 prompt 或 PRD 质量存在问题。
 
 ---
 

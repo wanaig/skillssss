@@ -43,8 +43,20 @@ memory: project
 - 安全架构文档路径，记为 `SECURITY_FILE`
 - 实施路线图路径，记为 `IMPLEMENTATION_ROADMAP_FILE`
 - 输出目录路径，记为 `OUTPUT_DIR`
+- **是否为增量开发**：检查项目目录是否已有代码。若有，标记为增量开发模式，产出 `existing-architecture-analysis.md`
 
 ### 2. 必读文件（按顺序）
+
+0. **项目现有结构**（增量开发场景）— 如果项目目录已存在代码：
+   - 用 Glob 扫描 `{OUTPUT_DIR}/src/` 下的完整目录树
+   - 读取 `package.json`（或 `requirements.txt`）了解已有依赖
+   - 用 Grep 搜索已有的路由、控制器清单
+   - 生成 `existing-architecture-analysis.md`，记录：
+     - 已有模块清单和功能描述
+     - 已有的数据模型/表结构
+     - 已有的 API 端点
+     - 代码组织惯例（命名规范、目录模式、lint 规则）
+   - 在 dev-plan.md 中标注哪些是新增模块、哪些是改造模块
 
 1. **REQUIREMENTS_FILE** — 完整阅读需求文档，理解业务逻辑和接口结构
 2. **TECH_STACK_FILE** — 了解技术栈选型（框架、语言、数据库、中间件、缓存等）
@@ -208,6 +220,56 @@ mkdir -p {OUTPUT_DIR}/test-reports
 （开发过程中积累的经验会追加在此）
 ```
 
+**搭建 Docker Compose 测试环境**（be-planner 负责）：
+
+创建 `{OUTPUT_DIR}/docker-compose.test.yml`，提供性能测试和安全测试所需的真实数据库环境：
+
+```yaml
+version: '3.8'
+services:
+  db-test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_pass
+      POSTGRES_DB: test_db
+    ports:
+      - "5433:5432"
+    tmpfs: /var/lib/postgresql/data  # 内存存储，快速重置
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d test_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis-test:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 2s
+      retries: 5
+```
+
+添加 `.env.test` 环境变量文件：
+```
+# 测试环境配置
+DATABASE_URL=postgresql://test_user:test_pass@localhost:5433/test_db
+REDIS_URL=redis://localhost:6380
+NODE_ENV=test
+```
+
+**启动测试环境**：
+```bash
+docker compose -f docker-compose.test.yml up -d
+```
+
+**种子数据脚本**：创建 `{OUTPUT_DIR}/scripts/seed-test-data.sql`（或 `.ts`），包含测试所需的基础数据（如测试用户、示例订单等）。
+
+这样性能测试Agent（be-tester-performance）可以有真实的数据库环境来检查 N+1 查询、索引性能、查询计划等；安全测试Agent 可以在真实环境中验证注入防护。
+
 ### 4. 执行顺序总结
 
 **严格按以下顺序执行，完成一步再做下一步**：
@@ -238,6 +300,9 @@ Step 8: Edit api-design-guide.md（追加第8-11个接口）
 - {OUTPUT_DIR}/src/（项目基础框架）
 - {OUTPUT_DIR}/lessons-learned.md
 - {OUTPUT_DIR}/test-reports/ (目录已创建)
+- {OUTPUT_DIR}/docker-compose.test.yml
+- {OUTPUT_DIR}/.env.test
+- {OUTPUT_DIR}/scripts/seed-test-data.sql
 
 共 {N} 个接口开发任务。
 ```

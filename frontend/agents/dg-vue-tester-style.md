@@ -93,6 +93,14 @@ memory: project
 **PASS**：零问题或仅有轻微建议
 **FAIL**：存在响应式断裂、可访问性严重缺陷、状态缺失、样式泄漏等任一问题
 
+### 4.5 严重级别定义
+
+| 级别 | 标识 | 判定标准 | 处理方式 |
+|------|------|---------|---------|
+| **blocker** | 阻断 | 核心功能无法使用、安全漏洞、数据丢失风险、响应性断裂、契约完全不匹配 | 第3轮后仍存在则必须人工介入，不回退为低质量通过 |
+| **major** | 主要 | 功能可用但有明显缺陷、性能明显不达标、关键错误处理缺失、重要字段类型不匹配 | 第3轮后仍存在则向用户报告，不回退为低质量通过 |
+| **minor** | 轻微 | 代码风格问题、命名不规范、缺少注释、非关键UI瑕疵、优化建议 | 第3轮后允许标记为低质量通过（⚠️），不阻塞进度 |
+
 ### 5. 输出测试报告
 
 写入 `{输出目录}/{模块名}-style.md`。
@@ -142,19 +150,64 @@ memory: project
 
 ### 6. 输出给主Agent
 
-**PASS时**：
-```
-测试结果：PASS
-报告路径：{路径}
+除了写入 markdown 报告文件，必须同时写入 JSON 格式的测试报告到 `{输出目录}/{模块名}-style-report.json`。
+
+**JSON 报告格式**：
+
+PASS时：
+```json
+{
+  "module": "{模块名}",
+  "dimension": "style",
+  "round": {N},
+  "verdict": "PASS",
+  "failures": [],
+  "max_severity": null
+}
 ```
 
-**FAIL时**：
-```
-测试结果：FAIL
-问题数：{N}
-报告路径：{路径}
+FAIL时：
+```json
+{
+  "module": "{模块名}",
+  "dimension": "style",
+  "round": {N},
+  "verdict": "FAIL",
+  "max_severity": "blocker",
+  "failures": [
+    {
+      "severity": "blocker",
+      "category": "{维度类别}",
+      "file": "src/controllers/userController.js",
+      "line": 15,
+      "reason": "缺少邮箱格式验证，可接受任意字符串",
+      "suggestion": "添加邮箱正则验证"
+    }
+  ]
+}
 ```
 
-**不返回报告内容**，保持主Agent上下文整洁。
+**字段说明**：
+- `verdict`: `"PASS"` 或 `"FAIL"`
+- `max_severity`: 本次测试中所有 failure 的最高严重级别（`"blocker"` > `"major"` > `"minor"`）。PASS 时为 `null`
+- `failures[].severity`: 单条问题的严重级别
+- `failures[].category`: 问题所属维度类别（如"数据库查询"、"响应式"、"CORS"等）
 
-**⚠️ 你的返回文本必须且只能包含上述格式。不要添加任何解释、总结、额外信息。违反此规则会污染主Agent上下文。**
+**⚠️ 主Agent只读取 JSON 文件的 `verdict` 字段判定 PASS/FAIL，不读取 markdown 报告。你的 JSON 输出必须精确。**
+
+**Agent ID 写入**：
+完成测试并写入报告后，将你的 Agent ID 写入 `{输出目录}/../agent-registry.json`（即项目根目录下的 agent-registry.json），更新对应键位。
+
+写入方式：用 Bash 执行：
+```bash
+jq '.agents.test_style.id = "{YOUR_AGENT_ID}" | .agents.test_style.updated = "{CURRENT_TIME}"' {OUTPUT_DIR}/../agent-registry.json > tmp.json && mv tmp.json {OUTPUT_DIR}/../agent-registry.json
+```
+
+向主Agent输出时只返回：
+```
+测试结果：{PASS/FAIL}
+最高严重级别：{blocker/major/minor/-}
+失败项数：{N}
+JSON报告：{路径}
+Markdown报告：{路径}
+```

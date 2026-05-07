@@ -31,6 +31,7 @@
 ```
 - {yymmdd hhmm} 架构设计启动，需求：{REQUIREMENT_FILE}
 - {yymmdd hhmm} 输出目录：{OUTPUT_DIR}
+- {yymmdd hhmm} 成本追踪：本轮预计调用 {N} 个Agent
 ```
 
 ---
@@ -91,38 +92,36 @@ Grep(pattern="并发|性能|响应|SLA|可用|延迟", path="{REQUIREMENT_FILE}"
 
 ## Agent ID 收集
 
-修正环节需要 resume 同一个子Agent。这依赖 ID 的准确收集。
+子Agent 完成后，将自身的 Agent ID 写入输出目录下的 `agent-registry.json`。
 
-### 获取方式：文件系统探测
+**agent-registry.json 格式**：
+```json
+{
+  "agents": {
+    "fa_techstack": { "id": "abc123", "type": "fa-techstack", "updated": "260506 1430" },
+    "fa_data": { "id": "def456", "type": "fa-data", "updated": "260506 1432" },
+    "fa_infra": { "id": "ghi789", "type": "fa-infra", "updated": "260506 1431" },
+    "fa_security": { "id": "jkl012", "type": "fa-security", "updated": "260506 1435" },
+    "fa_apidesign": { "id": "mno345", "type": "fa-api-design", "updated": "260506 1433" }
+  }
+}
+```
 
-子Agent 完成后，其 agentId 会写入文件系统。用以下命令获取最新的 agent ID：
-
-**Linux/macOS：**
+**主Agent的职责**：
+1. 初始化时创建 `{OUTPUT_DIR}/agent-registry.json`（初始内容 `{"agents":{}}`）
+2. 子Agent 完成后，读取对应键获取 ID：
 ```bash
-find ~/.claude/projects/ -name "agent-*.meta.json" -type f -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-
+jq -r '.agents.fa_techstack.id' {OUTPUT_DIR}/agent-registry.json
 ```
 
-**Windows PowerShell：**
-```powershell
-Get-ChildItem -LiteralPath "$env:USERPROFILE\.claude\projects" -Recurse -Filter "agent-*.meta.json" | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
-```
-
-文件名格式 `agent-abc123.meta.json`，提取裸 ID 即 `abc123`。
-
-收到返回后**第一时间执行上述命令，将 ID 写入日志**，不要先做其他事：
-
-```
-写日志：- {yymmdd hhmm} {维度}分析完成 (FA_ID: {FA_ID})
-```
-
-如果获取不到 ID，**禁止跳过、禁止启动新Agent**。暂停并报告错误。
+**子Agent的职责**：
+- 完成后将 Agent ID 写入 `{OUTPUT_DIR}/agent-registry.json` 的对应键（如 `agents.fa_techstack`）
 
 ### ID 使用规则
 
-1. **resume 必须用裸 ID**（如 `abc123`），不带 `agent-` 前缀和 `.meta.json` 后缀
-2. **resume 必须指定 subagent_type**（如 `"fa-techstack"`）
-3. **修正环节中复用同一个维度Agent的 ID**，禁止启动新Agent
-4. **修正环节结束后所有 FA_ID 失效**
+1. **resume 用裸 ID**，必须指定 subagent_type
+2. **修正环节中复用同一个维度Agent的 ID**，禁止启动新Agent
+3. **修正环节结束后所有 FA_ID 失效**
 
 ---
 
@@ -537,6 +536,7 @@ while round < 2:
 ```
 - {yymmdd hhmm} 用户评审：{通过 / 修改{N}处 / 重来}
 - {yymmdd hhmm} ──── 架构设计完成 ────
+- {yymmdd hhmm} 总Agent调用次数：{X}（开发{N} + 测试{M} + 修改{K}）
 ```
 
 ---
@@ -609,6 +609,7 @@ while round < 2:
 16. **子Agent产出只读"跨维度依赖"章节** — 一致性检查时用 Grep 定点提取，不 Read 全文件
 17. **所有架构分析委托给子Agent** — 主Agent不做技术评估、不推断技术选型
 18. **后台通知简短确认** — 迟到的后台Agent通知只需回复"已确认"
+19. **成本追踪规则**：每批完成后在 main-log.md 追加该批Agent调用次数（开发+测试+修正），Phase 结束时汇总总调用次数。优先关注修正轮次成本——修正轮次越高说明 prompt 或 PRD 质量存在问题。
 
 ---
 
