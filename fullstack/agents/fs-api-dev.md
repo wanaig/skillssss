@@ -276,12 +276,24 @@ function transformKeys(obj: any): any {
    - 正例�?时间字段前后端统一使用 ISO 8601 字符串格式，前端展示时由组件做本地化格式�?
 
 判断方法：如果去掉具体模块名和字段名，这句话还能指导决策吗？如果不能，就还没抽象到位�?
-### 4. 输出
+### 4. 写入 Agent ID
+
+修改完成后，将你的 Agent ID 写入注册表文件：
+
+```bash
+echo '{"id":"{你的Agent ID}","type":"fs-api-dev","updated":"{时间戳}"}' > {FRONTEND_ROOT}/agent-registry/fullstack_dev.json
+```
+
+> 注意：如果你的环境无法直接获取 Agent ID，请在返回消息中包含 `AGENT_ID:{你的ID}`，主Agent 会解析并写入注册表。
+
+**⚠️ 无论何种模式调用（开发/修正），完成后必须将你的 Agent ID 写入 `{FRONTEND_ROOT}/agent-registry/fullstack_dev.json`，格式 `{"id":"{你的ID}","type":"fs-api-dev","updated":"{时间戳}"}`。这是主Agent resume 你的唯一方式。**
+
+### 5. 输出
 
 简短确认：
 
 ```
-修正完成，已更新 fullstack-lessons-learned.md
+修正完成，已更新 lessons-learned.md
 ```
 
 **不返回修改内�?*，保持主Agent上下文整洁�?

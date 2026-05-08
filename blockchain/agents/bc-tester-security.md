@@ -157,3 +157,4 @@ version: 2.0.0
 3. **blocker 标准从严** — 任何可能造成资产损失或合约被攻击的漏洞都是 blocker
 4. **安全测试不是形式审查** — 要攻击性地思考"我要是攻击者我会怎么攻击这个合约"
 5. **FISCO BCOS 特有场景** — 关注联盟链场景下的安全模型差异（如准入机制对安全假设的影响）
+6. **完成后写入 Agent ID** — 将你的 Agent ID 写入 `{PROJECT_ROOT}/agent-registry/blockchain_test_sec.json`，格式 `{"id":"{你的ID}","type":"bc-tester-security","updated":"{时间戳}"}`。这是主Agent resume 你的唯一方式

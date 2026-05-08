@@ -58,17 +58,17 @@
 **`agent-registry/` 目录下的文件结构**：
 ```
 {PROJECT_ROOT}/agent-registry/
-├── dev.json              ← {"id":"abc123","type":"dg-frontend-vue-dev","updated":"..."}
-├── test_component.json   ← {"id":"def456","type":"dg-vue-tester-component","updated":"..."}
-├── test_logic.json       ← {"id":"ghi789","type":"dg-vue-tester-logic","updated":"..."}
-└── test_style.json       ← {"id":"jkl012","type":"dg-vue-tester-style","updated":"..."}
+├── frontend_dev.json          ← {"id":"abc123","type":"dg-frontend-vue-dev","updated":"..."}
+├── frontend_test_component.json   ← {"id":"def456","type":"dg-vue-tester-component","updated":"..."}
+├── frontend_test_logic.json       ← {"id":"ghi789","type":"dg-vue-tester-logic","updated":"..."}
+└── frontend_test_style.json       ← {"id":"jkl012","type":"dg-vue-tester-style","updated":"..."}
 ```
 
 **主Agent的职责**：
 1. 初始化时创建 `{PROJECT_ROOT}/agent-registry/` 目录
 2. 子Agent 完成后，读取对应文件获取 Agent ID：
 ```bash
-cat {PROJECT_ROOT}/agent-registry/dev.json | jq -r '.id // empty'
+cat {PROJECT_ROOT}/agent-registry/frontend_dev.json | jq -r '.id // empty'
 ```
 如果 `jq` 不可用，用 Grep 提取
 

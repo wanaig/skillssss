@@ -225,7 +225,17 @@ public class {Entity} {
 
 判断方法：如果去掉具体接口名和数值，这句话还能指导决策吗？如果不能，就还没抽象到位。
 
-### 4. 输出
+### 4. 写入 Agent ID
+
+修改完成后，将你的 Agent ID 写入注册表文件：
+
+```bash
+echo '{"id":"{你的Agent ID}","type":"be-api-dev","updated":"{时间戳}"}' > {PROJECT_ROOT}/agent-registry/backend_dev.json
+```
+
+> 注意：如果你的环境无法直接获取 Agent ID，请在返回消息中包含 `AGENT_ID:{你的ID}`，主Agent 会解析并写入注册表。
+
+### 5. 输出
 
 简短确认：
 
@@ -235,3 +245,5 @@ public class {Entity} {
 
 **不返回修改内容**，保持主Agent上下文整洁。
 **你的返回文本必须且只能包含上述格式。不要添加任何解释、总结、额外信息。违反此规则会污染主Agent上下文。**
+
+**⚠️ 无论何种模式调用（开发/修正），完成后必须将你的 Agent ID 写入 `{PROJECT_ROOT}/agent-registry/backend_dev.json`，格式 `{"id":"{你的ID}","type":"be-api-dev","updated":"{时间戳}"}`。这是主Agent resume 你的唯一方式。如果无法直接获取 Agent ID，在返回消息末尾附 `AGENT_ID:{你的ID}`。**

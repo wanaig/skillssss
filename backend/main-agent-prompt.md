@@ -60,21 +60,21 @@
 **`agent-registry/` 目录下的文件结构**：
 ```
 {PROJECT_ROOT}/agent-registry/
-├── dev.json          ← {"id":"abc123","type":"be-api-dev","updated":"..."}
-├── test_func.json    ← {"id":"def456","type":"be-tester-functional","updated":"..."}
-├── test_perf.json    ← {"id":"ghi789","type":"be-tester-performance","updated":"..."}
-└── test_sec.json     ← {"id":"jkl012","type":"be-tester-security","updated":"..."}
+├── backend_dev.json      ← {"id":"abc123","type":"be-api-dev","updated":"..."}
+├── backend_test_func.json    ← {"id":"def456","type":"be-tester-functional","updated":"..."}
+├── backend_test_perf.json    ← {"id":"ghi789","type":"be-tester-performance","updated":"..."}
+└── backend_test_sec.json     ← {"id":"jkl012","type":"be-tester-security","updated":"..."}
 ```
 
 **主Agent的职责**：
 1. 初始化时创建 `{PROJECT_ROOT}/agent-registry/` 目录
 2. 子Agent 完成后，读取对应文件获取 Agent ID：
 ```bash
-cat {PROJECT_ROOT}/agent-registry/dev.json | jq -r '.id // empty'
+cat {PROJECT_ROOT}/agent-registry/backend_dev.json | jq -r '.id // empty'
 ```
 如果 `jq` 不可用，用 Grep 提取：
 ```
-Grep(pattern=""id": "", path="{PROJECT_ROOT}/agent-registry/dev.json")
+Grep(pattern=""id": "", path="{PROJECT_ROOT}/agent-registry/backend_dev.json")
 ```
 
 **子Agent的职责**：
@@ -293,7 +293,7 @@ Agent C:
 
 3. 向用户报告完成
 4. 输出本阶段经验摘要（读取 lessons-learned.md 提取 3-5 条最高频/最通用的经验，追加到输出消息中供下游阶段参考）
-5. **跨 Phase 交接提示**：向后端开发全部完成后，向用户输出以下信息：
+5. **跨 Phase 交接提示**：后端开发全部完成后，向用户输出以下信息：
    > 后端 API 开发已完成。已积累 {N} 条开发经验（见 {PROJECT_ROOT}/lessons-learned.md）。如需启动前后端联调，请使用 fullstack/ 主智能体，参数如下：
    > - FRONTEND_ROOT: {前端项目路径}（请确认）
    > - BACKEND_ROOT: {PROJECT_ROOT}

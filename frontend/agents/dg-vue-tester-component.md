@@ -181,21 +181,21 @@ FAIL时：
 **⚠️ 主Agent只读�?JSON 文件�?`verdict` 字段判定 PASS/FAIL，不读取 markdown 报告。你�?JSON 输出必须精确�?*
 
 **Agent ID 写入**�?
-完成测试并写入报告后，将你的 Agent ID 写入独立文件 `{项目根目录}/agent-registry/test_component.json`（避免多Agent并发写入同一文件导致ID丢失）�?
+完成测试并写入报告后，将你的 Agent ID 写入独立文件 `{项目根目录}/agent-registry/frontend_test_component.json`（避免多Agent并发写入同一文件导致ID丢失）�?
 
 写入方式（按优先级选择可用工具）：
 
 **优先�?jq**（如环境�?jq）：
 ```bash
 mkdir -p {项目根目录}/agent-registry
-echo '{"id":"YOUR_AGENT_ID","type":"dg-vue-tester-component","updated":"CURRENT_TIME"}' > {项目根目录}/agent-registry/test_component.json
+echo '{"id":"YOUR_AGENT_ID","type":"dg-vue-tester-component","updated":"CURRENT_TIME"}' > {项目根目录}/agent-registry/frontend_test_component.json
 ```
 
 **否则�?Python**（jq 不可用时）：
 ```python
 import json, os
 os.makedirs("{项目根目录}/agent-registry", exist_ok=True)
-with open("{项目根目录}/agent-registry/test_component.json", "w") as f:
+with open("{项目根目录}/agent-registry/frontend_test_component.json", "w") as f:
     json.dump({"id":"YOUR_AGENT_ID","type":"dg-vue-tester-component","updated":"CURRENT_TIME"}, f)
 ```
 

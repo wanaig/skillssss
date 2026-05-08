@@ -208,21 +208,21 @@ docker compose -f docker-compose.test.yml down -v
 
 运行时测试判定：正常请求返回 2xx/3xx → PASS，异常请求返回 4xx → PASS，异常请求返回 5xx 或 crash → FAIL，Docker 不可用 → 跳过。运行结果追加到 JSON 报告的 runtime_results 字段中。
 
-Agent ID 写入独立文件 `{项目根目录}/agent-registry/test_func.json`（避免多Agent并发写入同一文件导致ID丢失）�?
+Agent ID 写入独立文件 `{项目根目录}/agent-registry/backend_test_func.json`（避免多Agent并发写入同一文件导致ID丢失）�?
 
 写入方式（按优先级选择可用工具）：
 
 **优先�?jq**（如环境�?jq）：
 ```bash
 mkdir -p {项目根目录}/agent-registry
-echo '{"id":"YOUR_AGENT_ID","type":"be-tester-functional","updated":"CURRENT_TIME"}' > {项目根目录}/agent-registry/test_func.json
+echo '{"id":"YOUR_AGENT_ID","type":"be-tester-functional","updated":"CURRENT_TIME"}' > {项目根目录}/agent-registry/backend_test_func.json
 ```
 
 **否则�?Python**（jq 不可用时）：
 ```python
 import json, os
 os.makedirs("{项目根目录}/agent-registry", exist_ok=True)
-with open("{项目根目录}/agent-registry/test_func.json", "w") as f:
+with open("{项目根目录}/agent-registry/backend_test_func.json", "w") as f:
     json.dump({"id":"YOUR_AGENT_ID","type":"be-tester-functional","updated":"CURRENT_TIME"}, f)
 ```
 

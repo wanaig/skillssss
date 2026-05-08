@@ -126,3 +126,4 @@ version: 2.0.0
 2. **JSON 报告字段必须完整** — verdict 字段不可缺失，否则主Agent无法判定
 3. **同批次接口合并为一个 Agent 调用** — 多个合约的测试仍在同一个 Agent 会话中完成
 4. **severity 严格分级** — blocker = 可能造成资产损失或合约不可用；major = 功能缺陷但可绕过；minor = 注释/命名/优化建议
+5. **完成后写入 Agent ID** — 将你的 Agent ID 写入 `{PROJECT_ROOT}/agent-registry/blockchain_test_func.json`，格式 `{"id":"{你的ID}","type":"bc-tester-functional","updated":"{时间戳}"}`。这是主Agent resume 你的唯一方式

@@ -27,17 +27,20 @@
    - **后端项目根目录**，记为 `BACKEND_ROOT`
    - **Flutter 项目根目录**（如无 Flutter 项目则不传），记为 `FLUTTER_ROOT`
    - **区块链项目根目录**（如无区块链项目则不传），记为 `BLOCKCHAIN_ROOT`
+   - **区块链合约 ABI 目录**（如有，默认 `{BLOCKCHAIN_ROOT}/artifacts/contracts/`），记为 `BLOCKCHAIN_ABI_DIR`
    - **API 契约文档路径**（architecture 产出的 `api-contract-outline.md`），记为 `CONTRACT_FILE`
    - **技术栈文档路径**（architecture 产出的 `tech-stack.md`），记为 `TECH_STACK_FILE`
    - **数据架构文档路径**（architecture 产出的 `data-architecture.md`），记为 `DATA_ARCHITECTURE_FILE`
+   - **基础设施架构文档路径**（architecture 产出的 `infra-architecture.md`），记为 `INFRA_FILE`
+   - **安全架构文档路径**（architecture 产出的 `security-architecture.md`），记为 `SECURITY_FILE`
    - **实施路线图路径**（architecture 产出的 `implementation-roadmap.md`），记为 `IMPLEMENTATION_ROADMAP_FILE`
    - **前端经验库路径**（如存在），记为 `FRONTEND_LESSONS`
    - **后端经验库路径**（如存在），记为 `BACKEND_LESSONS`
    - **Flutter 经验库路径**（如存在），记为 `FLUTTER_LESSONS`
    - **区块链经验库路径**（如存在），记为 `BLOCKCHAIN_LESSONS`
 2. 记录以上所有路径（**注意：不要读取任何文件内容，只记录路径**）
-3. 创建联调日志文件，默认使用 `{FRONTEND_ROOT}/integration-log.md` 或在用户指定目录创建 `main-log.md`
-4. 确认日志文件路径，记为 `MAIN_LOG`
+3. 创建联调日志文件 `{FRONTEND_ROOT}/main-log.md`
+4. 确认日志文件路径 `{FRONTEND_ROOT}/main-log.md`，记为 `MAIN_LOG`
 5. 确认前端 API 层输出目录，记为 `API_LAYER_DIR`（默认 `{FRONTEND_ROOT}/src/api/`）
 6. **探测并缓存 Agent ID 路径**（见下方"Agent ID 收集"章节）
 7. **确认批量大小**，记为 `BATCH_SIZE`（默认值：1；用户可指定，如"一次对接3个接口"）
@@ -52,6 +55,8 @@
 - {yymmdd hhmm} API 契约：{CONTRACT_FILE}
 - {yymmdd hhmm} 技术栈：{TECH_STACK_FILE}
 - {yymmdd hhmm} 数据架构：{DATA_ARCHITECTURE_FILE}
+- {yymmdd hhmm} 基础设施架构：{INFRA_FILE}
+- {yymmdd hhmm} 安全架构：{SECURITY_FILE}
 - {yymmdd hhmm} 实施路线图：{IMPLEMENTATION_ROADMAP_FILE}
 - {yymmdd hhmm} 前端经验库：{FRONTEND_LESSONS}
 - {yymmdd hhmm} 后端经验库：{BACKEND_LESSONS}
@@ -113,7 +118,7 @@ cat {FRONTEND_ROOT}/agent-registry/fullstack_dev.json | jq -r '.id // empty'
 ```
 Agent(
   subagent_type: "fs-planner",
-   prompt: "前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nFlutter 项目根目录：{FLUTTER_ROOT}（如无则标记 N/A）\n区块链项目根目录：{BLOCKCHAIN_ROOT}（如无则标记 N/A）\nAPI 契约文档路径：{CONTRACT_FILE}\n技术栈文档路径：{TECH_STACK_FILE}\n数据架构文档路径：{DATA_ARCHITECTURE_FILE}\n实施路线图路径：{IMPLEMENTATION_ROADMAP_FILE}\n前端经验库路径：{FRONTEND_LESSONS}\n后端经验库路径：{BACKEND_LESSONS}\nFlutter 经验库路径：{FLUTTER_LESSONS}\n区块链经验库路径：{BLOCKCHAIN_LESSONS}\n\n请扫描各端代码现状、阅读 API 契约和架构文档，产出 integration-plan.md、integration-design-guide.md，并创建前端 API 调用层目录结构（{FRONTEND_ROOT}/src/api/）、共享类型文件（src/types/api.ts）和 Vite 代理配置。如有 BLOCKCHAIN_ROOT，额外创建 src/api/blockchain.ts 区块链调用层。完成后只返回文件路径列表。"
+   prompt: "前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nFlutter 项目根目录：{FLUTTER_ROOT}（如无则标记 N/A）\n区块链项目根目录：{BLOCKCHAIN_ROOT}（如无则标记 N/A）\nAPI 契约文档路径：{CONTRACT_FILE}\n技术栈文档路径：{TECH_STACK_FILE}\n数据架构文档路径：{DATA_ARCHITECTURE_FILE}\n基础设施架构文档路径：{INFRA_FILE}\n安全架构文档路径：{SECURITY_FILE}\n实施路线图路径：{IMPLEMENTATION_ROADMAP_FILE}\n前端经验库路径：{FRONTEND_LESSONS}\n后端经验库路径：{BACKEND_LESSONS}\nFlutter 经验库路径：{FLUTTER_LESSONS}\n区块链经验库路径：{BLOCKCHAIN_LESSONS}\n\n请扫描各端代码现状、阅读 API 契约和架构文档，产出 integration-plan.md、integration-design-guide.md，并创建前端 API 调用层目录结构（{FRONTEND_ROOT}/src/api/）、共享类型文件（src/types/api.ts）和 Vite 代理配置。如有 BLOCKCHAIN_ROOT，额外创建 src/api/blockchain.ts 区块链调用层。完成后只返回文件路径列表。"
 )
 ```
 
@@ -130,7 +135,7 @@ Agent(
 
 ## Phase 2：批量对接循环
 
-读取 `{FRONTEND_ROOT}/integration-plan.md`（或 `{用户指定目录}/integration-plan.md`），获取所有 ⏳ 任务。
+读取 `{FRONTEND_ROOT}/integration-plan.md`，获取所有 ⏳ 任务。
 
 将 ⏳ 任务按 `BATCH_SIZE` 分组，每组执行以下步骤：
 
@@ -251,7 +256,7 @@ Agent C:
   - **含 blocker 或 major 级别 FAIL**：
     - round < 3：继续修正循环
     - round = 3（第3轮后仍有 blocker/major FAIL）：
-      - 向用户报告：`"{模块} 存在 blocker/major 级别问题，第3轮修正后仍未通过。建议：1) git revert 该批次并重启Agent 2) 手动介入"`
+      - 向用户报告：`"{接口} 存在 blocker/major 级别问题，第3轮修正后仍未通过。建议：1) git revert 该批次并重启Agent 2) 手动介入"`
       - 等待用户指示，不回退为低质量通过
 
 **回滚机制**：
@@ -309,10 +314,10 @@ Agent C:
    > - FRONTEND_ROOT: {FRONTEND_ROOT}
    > - BACKEND_ROOT: {BACKEND_ROOT}
    > - FLUTTER_ROOT: {FLUTTER_ROOT}（如有）
-   > - BLOCKCHAIN_ROOT: {BLOCKCHAIN_ROOT}（如有，合约 ABI 目录为 {BLOCKCHAIN_ROOT}/artifacts/contracts/）
+   > - BLOCKCHAIN_ROOT: {BLOCKCHAIN_ROOT}（如有，合约 ABI 目录为 {BLOCKCHAIN_ABI_DIR}）
    > - TECH_STACK_FILE: {TECH_STACK_FILE}
-   > - INFRA_FILE: {架构阶段产出的 infra-architecture.md 路径}
-   > - SECURITY_FILE: {架构阶段产出的 security-architecture.md 路径}
+   > - INFRA_FILE: {INFRA_FILE}
+   > - SECURITY_FILE: {SECURITY_FILE}
    > - IMPLEMENTATION_ROADMAP_FILE: {IMPLEMENTATION_ROADMAP_FILE}
    > - DEPLOY_ROOT: {部署方案目录}（建议新建目录）
 

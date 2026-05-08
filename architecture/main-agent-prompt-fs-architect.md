@@ -362,14 +362,17 @@ else:
         - CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
         - SECURITY_FILE: {PROJECT_ROOT}/security-architecture.md
         - IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
-      - fullstack/ 主智能体输入（⚠️ 需等 frontend/ 和 backend/ 完成后再启动）：
-        - FRONTEND_ROOT: {前端项目路径}
-        - BACKEND_ROOT: {后端项目路径}
-        - FLUTTER_ROOT: {Flutter 项目路径}（有 Flutter 项目时，用于验证跨端接口一致性）
-        - CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
-        - TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
-        - DATA_ARCHITECTURE_FILE: {PROJECT_ROOT}/data-architecture.md
-        - IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
+       - fullstack/ 主智能体输入（⚠️ 需等 frontend/ 和 backend/ 完成后再启动）：
+         - FRONTEND_ROOT: {前端项目路径}
+         - BACKEND_ROOT: {后端项目路径}
+         - FLUTTER_ROOT: {Flutter 项目路径}（有 Flutter 项目时，用于验证跨端接口一致性）
+         - BLOCKCHAIN_ROOT: {区块链项目路径}（有区块链项目时，用于集成链上合约 ABI）
+         - CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
+         - TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
+         - DATA_ARCHITECTURE_FILE: {PROJECT_ROOT}/data-architecture.md
+         - INFRA_FILE: {PROJECT_ROOT}/infra-architecture.md
+         - SECURITY_FILE: {PROJECT_ROOT}/security-architecture.md
+         - IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
        - flutter/ 主智能体输入：
          - REQUIREMENT_FILE: {PRD 路径}
          - PROJECT_ROOT: {Flutter 项目路径}

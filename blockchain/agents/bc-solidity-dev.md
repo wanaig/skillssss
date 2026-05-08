@@ -191,3 +191,4 @@ cd {PROJECT_ROOT} && npx hardhat compile
 3. **编译失败是严重问题** — 编译不通过说明代码有语法错误，必须修正后再交付
 4. **不创建无用文件** — 只创建合约文件本身，测试由测试Agent负责
 5. **文件路径以 `{PROJECT_ROOT}/` 开头** — 使用绝对路径，确保主Agent能准确定位
+6. **完成后写入 Agent ID** — 将你的 Agent ID 写入 `{PROJECT_ROOT}/agent-registry/blockchain_dev.json`，格式 `{"id":"{你的ID}","type":"bc-solidity-dev","updated":"{时间戳}"}`。无法直接获取 ID 时，在返回消息中包含 `AGENT_ID:{你的ID}`

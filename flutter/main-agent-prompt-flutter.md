@@ -58,17 +58,17 @@
 **`agent-registry/` 目录下的文件结构**：
 ```
 {PROJECT_ROOT}/agent-registry/
-├── dev.json                   ← {"id":"abc123","type":"dg-flutter-dev","updated":"..."}
-├── test_crossplatform.json    ← {"id":"def456","type":"dg-flutter-tester-crossplatform","updated":"..."}
-├── test_logic.json            ← {"id":"ghi789","type":"dg-flutter-tester-logic","updated":"..."}
-└── test_style.json            ← {"id":"jkl012","type":"dg-flutter-tester-style","updated":"..."}
+├── flutter_dev.json                   ← {"id":"abc123","type":"dg-flutter-dev","updated":"..."}
+├── flutter_test_crossplatform.json    ← {"id":"def456","type":"dg-flutter-tester-crossplatform","updated":"..."}
+├── flutter_test_logic.json            ← {"id":"ghi789","type":"dg-flutter-tester-logic","updated":"..."}
+└── flutter_test_style.json            ← {"id":"jkl012","type":"dg-flutter-tester-style","updated":"..."}
 ```
 
 **主Agent的职责**：
 1. 初始化时创建 `{PROJECT_ROOT}/agent-registry/` 目录
 2. 子Agent 完成后，读取对应文件获取 Agent ID：
 ```bash
-cat {PROJECT_ROOT}/agent-registry/dev.json | jq -r '.id // empty'
+cat {PROJECT_ROOT}/agent-registry/flutter_dev.json | jq -r '.id // empty'
 ```
 如果 `jq` 不可用，用 Grep 提取
 

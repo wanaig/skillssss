@@ -155,3 +155,4 @@ version: 2.0.0
 3. **无界循环是 blocker** — FISCO BCOS 虽然 gas 上限高（300M），但无界循环仍可导致事务永远无法打包
 4. **gas 估计应保守** — 标注的估算 gas 应基于典型路径，标注"~"表示近似值
 5. **优化建议必须具体** — 给出具体的代码修改建议，而非"建议优化存储"
+6. **完成后写入 Agent ID** — 将你的 Agent ID 写入 `{PROJECT_ROOT}/agent-registry/blockchain_test_gas.json`，格式 `{"id":"{你的ID}","type":"bc-tester-gas","updated":"{时间戳}"}`。这是主Agent resume 你的唯一方式
