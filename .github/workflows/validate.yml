@@ -14,7 +14,7 @@ jobs:
 
       - name: Check required directories exist
         run: |
-          for dir in architecture backend frontend fullstack flutter deploy; do
+          for dir in architecture backend frontend fullstack flutter deploy blockchain; do
             if [ ! -d "$dir" ]; then
               echo "ERROR: Missing directory: $dir"
               exit 1
@@ -25,7 +25,7 @@ jobs:
       - name: Check each agent has YAML frontmatter
         run: |
           errors=0
-          for agent in architecture/agents/*.md backend/agents/*.md frontend/agents/*.md fullstack/agents/*.md flutter/agents/*.md deploy/agents/*.md; do
+          for agent in architecture/agents/*.md backend/agents/*.md frontend/agents/*.md fullstack/agents/*.md flutter/agents/*.md deploy/agents/*.md blockchain/agents/*.md; do
             if ! head -1 "$agent" | grep -q '^---$'; then
               echo "ERROR: $agent missing YAML frontmatter"
               errors=$((errors+1))
@@ -40,7 +40,7 @@ jobs:
       - name: Validate agent YAML has required fields
         run: |
           errors=0
-          for agent in architecture/agents/*.md backend/agents/*.md frontend/agents/*.md fullstack/agents/*.md flutter/agents/*.md deploy/agents/*.md; do
+          for agent in architecture/agents/*.md backend/agents/*.md frontend/agents/*.md fullstack/agents/*.md flutter/agents/*.md deploy/agents/*.md blockchain/agents/*.md; do
             # Extract YAML frontmatter
             sed -n '/^---$/,/^---$/p' "$agent" | head -n -1 | tail -n +2 > /tmp/frontmatter.yml
             for field in name description tools model; do
@@ -121,6 +121,36 @@ jobs:
           fi
           echo "Fullstack naming conventions OK"
 
+      - name: Check flutter agent naming consistency
+        run: |
+          errors=0
+          names=$(ls flutter/agents/ | sed 's/\.md$//')
+          for agent in dg-flutter-planner dg-flutter-dev dg-flutter-tester-crossplatform dg-flutter-tester-logic dg-flutter-tester-style; do
+            if ! echo "$names" | grep -q "$agent"; then
+              echo "ERROR: Expected flutter agent: $agent"
+              errors=$((errors+1))
+            fi
+          done
+          if [ $errors -gt 0 ]; then
+            exit 1
+          fi
+          echo "Flutter naming conventions OK"
+
+      - name: Check blockchain agent naming consistency
+        run: |
+          errors=0
+          names=$(ls blockchain/agents/ | sed 's/\.md$//')
+          for agent in bc-planner bc-solidity-dev bc-tester-functional bc-tester-security bc-tester-gas; do
+            if ! echo "$names" | grep -q "$agent"; then
+              echo "ERROR: Expected blockchain agent: $agent"
+              errors=$((errors+1))
+            fi
+          done
+          if [ $errors -gt 0 ]; then
+            exit 1
+          fi
+          echo "Blockchain naming conventions OK"
+
   cross-ref:
     runs-on: ubuntu-latest
     steps:
@@ -131,13 +161,13 @@ jobs:
           errors=0
           # Collect all defined agent names from YAML frontmatter
           defined_agents=""
-          for agent in architecture/agents/*.md backend/agents/*.md frontend/agents/*.md fullstack/agents/*.md flutter/agents/*.md deploy/agents/*.md; do
+          for agent in architecture/agents/*.md backend/agents/*.md frontend/agents/*.md fullstack/agents/*.md flutter/agents/*.md deploy/agents/*.md blockchain/agents/*.md; do
             name=$(sed -n '/^---$/,/^---$/p' "$agent" | grep '^name:' | sed 's/^name: *//')
             defined_agents="$defined_agents $name"
           done
 
           # Extract subagent_type references from master prompts and check them
-          for master in architecture/main-agent-prompt-*.md backend/main-agent-prompt*.md frontend/main-agent-prompt-*.md fullstack/main-agent-prompt-*.md flutter/main-agent-prompt-*.md; do
+          for master in architecture/main-agent-prompt-*.md backend/main-agent-prompt*.md frontend/main-agent-prompt-*.md fullstack/main-agent-prompt-*.md flutter/main-agent-prompt-*.md deploy/main-agent-prompt-*.md blockchain/main-agent-prompt-*.md; do
             refs=$(grep -oP 'subagent_type:\s*"\K[^"]+' "$master" 2>/dev/null)
             for ref in $refs; do
               if ! echo "$defined_agents" | grep -qw "$ref"; then

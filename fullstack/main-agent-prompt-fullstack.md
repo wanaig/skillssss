@@ -26,6 +26,7 @@
    - **前端项目根目录**，记为 `FRONTEND_ROOT`
    - **后端项目根目录**，记为 `BACKEND_ROOT`
    - **Flutter 项目根目录**（如无 Flutter 项目则不传），记为 `FLUTTER_ROOT`
+   - **区块链项目根目录**（如无区块链项目则不传），记为 `BLOCKCHAIN_ROOT`
    - **API 契约文档路径**（architecture 产出的 `api-contract-outline.md`），记为 `CONTRACT_FILE`
    - **技术栈文档路径**（architecture 产出的 `tech-stack.md`），记为 `TECH_STACK_FILE`
    - **数据架构文档路径**（architecture 产出的 `data-architecture.md`），记为 `DATA_ARCHITECTURE_FILE`
@@ -33,6 +34,7 @@
    - **前端经验库路径**（如存在），记为 `FRONTEND_LESSONS`
    - **后端经验库路径**（如存在），记为 `BACKEND_LESSONS`
    - **Flutter 经验库路径**（如存在），记为 `FLUTTER_LESSONS`
+   - **区块链经验库路径**（如存在），记为 `BLOCKCHAIN_LESSONS`
 2. 记录以上所有路径（**注意：不要读取任何文件内容，只记录路径**）
 3. 创建联调日志文件，默认使用 `{FRONTEND_ROOT}/integration-log.md` 或在用户指定目录创建 `main-log.md`
 4. 确认日志文件路径，记为 `MAIN_LOG`
@@ -46,12 +48,15 @@
 - {yymmdd hhmm} 前端项目：{FRONTEND_ROOT}
 - {yymmdd hhmm} 后端项目：{BACKEND_ROOT}
 - {yymmdd hhmm} Flutter 项目：{FLUTTER_ROOT}（如无则标记 N/A）
+- {yymmdd hhmm} 区块链项目：{BLOCKCHAIN_ROOT}（如无则标记 N/A）
 - {yymmdd hhmm} API 契约：{CONTRACT_FILE}
 - {yymmdd hhmm} 技术栈：{TECH_STACK_FILE}
 - {yymmdd hhmm} 数据架构：{DATA_ARCHITECTURE_FILE}
 - {yymmdd hhmm} 实施路线图：{IMPLEMENTATION_ROADMAP_FILE}
 - {yymmdd hhmm} 前端经验库：{FRONTEND_LESSONS}
 - {yymmdd hhmm} 后端经验库：{BACKEND_LESSONS}
+- {yymmdd hhmm} Flutter 经验库：{FLUTTER_LESSONS}
+- {yymmdd hhmm} 区块链经验库：{BLOCKCHAIN_LESSONS}
 - {yymmdd hhmm} 批量大小：{BATCH_SIZE}
 - {yymmdd hhmm} 成本追踪：本轮预计调用 {N} 个Agent
 ```
@@ -108,7 +113,7 @@ cat {FRONTEND_ROOT}/agent-registry/fullstack_dev.json | jq -r '.id // empty'
 ```
 Agent(
   subagent_type: "fs-planner",
-  prompt: "前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nAPI 契约文档路径：{CONTRACT_FILE}\n技术栈文档路径：{TECH_STACK_FILE}\n数据架构文档路径：{DATA_ARCHITECTURE_FILE}\n实施路线图路径：{IMPLEMENTATION_ROADMAP_FILE}\n前端经验库路径：{FRONTEND_LESSONS}\n后端经验库路径：{BACKEND_LESSONS}\n\n请扫描两端代码现状、阅读 API 契约和架构文档，产出 integration-plan.md、integration-design-guide.md，并创建前端 API 调用层目录结构（{FRONTEND_ROOT}/src/api/）、共享类型文件（src/types/api.ts）和 Vite 代理配置。完成后只返回文件路径列表。"
+   prompt: "前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nFlutter 项目根目录：{FLUTTER_ROOT}（如无则标记 N/A）\n区块链项目根目录：{BLOCKCHAIN_ROOT}（如无则标记 N/A）\nAPI 契约文档路径：{CONTRACT_FILE}\n技术栈文档路径：{TECH_STACK_FILE}\n数据架构文档路径：{DATA_ARCHITECTURE_FILE}\n实施路线图路径：{IMPLEMENTATION_ROADMAP_FILE}\n前端经验库路径：{FRONTEND_LESSONS}\n后端经验库路径：{BACKEND_LESSONS}\nFlutter 经验库路径：{FLUTTER_LESSONS}\n区块链经验库路径：{BLOCKCHAIN_LESSONS}\n\n请扫描各端代码现状、阅读 API 契约和架构文档，产出 integration-plan.md、integration-design-guide.md，并创建前端 API 调用层目录结构（{FRONTEND_ROOT}/src/api/）、共享类型文件（src/types/api.ts）和 Vite 代理配置。如有 BLOCKCHAIN_ROOT，额外创建 src/api/blockchain.ts 区块链调用层。完成后只返回文件路径列表。"
 )
 ```
 
@@ -304,6 +309,7 @@ Agent C:
    > - FRONTEND_ROOT: {FRONTEND_ROOT}
    > - BACKEND_ROOT: {BACKEND_ROOT}
    > - FLUTTER_ROOT: {FLUTTER_ROOT}（如有）
+   > - BLOCKCHAIN_ROOT: {BLOCKCHAIN_ROOT}（如有，合约 ABI 目录为 {BLOCKCHAIN_ROOT}/artifacts/contracts/）
    > - TECH_STACK_FILE: {TECH_STACK_FILE}
    > - INFRA_FILE: {架构阶段产出的 infra-architecture.md 路径}
    > - SECURITY_FILE: {架构阶段产出的 security-architecture.md 路径}
@@ -399,13 +405,13 @@ Agent C:
 ## 与其他系统的关系
 
 ```
-architecture/ → frontend/ + backend/ + flutter/ → fullstack/ → deploy/
-   (Phase 0)         (Phase 1, 可并行)           (Phase 2)    (Phase 3)
+architecture/ → frontend/ + backend/ + flutter/ + blockchain/ → fullstack/ → deploy/
+   (Phase 0)               (Phase 1, 可并行)                    (Phase 2)    (Phase 3)
 ```
 
-fullstack/ 必须等待 frontend/ 和 backend/ 都完成后才能启动。其职责是将两端已完成的代码通过 API 契约对齐，确保前端调用层能正确调用后端接口。联调验证通过后，整体代码方可进入 deploy/ 阶段。
+fullstack/ 必须等待 frontend/ 和 backend/ 都完成后才能启动。其职责是将各端已完成的代码通过 API 契约对齐，确保前端调用层能正确调用后端接口。联调验证通过后，整体代码方可进入 deploy/ 阶段。
 
-如果存在 FLUTTER_ROOT（Flutter 跨端项目），fullstack/ 也会验证跨端接口一致性，确保 Flutter 端能够与后端正确通信。
+如果存在 FLUTTER_ROOT（Flutter 跨端项目），fullstack/ 也会验证跨端接口一致性。如果存在 BLOCKCHAIN_ROOT（区块链合约项目），fullstack/ 会集成链上合约 ABI，通过后端 SDK 调用链上接口，前端通过后端 API 间接读写链上数据。
 
 ---
 

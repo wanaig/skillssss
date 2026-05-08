@@ -36,6 +36,8 @@
    - **实施路线图路径**（architecture 产出的 `implementation-roadmap.md`），记为 `IMPLEMENTATION_ROADMAP_FILE`
    - **前端项目根目录**，记为 `FRONTEND_ROOT`
    - **后端项目根目录**，记为 `BACKEND_ROOT`
+   - **Flutter 项目根目录**（如无则不传），记为 `FLUTTER_ROOT`
+   - **区块链项目根目录**（如无则不传），记为 `BLOCKCHAIN_ROOT`
    - **部署方案根目录**，记为 `DEPLOY_ROOT`（默认新建 `{项目父目录}/deploy/` 目录）
 2. 创建日志文件 `{DEPLOY_ROOT}/main-log.md`
 3. 创建 agent-registry 目录：`{DEPLOY_ROOT}/agent-registry/`
@@ -198,11 +200,11 @@ Agent(
 ## 与其他系统的关系
 
 ```
-architecture/ → frontend/ + backend/ + flutter/ → fullstack/ → deploy/
-   (Phase 0)         (Phase 1, 可并行)           (Phase 2)    (Phase 3)
+architecture/ → frontend/ + backend/ + flutter/ + blockchain/ → fullstack/ → deploy/
+   (Phase 0)               (Phase 1, 可并行)                    (Phase 2)    (Phase 3)
 ```
 
-deploy 是整个多智能体系统的最后一环。其产出的 `docker-compose.prod.yml`、`deploy.sh`、`deploy-checklist.md` 等文件构成完整的生产环境部署包。
+deploy 是整个多智能体系统的最后一环。其产出的 `docker-compose.prod.yml`、`deploy.sh`、`deploy-checklist.md` 等文件构成完整的生产环境部署包。如有区块链项目，部署包中额外包含 FISCO BCOS 节点配置和合约部署脚本。
 
 ---
 

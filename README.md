@@ -4,9 +4,8 @@
 
 ## 快速概览
 
-```
-architecture/ → backend/ + frontend/ + flutter/ → fullstack/ → deploy/
-   (Phase 0)          (Phase 1, 可并行)            (Phase 2)   (Phase 3)
+architecture/ → backend/ + frontend/ + flutter/ + blockchain/ → fullstack/ → deploy/
+   (Phase 0)                  (Phase 1, 可并行)                 (Phase 2)   (Phase 3)
 ```
 
 每个领域内部遵循统一的 **计划 → 批量开发-测试循环 → 收尾** 三阶段流水线。
@@ -20,6 +19,7 @@ architecture/ → backend/ + frontend/ + flutter/ → fullstack/ → deploy/
 ├── fullstack/          # Phase 2: 前后端联调（5 个Agent）
 ├── deploy/             # Phase 3: 生产部署上线（3 个Agent）
 ├── flutter/            # Phase 1c: Flutter 跨端开发（5 个Agent）
+├── blockchain/         # Phase 1d: FISCO BCOS 智能合约（5 个Agent）
 ├── docs/               # 详细文档
 └── .github/workflows/  # CI 验证配置
 ```
@@ -34,14 +34,11 @@ architecture/ → backend/ + frontend/ + flutter/ → fullstack/ → deploy/
 ### 标准流程
 
 **第 1 步：架构设计（必须最先执行）**
-
 加载 `architecture/main-agent-prompt-fs-architect.md`，提供 PRD 路径。产出 7 份架构文档。
 
-**第 2 步：前后端并行开发**
+**第 2 步：各端并行开发**
+架构完成后，可同时启动前端、后端、Flutter 和区块链：
 
-架构完成后，可同时启动前端和后端（以及 Flutter）：
-
-```
 # 前端
 /frontend/main-agent-prompt-vue.md
 PROJECT_ROOT + REQUIREMENT_FILE + 架构文档路径
@@ -49,7 +46,14 @@ PROJECT_ROOT + REQUIREMENT_FILE + 架构文档路径
 # 后端
 /backend/main-agent-prompt.md
 PROJECT_ROOT + REQUIREMENT_FILE + 架构文档路径
-```
+
+# Flutter（可选）
+/flutter/main-agent-prompt-flutter.md
+PROJECT_ROOT + REQUIREMENT_FILE + 架构文档路径
+
+# 区块链（可选）
+/blockchain/main-agent-prompt-blockchain.md
+PROJECT_ROOT + REQUIREMENT_FILE + 架构文档路径
 
 **第 3 步：前后端联调**
 
@@ -94,11 +98,12 @@ TECH_STACK_FILE + INFRA_FILE + SECURITY_FILE + 项目路径
 | 领域 | 主要技术 |
 |------|---------|
 | 前端 | Vue 3 + TypeScript + Vite + Pinia + Vue Router |
-| 后端 | Node.js / Express |
+| 后端 | Java / Spring Boot |
 | 数据库 | PostgreSQL + Prisma/TypeORM + Redis |
 | API 风格 | RESTful |
 | 鉴权 | JWT (Access + Refresh Token) |
 | 跨平台 | Flutter (iOS/Android/Web/Desktop) |
+| 区块链 | FISCO BCOS v3.x + Solidity + Hardhat |
 | 部署 | Docker + K8s / Cloud |
 
 ## 许可与参考

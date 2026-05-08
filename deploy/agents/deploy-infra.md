@@ -88,7 +88,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      - NODE_ENV=production
+      - SPRING_PROFILES_ACTIVE=production
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=${DB_NAME}

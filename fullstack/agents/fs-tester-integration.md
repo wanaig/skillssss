@@ -113,10 +113,10 @@ server: {
 
 | 检查项 | 说明 | PASS条件 |
 |--------|------|---------|
-| Content-Type | 前端设置�?Content-Type 与后�?body parser 兼容 | JSON �?app.use(express.json()) |
-| Body 大小限制 | 后端是否限制了请求体大小 | express.json({ limit: '10mb' }) 存在（或合理值） |
-| URL 编码 | 后端是否支持 URL 编码�?form data | app.use(express.urlencoded({ extended: true })) |
-| Multipart | 如有文件上传，后端是否支�?| multer 或类似中间件已配�?|
+| Content-Type | 前端设置的 Content-Type 与后端 body parser 兼容 | JSON 需 @RequestBody 注解（Spring Boot 默认支持） |
+| Body 大小限制 | 后端是否限制了请求体大小 | application.yml 中 spring.servlet.multipart.max-file-size 已设置（或默认 1MB） |
+| URL 编码 | 后端是否支持 URL 编码 form data | Spring Boot 默认支持 application/x-www-form-urlencoded |
+| Multipart | 如有文件上传，后端是否支持 | @RequestParam MultipartFile 已配置 |
 
 #### 3.4 错误码穿�?
 
@@ -232,9 +232,9 @@ Grep(pattern="proxy|/api") in FRONTEND_ROOT/vite.config.ts
 - 登录/注册接口未挂�?auth 中间件（正确�?�?
 - Token 刷新接口未挂�?auth 中间件（正确�?�?
 
-### 请求格式兼容 �?PASS
-- 前端发�?Content-Type: application/json �?
-- 后端已注�?express.json() �?
+### 请求格式兼容性 PASS
+- 前端发送 Content-Type: application/json ✓
+- 后端 Spring Boot 默认支持 @RequestBody JSON 解析 ✓
 
 ### 错误码穿�?�?PASS
 - 后端统一错误格式 { code, message } �?
@@ -286,7 +286,7 @@ Grep(pattern="proxy|/api") in FRONTEND_ROOT/vite.config.ts
   - CORS 允许的头不包�?Authorization（前端无法发�?Token 的请求）
   - 前端未携�?Authorization header 但接口需要认�?
   - 后端 auth 中间件覆盖了不需要认证的接口（如注册/登录�?
-  - 后端未注�?express.json() 但前端发 JSON
+  - 后端未配置 @RequestBody 但前端发 JSON
   - 后端路由前缀与前�?baseURL 不一�?
   - Vite 代理未配置或 target 地址指向错误
   - 缺少全局错误处理导致未捕获异常返�?HTML 而非 JSON

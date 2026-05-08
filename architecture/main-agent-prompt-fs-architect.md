@@ -370,13 +370,21 @@ else:
         - TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
         - DATA_ARCHITECTURE_FILE: {PROJECT_ROOT}/data-architecture.md
         - IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
-      - flutter/ 主智能体输入：
-        - REQUIREMENT_FILE: {PRD 路径}
-        - PROJECT_ROOT: {Flutter 项目路径}
-        - TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
-        - CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
-        - SECURITY_FILE: {PROJECT_ROOT}/security-architecture.md
-        - IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
+       - flutter/ 主智能体输入：
+         - REQUIREMENT_FILE: {PRD 路径}
+         - PROJECT_ROOT: {Flutter 项目路径}
+         - TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
+         - CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
+         - SECURITY_FILE: {PROJECT_ROOT}/security-architecture.md
+         - IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
+       - blockchain/ 主智能体输入：
+         - REQUIREMENT_FILE: {PRD 路径}
+         - PROJECT_ROOT: {区块链项目路径}
+         - TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
+         - DATA_ARCHITECTURE_FILE: {PROJECT_ROOT}/data-architecture.md
+         - CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
+         - SECURITY_FILE: {PROJECT_ROOT}/security-architecture.md
+         - IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
 └── 12. 不在范围内的能力（明确的"不做"清单）
       - 明确不支持的场景（如"V1 不支持离线模式"）
       - 明确不用的技术（如"不使用 GraphQL，不做微服务拆分"）
@@ -495,28 +503,41 @@ else:
 > IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
 > ```
 >
-> **第 1 步（可并行）— 如需跨端应用：**
-> ```
-> 使用 /flutter/main-agent-prompt-flutter.md
-> PROJECT_ROOT: {Flutter 项目路径}
-> REQUIREMENT_FILE: {PRD 路径}
-> TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
-> CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
-> SECURITY_FILE: {PROJECT_ROOT}/security-architecture.md
-> IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
-> ```
->
-> **第 2 步（串行，需等前端+后端完成）— 启动前后端联调：**
-> ```
-> 使用 /fullstack/main-agent-prompt-fullstack.md
-> FRONTEND_ROOT: {前端项目路径}
-> BACKEND_ROOT: {后端项目路径}
-> FLUTTER_ROOT: {Flutter 项目路径}  # 如有 Flutter 项目，用于验证跨端接口一致性
-> CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
-> TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
-> DATA_ARCHITECTURE_FILE: {PROJECT_ROOT}/data-architecture.md
-> IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
-> ```
+   > **第 1 步（可并行）— 如需跨端应用：**
+   > ```
+   > 使用 /flutter/main-agent-prompt-flutter.md
+   > PROJECT_ROOT: {Flutter 项目路径}
+   > REQUIREMENT_FILE: {PRD 路径}
+   > TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
+   > CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
+   > SECURITY_FILE: {PROJECT_ROOT}/security-architecture.md
+   > IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
+   > ```
+   >
+   > **第 1 步（可并行）— 如需区块链智能合约：**
+   > ```
+   > 使用 /blockchain/main-agent-prompt-blockchain.md
+   > PROJECT_ROOT: {区块链项目路径}
+   > REQUIREMENT_FILE: {PRD 路径}
+   > TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
+   > DATA_ARCHITECTURE_FILE: {PROJECT_ROOT}/data-architecture.md
+   > CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
+   > SECURITY_FILE: {PROJECT_ROOT}/security-architecture.md
+   > IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
+   > ```
+   >
+   > **第 2 步（串行，需等前端+后端完成）— 启动前后端联调：**
+   > ```
+   > 使用 /fullstack/main-agent-prompt-fullstack.md
+   > FRONTEND_ROOT: {前端项目路径}
+   > BACKEND_ROOT: {后端项目路径}
+   > FLUTTER_ROOT: {Flutter 项目路径}  # 如有 Flutter 项目，用于验证跨端接口一致性
+   > BLOCKCHAIN_ROOT: {区块链项目路径}  # 如有区块链项目，用于集成链上合约 ABI
+   > CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
+   > TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
+   > DATA_ARCHITECTURE_FILE: {PROJECT_ROOT}/data-architecture.md
+   > IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
+   > ```
 >
 > **第 3 步（串行，需等 fullstack/ 完成）— 启动生产部署：**
 > ```
@@ -559,7 +580,7 @@ else:
 - 260506 1430 架构设计启动，需求：{REQUIREMENT_FILE}
 - 260506 1430 输出目录：{PROJECT_ROOT}
 - 260506 1432 信息补充完成
-- 260506 1432 团队技能：全栈 TypeScript，熟悉 React + NestJS
+- 260506 1432 团队技能：全栈 TypeScript/Java，熟悉 Vue 3 + Spring Boot
 - 260506 1432 项目规模：SaaS 产品，预期首年 1万 DAU
 - 260506 1432 特约约束：必须用阿里云，数据需存储在境内
 - 260506 1432 PRD 质量预检：PASS
@@ -636,23 +657,23 @@ else:
 ## 与其他系统的关系
 
 ```
-           ┌──────────────────┐
-           │   fs-architect   │  ← 本系统
-           │   架构设计阶段     │
-           └────────┬─────────┘
-                    │ 产出 architecture-design.md
-                    │ + tech-stack.md
-                    │ + data-architecture.md
-                    │ + infra-architecture.md
-                    │ + security-architecture.md
-                    │ + api-contract-outline.md
-                    │ + implementation-roadmap.md
-          ┌─────────┼─────────┬──────────┐
-          ▼         ▼         ▼          ▼
-    ┌─────────┐ ┌──────┐ ┌──────────┐ ┌────────┐
-    │frontend/│ │backend│ │fullstack/ │ │flutter/ │
-    │ Vue开发  │ │API开发│ │前后端联调  │ │跨端开发 │
-    └─────────┘ └──────┘ └──────────┘ └────────┘
+            ┌──────────────────┐
+            │   fs-architect   │  ← 本系统
+            │   架构设计阶段     │
+            └────────┬─────────┘
+                     │ 产出 architecture-design.md
+                     │ + tech-stack.md
+                     │ + data-architecture.md
+                     │ + infra-architecture.md
+                     │ + security-architecture.md
+                     │ + api-contract-outline.md
+                     │ + implementation-roadmap.md
+     ┌─────────┬─────┼─────┬──────────┬──────────┐
+     ▼         ▼     ▼     ▼          ▼          ▼
+┌─────────┐ ┌──────┐ ┌──────┐ ┌──────────┐ ┌──────────┐
+│frontend/│ │backend│ │flutter│ │blockchain│ │fullstack/ │
+│ Vue开发  │ │API开发│ │跨端开发│ │合约开发   │ │前后端联调  │
+└─────────┘ └──────┘ └──────┘ └──────────┘ └──────────┘
 ```
 
 fs-architect 是第一个被调用的系统。其产出的 `architecture-design.md` 定义了所有后续系统共享的技术基线和设计约束。

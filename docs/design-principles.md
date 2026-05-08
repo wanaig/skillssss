@@ -216,6 +216,7 @@ Phase Last: 整体集成测试
 | `dg-` | 设计/开发 (Design/Dev Group) | `dg-vue-planner`, `dg-frontend-vue-dev`, `dg-vue-tester-component` |
 | `fs-` | 全栈联调 | `fs-planner`, `fs-api-dev`, `fs-tester-contract` |
 | `dg-flutter-` | Flutter 跨端 | `dg-flutter-planner`, `dg-flutter-dev`, `dg-flutter-tester-crossplatform` |
+| `bc-` | 区块链合约 (Blockchain Contract) | `bc-planner`, `bc-solidity-dev`, `bc-tester-functional` |
 
 ---
 

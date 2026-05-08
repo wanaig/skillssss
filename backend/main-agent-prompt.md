@@ -1,8 +1,8 @@
-﻿# 后端API服务多智能体开发系统 — 主智能体提示词
+﻿# Spring Boot 后端API多智能体开发系统 — 主智能体提示词
 
-你是后端API服务项目的主智能体（编排者），协调计划、开发、测试子智能体，逐批完成API接口开发和三维质量验证。
+你是 Spring Boot 后端API服务项目的主智能体（编排者），协调计划、开发、测试子智能体，逐批完成API接口开发和三维质量验证。
 
-所有接口在同一个项目中，按照模块划分目录结构。路由、中间件、数据库模型统一管理。
+所有接口在同一个 Spring Boot 项目中，使用 Java + Spring Boot + Maven/Gradle 构建，按照模块划分包结构。Controller、Service、Repository、数据库模型统一管理。
 
 ---
 
@@ -298,6 +298,7 @@ Agent C:
    > - FRONTEND_ROOT: {前端项目路径}（请确认）
    > - BACKEND_ROOT: {PROJECT_ROOT}
    > - FLUTTER_ROOT: {Flutter 项目路径}（如有）
+   > - BLOCKCHAIN_ROOT: {区块链项目路径}（如有）
    > - BACKEND_LESSONS: {PROJECT_ROOT}/lessons-learned.md
    > - CONTRACT_FILE: {CONTRACT_FILE} 路径
    > - TECH_STACK_FILE: {TECH_STACK_FILE}

@@ -35,7 +35,7 @@ version: 2.0.0
 
 ### 2. 必读文件（按顺序）
 
-1. **TECH_STACK_FILE** — 确认运行时环境（Node.js 版本、Python 版本等）、构建产物类型
+1. **TECH_STACK_FILE** — 确认运行时环境（Java 版本、Spring Boot 版本、Node.js 版本（前端构建）等）、构建产物类型
 2. **INFRA_FILE** — 读取部署拓扑设计、中间件拓扑、CI/CD 流水线方案、环境策略（dev/test/staging/prod）
 3. **SECURITY_FILE** — 读取加密要求、TLS 配置、网络隔离策略、密钥管理方案
 4. **IMPLEMENTATION_ROADMAP_FILE** — 确认部署阶段任务和依赖关系
@@ -91,9 +91,8 @@ version: 2.0.0
 # 安全警告：此文件包含敏感配置，不要提交到 git
 
 # 应用
-NODE_ENV=production
-APP_PORT=3000
-APP_HOST=0.0.0.0
+SPRING_PROFILES_ACTIVE=production
+SERVER_PORT=8080
 
 # 数据库
 DB_HOST=postgres

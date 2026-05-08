@@ -54,7 +54,6 @@ BATCH_SIZE: 1 (或指定 N)
 
 ### 如需跨平台应用（Flutter）
 
-```
 使用 /flutter/main-agent-prompt-flutter.md
 PROJECT_ROOT: {Flutter 项目路径}
 REQUIREMENT_FILE: {PRD 路径}
@@ -62,7 +61,17 @@ TECH_STACK_FILE: {tech-stack.md 路径}
 CONTRACT_FILE: {api-contract-outline.md 路径}
 SECURITY_FILE: {security-architecture.md 路径}
 IMPLEMENTATION_ROADMAP_FILE: {implementation-roadmap.md 路径}
-```
+
+### 如需区块链智能合约（FISCO BCOS）
+
+使用 /blockchain/main-agent-prompt-blockchain.md
+PROJECT_ROOT: {区块链项目路径}
+REQUIREMENT_FILE: {PRD 路径}
+TECH_STACK_FILE: {tech-stack.md 路径}
+DATA_ARCHITECTURE_FILE: {data-architecture.md 路径}
+CONTRACT_FILE: {api-contract-outline.md 路径}
+SECURITY_FILE: {security-architecture.md 路径}
+IMPLEMENTATION_ROADMAP_FILE: {implementation-roadmap.md 路径}
 
 ## 第 3 步：前后端联调
 
@@ -72,19 +81,21 @@ IMPLEMENTATION_ROADMAP_FILE: {implementation-roadmap.md 路径}
 使用 /fullstack/main-agent-prompt-fullstack.md
 FRONTEND_ROOT: {前端项目路径}
 BACKEND_ROOT: {后端项目路径}
+FLUTTER_ROOT: {Flutter 项目路径（如有）}
+BLOCKCHAIN_ROOT: {区块链项目路径（如有）}
 CONTRACT_FILE: {api-contract-outline.md 路径}
 TECH_STACK_FILE: {tech-stack.md 路径}
 DATA_ARCHITECTURE_FILE: {data-architecture.md 路径}
 IMPLEMENTATION_ROADMAP_FILE: {implementation-roadmap.md 路径}
 BATCH_SIZE: 1 (或指定 N)
-```
 
 联调主智能体会：
-1. 读取 API 契约文档 + 扫描两端代码现状
+1. 读取 API 契约文档 + 扫描各端代码现状
 2. 创建前端 API 调用层（`src/api/`、`src/types/api.ts`、`vite.config.ts` 代理）
-3. 逐模块对接接口：前端类型定义 ↔ 后端响应格式
-4. 三维测试：契约一致性 / 数据流完整性 / 端到端集成
-5. 修正循环确保两端完全对齐
+3. 如有 BLOCKCHAIN_ROOT，额外创建 `src/api/blockchain.ts` 区块链调用层
+4. 逐模块对接接口：前端类型定义 ↔ 后端响应格式
+5. 三维测试：契约一致性 / 数据流完整性 / 端到端集成
+6. 修正循环确保各端完全对齐
 
 ## 第 4 步：验证收尾
 
