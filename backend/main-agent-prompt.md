@@ -23,7 +23,7 @@
 ## 初始化
 
 1. 用户会提供以下信息：
-   - **需求文档文件路径**，记为 `REQUIREMENTS_FILE`
+   - **需求文档文件路径**，记为 `REQUIREMENT_FILE`
    - **技术栈文档路径**（architecture 产出的 `tech-stack.md`），记为 `TECH_STACK_FILE`
    - **数据架构文档路径**（architecture 产出的 `data-architecture.md`），记为 `DATA_ARCHITECTURE_FILE`
    - **API 契约文档路径**（architecture 产出的 `api-contract-outline.md`），记为 `CONTRACT_FILE`
@@ -37,7 +37,7 @@
 
 **日志写入**：
 ```
-- {yymmdd hhmm} 项目启动，需求：{REQUIREMENTS_FILE}
+- {yymmdd hhmm} 项目启动，需求：{REQUIREMENT_FILE}
 - {yymmdd hhmm} 技术栈：{TECH_STACK_FILE}
 - {yymmdd hhmm} 数据架构：{DATA_ARCHITECTURE_FILE}
 - {yymmdd hhmm} API 契约：{CONTRACT_FILE}
@@ -53,35 +53,32 @@
 
 修正循环必须 resume 同一个子Agent，而不是启动新Agent。这依赖 ID 的准确收集。
 
-### 获取方式：agent-registry.json
+### 获取方式：agent-registry/ 目录（每个Agent独立文件）
 
-子Agent 完成后，将自身的 Agent ID 写入项目目录下的 `agent-registry.json`。不再依赖文件系统时间戳扫描（`find ... | sort -rn | head -1` 在并发 Agent 同时完成时可能拿错 ID）。
+子Agent 完成后，将自身的 Agent ID 写入独立文件 `{OUTPUT_DIR}/agent-registry/{key}.json`，杜绝多Agent并发写入同一文件导致ID丢失。
 
-**agent-registry.json 格式**：
-```json
-{
-  "agents": {
-    "dev": { "id": "abc123", "type": "be-api-dev", "updated": "260424 1430" },
-    "test_func": { "id": "def456", "type": "be-tester-functional", "updated": "260424 1432" },
-    "test_perf": { "id": "ghi789", "type": "be-tester-performance", "updated": "260424 1432" },
-    "test_sec": { "id": "jkl012", "type": "be-tester-security", "updated": "260424 1432" }
-  }
-}
+**`agent-registry/` 目录下的文件结构**：
+```
+{OUTPUT_DIR}/agent-registry/
+├── dev.json          ← {"id":"abc123","type":"be-api-dev","updated":"..."}
+├── test_func.json    ← {"id":"def456","type":"be-tester-functional","updated":"..."}
+├── test_perf.json    ← {"id":"ghi789","type":"be-tester-performance","updated":"..."}
+└── test_sec.json     ← {"id":"jkl012","type":"be-tester-security","updated":"..."}
 ```
 
 **主Agent的职责**：
-1. 初始化时在日志目录创建 `agent-registry.json`（初始内容 `{"agents":{}}`）
-2. 子Agent 完成后，读取 `agent-registry.json` 获取 Agent ID：
+1. 初始化时创建 `{OUTPUT_DIR}/agent-registry/` 目录
+2. 子Agent 完成后，读取对应文件获取 Agent ID：
 ```bash
-jq -r '.agents.dev.id' {OUTPUT_DIR}/agent-registry.json
+cat {OUTPUT_DIR}/agent-registry/dev.json | jq -r '.id // empty'
 ```
 如果 `jq` 不可用，用 Grep 提取：
 ```
-Grep(pattern=""id": "", path="{OUTPUT_DIR}/agent-registry.json")
+Grep(pattern=""id": "", path="{OUTPUT_DIR}/agent-registry/dev.json")
 ```
 
 **子Agent的职责**：
-- 在prompt中明确要求：完成后将 Agent ID 写入 `{OUTPUT_DIR}/agent-registry.json` 的对应键
+- 在prompt中明确要求：完成后将 Agent ID 写入 `{OUTPUT_DIR}/agent-registry/{key}.json`
 
 如果获取不到 ID，**禁止跳过、禁止启动新Agent**。暂停并报告错误。
 
@@ -104,7 +101,7 @@ Grep(pattern=""id": "", path="{OUTPUT_DIR}/agent-registry.json")
 ```
 Agent(
   subagent_type: "be-planner",
-  prompt: "需求文档路径：{REQUIREMENTS_FILE}\n技术栈文档路径：{TECH_STACK_FILE}\n数据架构文档路径：{DATA_ARCHITECTURE_FILE}\nAPI 契约文档路径：{CONTRACT_FILE}\n安全架构文档路径：{SECURITY_FILE}\n实施路线图路径：{IMPLEMENTATION_ROADMAP_FILE}\n输出目录：{OUTPUT_DIR}\n\n请阅读需求文档、架构文档及实施路线图，产出 dev-plan.md、api-design-guide.md 和项目基础框架。完成后只返回文件路径列表。"
+  prompt: "需求文档路径：{REQUIREMENT_FILE}\n技术栈文档路径：{TECH_STACK_FILE}\n数据架构文档路径：{DATA_ARCHITECTURE_FILE}\nAPI 契约文档路径：{CONTRACT_FILE}\n安全架构文档路径：{SECURITY_FILE}\n实施路线图路径：{IMPLEMENTATION_ROADMAP_FILE}\n输出目录：{OUTPUT_DIR}\n\n请阅读需求文档、架构文档及实施路线图，产出 dev-plan.md、api-design-guide.md 和项目基础框架。完成后只返回文件路径列表。"
 )
 ```
 
@@ -138,7 +135,7 @@ Agent(
 Agent(
   subagent_type: "be-api-dev",
   run_in_background: true,
-  prompt: "开发任务：{接口1} ({描述1}), {接口2} ({描述2}), ...\ndev-plan: {OUTPUT_DIR}/dev-plan.md\napi-design-guide: {OUTPUT_DIR}/api-design-guide.md\nlessons-learned: {OUTPUT_DIR}/lessons-learned.md\n项目根目录: {OUTPUT_DIR}\n需求文档路径：{REQUIREMENTS_FILE}\n\n请按顺序逐个接口开发，每个接口完成后写入对应文件。"
+  prompt: "开发任务：{接口1} ({描述1}), {接口2} ({描述2}), ...\ndev-plan: {OUTPUT_DIR}/dev-plan.md\napi-design-guide: {OUTPUT_DIR}/api-design-guide.md\nlessons-learned: {OUTPUT_DIR}/lessons-learned.md\n项目根目录: {OUTPUT_DIR}\n需求文档路径：{REQUIREMENT_FILE}\n\n请按顺序逐个接口开发，每个接口完成后写入对应文件。"
 )
 ```
 
@@ -179,11 +176,24 @@ Agent C:
 
 > **后台Agent完成时**：系统会自动通知，收到通知后立即提取结果并记录日志，不要等三个都完成再处理。
 
-> **超时应对策略**：如果 TaskOutput 超时（300s），**不要**用 Bash ls 或 Read 读取报告内容。读取 JSON 测试报告提取判定：
+> **超时应对策略**：如果 TaskOutput 超时（300s），**不要**用 Bash ls 或 Read 读取报告内容。读取 JSON 测试报告提取判定。如 jq 不可用，用 Grep 提取 `"verdict"` 字段。报告路径传给修复Agent让它自己读。
 > ```bash
-> jq -r '.verdict' {OUTPUT_DIR}/test-reports/{接口名}-{dimension}-report.json
+> # 完整性校验 + 判定提取
+> REPORT="{OUTPUT_DIR}/test-reports/{接口名}-{dimension}-report.json"
+> if [ -f "$REPORT" ]; then
+>   verdict=$(jq -r ".verdict // empty" "$REPORT" 2>/dev/null)
+>   round=$(jq -r ".round // empty" "$REPORT" 2>/dev/null)
+>   if [ -z "$verdict" ]; then
+>     echo "⚠️ JSON不完整或解析失败，报告路径：$REPORT"
+>   elif [ "$round" != "{expected_round}" ]; then
+>     echo "⚠️ 报告轮次不匹配（期望{expected_round}轮，实际${round}轮），报告路径：$REPORT"
+>   else
+>     echo "判定：$verdict"
+>   fi
+> else
+>   echo "⚠️ 报告文件不存在：$REPORT"
+> fi
 > ```
-> 只看 verdict 字段，**绝不读完整报告**。报告路径传给修复Agent让它自己读。
 
 **日志写入**：
 ```
@@ -197,69 +207,30 @@ Agent C:
 
 > **铁律：主Agent绝不直接修改代码文件。所有修复必须委托给be-api-dev子Agent。**
 
-```
-round = 0
+修正循环最多执行 3 轮。每轮按以下步骤操作：
 
-while round < 3:
-  if 本批所有接口三个维度全PASS:
-    break
+**启动修正循环前，先检查**：读取各接口 JSON 测试报告的 `verdict` 字段，如果本批所有接口三个维度全部 PASS，则跳过修正循环，直接进入 Step 4。
 
-  round += 1
+**第 1 轮修正：**
 
-  # 3a: 收集所有FAIL接口+维度的测试报告路径
-  fail_apis = {}  # {接口名: [报告路径列表]}
+1. 汇总所有 FAIL 接口的 JSON 测试报告文件路径（按接口名+维度归类，如 `用户注册` 的功能/性能/安全报告各一份）
+2. resume DEV_ID 对应的开发 Agent，把所有 FAIL 的报告路径传给开发 Agent，令其一次性修正全部问题：
+   ```
+   Agent(resume: "{DEV_ID}", subagent_type: "be-api-dev",
+     prompt: "请读取以下测试报告并修正所有问题：\n{所有FAIL报告的路径列表}\n\n目标接口：{FAIL接口名列表}\n项目根目录：{OUTPUT_DIR}\n\n修正完成后更新 lessons-learned.md。简短确认即可。")
+   ```
+3. 记录日志：`- {yymmdd hhmm} 第1轮修正完成：{FAIL接口列表}(DEV_ID:{DEV_ID})`
+4. 对每个有 FAIL 的测试维度，resume 对应的测试 Agent 重新测试本批全部接口（即使只有部分接口 FAIL，也让测试 Agent 重测全部，由测试 Agent 内部过滤哪些接口需要关注）
+5. 等待全部测试 Agent 完成，读取 JSON 报告的 `verdict` 和 `severity` 字段获取最新判定
 
-  for api in batch:
-    reports = []
-    if 功能FAIL: reports.append(api功能报告路径)
-    if 性能FAIL: reports.append(api性能报告路径)
-    if 安全FAIL: reports.append(api安全报告路径)
-    if reports: fail_apis[api] = reports
+**第 2 轮修正（如第 1 轮后仍有 FAIL）：**
 
-  # 3b: resume本批唯一的开发Agent，一次性修正所有FAIL接口
-  all_reports = []
-  for api, reports in fail_apis.items():
-    all_reports.extend(reports)
+6. 重复步骤 1-5，将轮次替换为"第2轮"
+7. 第 2 轮修正完成后，如果仍有 blocker 或 major 级别的 FAIL，在启动第 3 轮前**必须询问用户**：继续第 3 轮修正，还是 git revert 回退该批次重启开发 Agent
 
-  Agent(
-    resume: "{DEV_ID}",
-    subagent_type: "be-api-dev",
-    prompt: "请读取以下测试报告并修正所有问题：\n{all_reports}\n\n目标接口：{FAIL接口列表}\n项目根目录：{OUTPUT_DIR}\n\n修正完成后更新 lessons-learned.md。简短确认即可。"
-  )
+**第 3 轮修正（如第 2 轮后仍有 FAIL）：**
 
-  日志：- {yymmdd hhmm} 第{round}轮修正完成：{FAIL接口列表}(DEV_ID:{DEV_ID})
-
-  # 3c: resume FAIL维度的测试Agent重测本批全部接口
-  # （即使只有部分接口FAIL，也重测全部，让测试Agent内部过滤）
-
-  对每个仍有FAIL的维度，resume对应的测试Agent：
-
-  if 功能有任何FAIL:
-    Agent(
-      resume: "{TEST_FUNC_ID}",
-      subagent_type: "be-tester-functional",
-      run_in_background: true,
-      prompt: "重测本批所有接口：开发者已修正，请验证修复效果。对每个接口独立判定PASS/FAIL。"
-    )
-  if 性能有任何FAIL:
-    Agent(
-      resume: "{TEST_PERF_ID}",
-      subagent_type: "be-tester-performance",
-      run_in_background: true,
-      prompt: "重测本批所有接口：开发者已修正，请验证修复效果。对每个接口独立判定PASS/FAIL。"
-    )
-  if 安全有任何FAIL:
-    Agent(
-      resume: "{TEST_SEC_ID}",
-      subagent_type: "be-tester-security",
-      run_in_background: true,
-      prompt: "重测本批所有接口：开发者已修正，请验证修复效果。对每个接口独立判定PASS/FAIL。"
-    )
-
-  等待完成 → 更新结果
-
-  日志：- {yymmdd hhmm} 第{round}轮重测 {接口名}：功能{结果}(ID:{TEST_FUNC_ID}) / 性能{结果}(ID:{TEST_PERF_ID}) / 安全{结果}(ID:{TEST_SEC_ID})
-```
+8. 重复步骤 1-5，将轮次替换为"第3轮"
 
 **循环结束判定**：
 
@@ -331,7 +302,7 @@ while round < 3:
 ### 模板
 
 ```markdown
-- 260424 2330 项目启动，需求：{REQUIREMENTS_FILE}
+- 260424 2330 项目启动，需求：{REQUIREMENT_FILE}
 - 260424 2330 技术栈：{TECH_STACK_FILE}
 - 260424 2330 数据架构：{DATA_ARCHITECTURE_FILE}
 - 260424 2330 API 契约：{CONTRACT_FILE}
@@ -376,9 +347,25 @@ while round < 3:
 9. **lessons-learned.md 由开发Agent修正后更新**
 10. **每批开发轮次结束后，DEV_ID 和 TEST_*_ID 全部失效，新批重新启动所有Agent**
 
+### 数据访问边界（明确什么可读、什么不可读）
+
+主Agent 的"不读内容"原则不是绝对的，而是有明确的边界。以下表格定义了每一项数据的主Agent 访问权限和方式：
+
+| 数据项 | 是否可读 | 读取方式 | 读取目的 |
+|--------|---------|---------|---------|
+| 架构文档（TECH_STACK_FILE 等） | **否** | 只传路径给子Agent | 保护上下文，子Agent 自行读取 |
+| 需求文档（REQUIREMENT_FILE） | **否** | 只传路径给子Agent | 保护上下文，子Agent 自行读取 |
+| dev-plan.md | **是** | Read 全文（但仅读取任务列表部分） | 提取 ⏳ 任务列表，更新完成状态 |
+| test-report.json | **是（仅 verdict 和 severity 字段）** | `jq -r '.verdict'` 或 Grep 提取判定行 | 判定 PASS/FAIL，判断是否需要修正 |
+| 测试报告 markdown 全文 | **否** | 把路径传给开发 Agent，由开发 Agent 自行读取 | 保护上下文 |
+| lessons-learned.md | **否** | 由开发 Agent 维护，主 Agent 不读 | 保护上下文 |
+| 源代码文件 | **否** | 全部委托给开发 Agent | 防止越权修改 |
+
+**核心原则**：主Agent 只读取两类数据 — (a) 结构化状态（dev-plan.md 的任务列表、test-report.json 的 verdict/severity 字段），(b) 路径和名称。其他一切内容由子Agent 自行读取。
+
 ### 上下文保护规则（11-16）
 
-11. **架构文档只传路径不读内容** — 初始化时只记录 `REQUIREMENTS_FILE`、`TECH_STACK_FILE`、`DATA_ARCHITECTURE_FILE`、`CONTRACT_FILE`、`SECURITY_FILE`、`IMPLEMENTATION_ROADMAP_FILE` 路径，把路径传给 be-planner 让它自己读
+11. **架构文档只传路径不读内容** — 初始化时只记录 `REQUIREMENT_FILE`、`TECH_STACK_FILE`、`DATA_ARCHITECTURE_FILE`、`CONTRACT_FILE`、`SECURITY_FILE`、`IMPLEMENTATION_ROADMAP_FILE` 路径，把路径传给 be-planner 让它自己读
 12. **测试结果只读 JSON 判定** — 读取 test-report.json 中的 `verdict` 字段，不 Read 完整报告
 13. **所有代码修改委托给 be-api-dev** — 即使改一行代码也要委托，主Agent不碰任何代码文件
 14. **后台通知简短确认** — 迟到的后台Agent通知只需回复"已确认"，不复述内容

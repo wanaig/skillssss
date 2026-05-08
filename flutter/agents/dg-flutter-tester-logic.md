@@ -53,6 +53,16 @@ memory: project
 - 检查所有 try-catch 的错误处理覆盖
 - 验证 Provider 的依赖注入链（ref.watch 树）
 
+### 测试执行方法（如何审查，而非审查什么）
+
+你通过**静态状态管理分析**完成逻辑测试，不编译运行、不发送请求。具体操作步骤：
+
+1. **Provider/Riverpod 依赖图绘制**：搜索 `ref.watch`/`ref.read`/`Consumer`/`ConsumerWidget`，构建 provider 之间及 provider 与 widget 的依赖关系；检查是否有循环依赖
+2. **异步路径追踪**：对每个 `FutureBuilder`/`StreamBuilder`/`AsyncValue`/`ref.watch(futureProvider)`，追踪 loading/error/data 三态的处理分支是否完整
+3. **状态生命周期检查**：搜索 `initState`/`dispose` 配对，确认 Timer、StreamSubscription、AnimationController 是否在 dispose 中释放
+4. **不可变性验证**：搜索 `freezed`/`immutable`/`@immutable` 注解，确认 State 类使用了不可变设计；搜索 `copyWith` 使用是否正确
+5. **Dio/HTTP 错误处理审计**：搜索 `dio`/`http` 相关代码，确认每个网络请求有 try-catch 处理、超时配置和重试策略
+
 ### 4. 判定标准
 
 **PASS**：零问题或仅有轻微建议
@@ -60,11 +70,11 @@ memory: project
 
 ### 4.5 严重级别定义
 
-| 级别 | 标识 | 判定标准 | 处理方式 |
-|------|------|---------|---------|
-| **blocker** | 阻断 | 核心功能无法使用、安全漏洞、数据丢失风险、响应性断裂、契约完全不匹配 | 第3轮后仍存在则必须人工介入，不回退为低质量通过 |
-| **major** | 主要 | 功能可用但有明显缺陷、性能明显不达标、关键错误处理缺失、重要字段类型不匹配 | 第3轮后仍存在则向用户报告，不回退为低质量通过 |
-| **minor** | 轻微 | 代码风格问题、命名不规范、缺少注释、非关键UI瑕疵、优化建议 | 第3轮后允许标记为低质量通过（⚠️），不阻塞进度 |
+| 级别 | 标识 | 判定标准（逻辑测试专用） | 处理方式 |
+|------|------|------------------------|---------|
+| **blocker** | 阻断 | Provider/Riverpod循环依赖导致StackOverflow、State可变（未使用freezed/@immutable）导致UI不响应、FutureBuilder/StreamBuilder未处理error状态、initState中注册但dispose未释放（内存泄漏） | 第3轮后仍存在则必须人工介入 |
+| **major** | 主要 | AsyncValue三态（loading/error/data）覆盖不全、Dio请求无try-catch处理、ref.watch/ref.read使用混淆导致不必要的重建、超时配置缺失 | 第3轮后仍存在则向用户报告 |
+| **minor** | 轻微 | Provider可拆分为更细粒度、copyWith使用可简化、非关键Widget的const构造建议、状态类字段命名建议 | 第3轮后允许标记为低质量通过 ⚠️ |
 
 ### 5. 输出测试报告
 
@@ -160,12 +170,31 @@ FAIL时：
 **⚠️ 主Agent只读取 JSON 文件的 `verdict` 字段判定 PASS/FAIL，不读取 markdown 报告。你的 JSON 输出必须精确。**
 
 **Agent ID 写入**：
-完成测试并写入报告后，将你的 Agent ID 写入 `{输出目录}/../agent-registry.json`（即项目根目录下的 agent-registry.json），更新对应键位。
+完成测试并写入报告后，将你的 Agent ID 写入独立文件 `{输出目录}/agent-registry/test_logic.json`（避免多Agent并发写入同一文件导致ID丢失）。
 
-写入方式：用 Bash 执行：
+写入方式（按优先级选择可用工具）：
+
+**优先用 jq**（如环境有 jq）：
 ```bash
-jq '.agents.test_logic.id = "{YOUR_AGENT_ID}" | .agents.test_logic.updated = "{CURRENT_TIME}"' {OUTPUT_DIR}/../agent-registry.json > tmp.json && mv tmp.json {OUTPUT_DIR}/../agent-registry.json
+mkdir -p {输出目录}/agent-registry
+echo '{"id":"YOUR_AGENT_ID","type":"dg-flutter-tester-logic","updated":"CURRENT_TIME"}' > {输出目录}/agent-registry/test_logic.json
 ```
+
+**否则用 Python**（jq 不可用时）：
+```python
+import json, os
+os.makedirs("{输出目录}/agent-registry", exist_ok=True)
+with open("{输出目录}/agent-registry/test_logic.json", "w") as f:
+    json.dump({"id":"YOUR_AGENT_ID","type":"dg-flutter-tester-logic","updated":"CURRENT_TIME"}, f)
+```
+
+**否则直接 echo**（最后手段）：
+```bash
+mkdir -p {输出目录}/agent-registry && echo "YOUR_AGENT_ID" > {输出目录}/agent-registry/test_logic.id
+```
+
+**经验贡献**：
+如果在审查中发现跨模块通用的模式性问题（即同一类错误可能在其他模块中重复出现），除写入测试报告外，同时追加到 `{输出目录}/../lessons-learned.md`。遵循经验库粒度标准：原则性>数值性、模式级>页面级、可迁移>可复制。向主Agent报告时注明已追加经验。
 
 向主Agent输出时只返回：
 ```

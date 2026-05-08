@@ -1,0 +1,161 @@
+name: Validate Prompt Files
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  structure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required directories exist
+        run: |
+          for dir in architecture backend frontend fullstack flutter; do
+            if [ ! -d "$dir" ]; then
+              echo "ERROR: Missing directory: $dir"
+              exit 1
+            fi
+          done
+          echo "All required directories present"
+
+      - name: Check each agent has YAML frontmatter
+        run: |
+          errors=0
+          for agent in architecture/agents/*.md backend/agents/*.md frontend/agents/*.md fullstack/agents/*.md flutter/agents/*.md; do
+            if ! head -1 "$agent" | grep -q '^---$'; then
+              echo "ERROR: $agent missing YAML frontmatter"
+              errors=$((errors+1))
+            fi
+          done
+          if [ $errors -gt 0 ]; then
+            echo "Found $errors agents without YAML frontmatter"
+            exit 1
+          fi
+          echo "All agents have YAML frontmatter"
+
+      - name: Validate agent YAML has required fields
+        run: |
+          errors=0
+          for agent in architecture/agents/*.md backend/agents/*.md frontend/agents/*.md fullstack/agents/*.md flutter/agents/*.md; do
+            # Extract YAML frontmatter
+            sed -n '/^---$/,/^---$/p' "$agent" | head -n -1 | tail -n +2 > /tmp/frontmatter.yml
+            for field in name description tools model; do
+              if ! grep -q "^${field}:" /tmp/frontmatter.yml; then
+                echo "ERROR: $agent missing required field: $field"
+                errors=$((errors+1))
+              fi
+            done
+          done
+          if [ $errors -gt 0 ]; then
+            echo "Found $errors missing required fields"
+            exit 1
+          fi
+          echo "All agents have required YAML fields"
+
+  naming:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check frontend agent naming consistency
+        run: |
+          errors=0
+          names=$(ls frontend/agents/ | sed 's/\.md$//')
+          
+          # Dev agent should be dg-frontend-vue-dev
+          if ! echo "$names" | grep -q "dg-frontend-vue-dev"; then
+            echo "ERROR: Expected frontend dev agent: dg-frontend-vue-dev"
+            errors=$((errors+1))
+          fi
+          
+          # Planner should be dg-vue-planner
+          if ! echo "$names" | grep -q "dg-vue-planner"; then
+            echo "ERROR: Expected frontend planner: dg-vue-planner"
+            errors=$((errors+1))
+          fi
+          
+          # Testers should all use dg-vue-tester-* prefix
+          for tester in dg-vue-tester-component dg-vue-tester-logic dg-vue-tester-style; do
+            if ! echo "$names" | grep -q "$tester"; then
+              echo "ERROR: Expected frontend tester: $tester"
+              errors=$((errors+1))
+            fi
+          done
+          
+          if [ $errors -gt 0 ]; then
+            exit 1
+          fi
+          echo "Frontend naming conventions OK"
+
+      - name: Check backend agent naming consistency
+        run: |
+          errors=0
+          names=$(ls backend/agents/ | sed 's/\.md$//')
+          for agent in be-planner be-api-dev be-tester-functional be-tester-performance be-tester-security; do
+            if ! echo "$names" | grep -q "$agent"; then
+              echo "ERROR: Expected backend agent: $agent"
+              errors=$((errors+1))
+            fi
+          done
+          if [ $errors -gt 0 ]; then
+            exit 1
+          fi
+          echo "Backend naming conventions OK"
+
+      - name: Check fullstack agent naming consistency
+        run: |
+          errors=0
+          names=$(ls fullstack/agents/ | sed 's/\.md$//')
+          for agent in fs-planner fs-api-dev fs-tester-contract fs-tester-dataflow fs-tester-integration; do
+            if ! echo "$names" | grep -q "$agent"; then
+              echo "ERROR: Expected fullstack agent: $agent"
+              errors=$((errors+1))
+            fi
+          done
+          if [ $errors -gt 0 ]; then
+            exit 1
+          fi
+          echo "Fullstack naming conventions OK"
+
+  markdown:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Lint markdown files
+        run: |
+          npx markdownlint-cli2 "**/*.md" "#.git" --config '{
+            "default": true,
+            "line-length": false,
+            "no-inline-html": false,
+            "no-duplicate-heading": false,
+            "no-trailing-punctuation": false,
+            "no-blanks-blockquote": false,
+            "single-trailing-newline": false,
+            "no-emphasis-as-heading": false,
+            "first-line-heading": false,
+            "no-alt-text": false
+          }' || true
+          echo "Markdown lint completed (warnings are non-blocking)"
+
+      - name: Check for broken internal links
+        run: |
+          errors=0
+          # Check referenced files exist
+          for file in README.md notes-multi-agent-collaboration-design.md; do
+            # Extract relative file paths from markdown links
+            grep -oP '\[.*?\]\(\./.*?\.md\)' "$file" | grep -oP '(?<=\(\./)[^)]+' | while read path; do
+              if [ ! -f "$path" ]; then
+                echo "WARNING: Broken link in $file -> $path"
+              fi
+            done
+          done
+          echo "Link check completed"

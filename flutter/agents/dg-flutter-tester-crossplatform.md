@@ -53,6 +53,16 @@ memory: project
 - 检查所有 Widget 的构造器，确认自适应版本被使用
 - 检查 pubspec.yaml 中插件配置，对照各平台的配置要求
 
+### 测试执行方法（如何审查，而非审查什么）
+
+你通过**静态跨平台代码审计**完成跨端测试，不编译运行、不在真机验证。具体操作步骤：
+
+1. **平台条件代码搜索**：搜索 `Platform.isAndroid`/`Platform.isIOS`/`kIsWeb`/`defaultTargetPlatform`，确认每个平台分支处理完整
+2. **响应式布局检查**：搜索 `MediaQuery`/`LayoutBuilder`/`BoxConstraints`，确认 UI 在不同宽度（360/768/1024px）有自适应逻辑
+3. **平台 API 封检查**：搜索 `dart:io`/`dart:html` 导入（Web 端不可用），确认有平台隔离或条件导入
+4. **Web 兼容性**：搜索 `window`/`document` 引用，搜索 `html` 而非 `dart:html` 的条件导入；检查 `CanvasKit`/`HTML` 渲染器相关配置是否存在
+5. **桌面端适配**：搜索 `Platform.isMacOS`/`Platform.isWindows`/`Platform.isLinux`，确认有窗口大小、菜单栏、快捷键适配
+
 ### 4. 判定标准
 
 **PASS**：所有目标平台兼容，无跨端违规代码
@@ -60,11 +70,11 @@ memory: project
 
 ### 4.5 严重级别定义
 
-| 级别 | 标识 | 判定标准 | 处理方式 |
-|------|------|---------|---------|
-| **blocker** | 阻断 | 核心功能无法使用、安全漏洞、数据丢失风险、响应性断裂、契约完全不匹配 | 第3轮后仍存在则必须人工介入，不回退为低质量通过 |
-| **major** | 主要 | 功能可用但有明显缺陷、性能明显不达标、关键错误处理缺失、重要字段类型不匹配 | 第3轮后仍存在则向用户报告，不回退为低质量通过 |
-| **minor** | 轻微 | 代码风格问题、命名不规范、缺少注释、非关键UI瑕疵、优化建议 | 第3轮后允许标记为低质量通过（⚠️），不阻塞进度 |
+| 级别 | 标识 | 判定标准（跨端测试专用） | 处理方式 |
+|------|------|------------------------|---------|
+| **blocker** | 阻断 | 平台条件代码（Platform.isAndroid/isIOS）缺失导致某端崩溃、Web端使用了dart:io（编译失败）、桌面端窗口resize导致布局完全错乱 | 第3轮后仍存在则必须人工介入 |
+| **major** | 主要 | 响应式断点缺失（360px/768px/1024px未适配）、Platform API未做平台判断直接调用、CanvasKit/HTML渲染器差异未处理、SafeArea未适配异形屏 | 第3轮后仍存在则向用户报告 |
+| **minor** | 轻微 | 平台特定Widget可用更通用的替代方案、键盘类型未根据场景优化、滚动物理效果平台差异、非关键平台差异的建议 | 第3轮后允许标记为低质量通过 ⚠️ |
 
 ### 5. 输出测试报告
 
@@ -160,12 +170,31 @@ FAIL时：
 **⚠️ 主Agent只读取 JSON 文件的 `verdict` 字段判定 PASS/FAIL，不读取 markdown 报告。你的 JSON 输出必须精确。**
 
 **Agent ID 写入**：
-完成测试并写入报告后，将你的 Agent ID 写入 `{输出目录}/../agent-registry.json`（即项目根目录下的 agent-registry.json），更新对应键位。
+完成测试并写入报告后，将你的 Agent ID 写入独立文件 `{输出目录}/agent-registry/test_crossplatform.json`（避免多Agent并发写入同一文件导致ID丢失）。
 
-写入方式：用 Bash 执行：
+写入方式（按优先级选择可用工具）：
+
+**优先用 jq**（如环境有 jq）：
 ```bash
-jq '.agents.test_crossplatform.id = "{YOUR_AGENT_ID}" | .agents.test_crossplatform.updated = "{CURRENT_TIME}"' {OUTPUT_DIR}/../agent-registry.json > tmp.json && mv tmp.json {OUTPUT_DIR}/../agent-registry.json
+mkdir -p {输出目录}/agent-registry
+echo '{"id":"YOUR_AGENT_ID","type":"dg-flutter-tester-crossplatform","updated":"CURRENT_TIME"}' > {输出目录}/agent-registry/test_crossplatform.json
 ```
+
+**否则用 Python**（jq 不可用时）：
+```python
+import json, os
+os.makedirs("{输出目录}/agent-registry", exist_ok=True)
+with open("{输出目录}/agent-registry/test_crossplatform.json", "w") as f:
+    json.dump({"id":"YOUR_AGENT_ID","type":"dg-flutter-tester-crossplatform","updated":"CURRENT_TIME"}, f)
+```
+
+**否则直接 echo**（最后手段）：
+```bash
+mkdir -p {输出目录}/agent-registry && echo "YOUR_AGENT_ID" > {输出目录}/agent-registry/test_crossplatform.id
+```
+
+**经验贡献**：
+如果在审查中发现跨模块通用的模式性问题（即同一类错误可能在其他模块中重复出现），除写入测试报告外，同时追加到 `{输出目录}/../lessons-learned.md`。遵循经验库粒度标准：原则性>数值性、模式级>页面级、可迁移>可复制。向主Agent报告时注明已追加经验。
 
 向主Agent输出时只返回：
 ```

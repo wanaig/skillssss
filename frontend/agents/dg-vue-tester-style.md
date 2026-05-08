@@ -93,13 +93,23 @@ memory: project
 **PASS**：零问题或仅有轻微建议
 **FAIL**：存在响应式断裂、可访问性严重缺陷、状态缺失、样式泄漏等任一问题
 
+### 4.1 测试执行方法（如何审查，而非审查什么）
+
+你通过**静态样式与模板分析**完成样式测试，不运行浏览器、不截图比对。具体操作步骤：
+
+1. **提取样式块**：读取每个 `.vue` 文件的 `<style>` 块，确认是否有 `scoped` 属性；搜索 `:deep()`、`!important`、`style="..."`（inline style）
+2. **响应式断点检查**：搜索 `@media` 查询或 Tailwind 的 `sm:`/`md:`/`lg:` 前缀；对没有响应式断点的核心页面组件，模拟 375px 宽度的框架，检查 flex/grid 布局是否会出现溢出
+3. **可访问性属性搜索**：Grep 搜索 `aria-label`、`role`、`alt`、`<label` 关键词，统计缺少标注的交互元素；搜索 `<button`/`<a` 等交互元素检查是否有 `:focus-visible` 样式
+4. **交互状态样式搜索**：搜索 `:hover`、`:active`、`:disabled`、`transition`/`animation` 关键词，确认交互元素有状态反馈
+5. **设计令牌一致性**：搜索 `var(--` 使用情况，统计硬编码颜色值（`#xxx`/`rgb(`）的数量；如设计系统定义了间距/字号变量，检查是否遵循
+
 ### 4.5 严重级别定义
 
-| 级别 | 标识 | 判定标准 | 处理方式 |
-|------|------|---------|---------|
-| **blocker** | 阻断 | 核心功能无法使用、安全漏洞、数据丢失风险、响应性断裂、契约完全不匹配 | 第3轮后仍存在则必须人工介入，不回退为低质量通过 |
-| **major** | 主要 | 功能可用但有明显缺陷、性能明显不达标、关键错误处理缺失、重要字段类型不匹配 | 第3轮后仍存在则向用户报告，不回退为低质量通过 |
-| **minor** | 轻微 | 代码风格问题、命名不规范、缺少注释、非关键UI瑕疵、优化建议 | 第3轮后允许标记为低质量通过（⚠️），不阻塞进度 |
+| 级别 | 标识 | 判定标准（样式测试专用） | 处理方式 |
+|------|------|------------------------|---------|
+| **blocker** | 阻断 | <style>缺少scoped导致样式全局污染、移动端（375px）布局完全断裂无法使用、对比度不满足WCAG AA最低标准（<3:1）、表单元素无关联label（屏幕阅读器无法使用） | 第3轮后仍存在则必须人工介入 |
+| **major** | 主要 | 交互元素无:focus-visible样式（键盘导航失效）、disabled状态无视觉区分、触控区域<44px不符合iOS/Android规范、错误/空数据状态无UI反馈、响应式断点缺失导致平板体验差 | 第3轮后仍存在则向用户报告 |
+| **minor** | 轻微 | 硬编码色值未使用CSS变量、过度使用!important、inline style、transition缺失导致交互生硬、长文本未做截断处理 | 第3轮后允许标记为低质量通过 ⚠️ |
 
 ### 5. 输出测试报告
 
@@ -196,12 +206,31 @@ FAIL时：
 **⚠️ 主Agent只读取 JSON 文件的 `verdict` 字段判定 PASS/FAIL，不读取 markdown 报告。你的 JSON 输出必须精确。**
 
 **Agent ID 写入**：
-完成测试并写入报告后，将你的 Agent ID 写入 `{输出目录}/../agent-registry.json`（即项目根目录下的 agent-registry.json），更新对应键位。
+完成测试并写入报告后，将你的 Agent ID 写入独立文件 `{输出目录}/agent-registry/test_style.json`（避免多Agent并发写入同一文件导致ID丢失）。
 
-写入方式：用 Bash 执行：
+写入方式（按优先级选择可用工具）：
+
+**优先用 jq**（如环境有 jq）：
 ```bash
-jq '.agents.test_style.id = "{YOUR_AGENT_ID}" | .agents.test_style.updated = "{CURRENT_TIME}"' {OUTPUT_DIR}/../agent-registry.json > tmp.json && mv tmp.json {OUTPUT_DIR}/../agent-registry.json
+mkdir -p {输出目录}/agent-registry
+echo '{"id":"YOUR_AGENT_ID","type":"dg-vue-tester-style","updated":"CURRENT_TIME"}' > {输出目录}/agent-registry/test_style.json
 ```
+
+**否则用 Python**（jq 不可用时）：
+```python
+import json, os
+os.makedirs("{输出目录}/agent-registry", exist_ok=True)
+with open("{输出目录}/agent-registry/test_style.json", "w") as f:
+    json.dump({"id":"YOUR_AGENT_ID","type":"dg-vue-tester-style","updated":"CURRENT_TIME"}, f)
+```
+
+**否则直接 echo**（最后手段）：
+```bash
+mkdir -p {输出目录}/agent-registry && echo "YOUR_AGENT_ID" > {输出目录}/agent-registry/test_style.id
+```
+
+**经验贡献**：
+如果在审查中发现跨模块通用的模式性问题（即同一类错误可能在其他模块中重复出现），除写入测试报告外，同时追加到 `{输出目录}/../lessons-learned.md`。遵循经验库粒度标准：原则性>数值性、模式级>页面级、可迁移>可复制。向主Agent报告时注明已追加经验。
 
 向主Agent输出时只返回：
 ```

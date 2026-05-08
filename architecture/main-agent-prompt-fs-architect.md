@@ -92,30 +92,28 @@ Grep(pattern="并发|性能|响应|SLA|可用|延迟", path="{REQUIREMENT_FILE}"
 
 ## Agent ID 收集
 
-子Agent 完成后，将自身的 Agent ID 写入输出目录下的 `agent-registry.json`。
+子Agent 完成后，将自身的 Agent ID 写入独立文件 `{OUTPUT_DIR}/agent-registry/{key}.json`，杜绝多Agent并发写入同一文件导致ID丢失。
 
-**agent-registry.json 格式**：
-```json
-{
-  "agents": {
-    "fa_techstack": { "id": "abc123", "type": "fa-techstack", "updated": "260506 1430" },
-    "fa_data": { "id": "def456", "type": "fa-data", "updated": "260506 1432" },
-    "fa_infra": { "id": "ghi789", "type": "fa-infra", "updated": "260506 1431" },
-    "fa_security": { "id": "jkl012", "type": "fa-security", "updated": "260506 1435" },
-    "fa_apidesign": { "id": "mno345", "type": "fa-api-design", "updated": "260506 1433" }
-  }
-}
+**`agent-registry/` 目录下的文件结构**：
+```
+{OUTPUT_DIR}/agent-registry/
+├── fa_techstack.json  ← {"id":"abc123","type":"fa-techstack","updated":"..."}
+├── fa_data.json       ← {"id":"def456","type":"fa-data","updated":"..."}
+├── fa_infra.json      ← {"id":"ghi789","type":"fa-infra","updated":"..."}
+├── fa_security.json   ← {"id":"jkl012","type":"fa-security","updated":"..."}
+└── fa_apidesign.json  ← {"id":"mno345","type":"fa-api-design","updated":"..."}
 ```
 
 **主Agent的职责**：
-1. 初始化时创建 `{OUTPUT_DIR}/agent-registry.json`（初始内容 `{"agents":{}}`）
-2. 子Agent 完成后，读取对应键获取 ID：
+1. 初始化时创建 `{OUTPUT_DIR}/agent-registry/` 目录
+2. 子Agent 完成后，读取对应文件获取 ID：
 ```bash
-jq -r '.agents.fa_techstack.id' {OUTPUT_DIR}/agent-registry.json
+cat {OUTPUT_DIR}/agent-registry/fa_techstack.json | jq -r '.id // empty'
 ```
+如果 `jq` 不可用，用 Grep 提取
 
 **子Agent的职责**：
-- 完成后将 Agent ID 写入 `{OUTPUT_DIR}/agent-registry.json` 的对应键（如 `agents.fa_techstack`）
+- 完成后将 Agent ID 写入 `{OUTPUT_DIR}/agent-registry/{key}.json`
 
 ### ID 使用规则
 
@@ -300,32 +298,24 @@ else:
 
 ### 修正流程
 
-```
-round = 0
+**第 1 轮修正：**
 
-while round < 2:
-  if 所有冲突已解决:
-    break
+1. 从一致性检查结果中，识别有冲突需要修正的维度Agent（如 techstack 与 infra 在通信协议上冲突，则这两个维度Agent都需要修正）
+2. 对每个冲突维度，resume 对应的子Agent：
+   ```
+   Agent(resume: "{该维度的 FA_ID}", subagent_type: "{原 subagent_type}",
+     prompt: "需求文件路径：{REQUIREMENT_FILE}\n输出目录：{OUTPUT_DIR}\n\n其他维度的分析结果与你存在以下冲突：\n{冲突描述 + 其他维度的相关段落}\n\n请修改你的分析文档以解决冲突，或论证为何你的方案更优（需给出说服理由）。完成后只返回文件路径。")
+   ```
+3. 等待所有冲突Agent完成修正
+4. 重新执行 Phase 2 一致性检查
+5. 记录日志：`- {yymmdd hhmm} 第1轮修正完成：{修正的维度列表}`
 
-  round += 1
+**第 2 轮修正（如仍有冲突）：**
 
-  # 1. 识别冲突涉及的维度Agent
-  conflict_agents = 有冲突需要修正的维度集合
-
-  # 2. 对每个冲突维度，resume 对应的子Agent
-  for agent in conflict_agents:
-    Agent(
-      resume: "{该维度的 FA_ID}",
-      subagent_type: "{原 subagent_type}",
-      prompt: "需求文件路径：{REQUIREMENT_FILE}\n输出目录：{OUTPUT_DIR}\n\n其他维度的分析结果与你存在以下冲突：\n{冲突描述 + 其他维度的相关段落}\n\n请修改你的分析文档以解决冲突，或论证为何你的方案更优（需给出说服理由）。完成后只返回文件路径。"
-    )
-
-  # 3. 重新检查所有冲突
-  日志：- {yymmdd hhmm} 第{round}轮修正完成：{修正的维度列表}
-```
+6. 重复步骤 1-4
 
 **循环结束判定**：
-- 无冲突 → 进入需求覆盖度检查（走完整流程：行243-277）
+- 无冲突 → 进入需求覆盖度检查（走完整流程）
 - 仍有冲突（2轮后）→ 在最终文档中标注"未解决冲突"，也进入需求覆盖度检查
 
 ---
@@ -602,6 +592,22 @@ while round < 2:
 12. **"明确不做"清单写入 architecture-design.md 第12章**，汇总各子Agent的"不推荐"和技术决策中明确推迟的项
 13. **所有假设项必须在文档中标注**（用户未提供的信息用默认假设时）
 14. **每日志行含时间戳**（格式 yymmdd hhmm）
+
+### 数据访问边界（明确什么可读、什么不可读）
+
+主Agent 的上下文保护不是盲目的"什么都不读"，而是在明确的边界内运作：
+
+| 数据项 | 是否可读 | 读取方式 | 读取目的 |
+|--------|---------|---------|---------|
+| 需求文档（REQUIREMENT_FILE） | **否（仅路径）** | 路径传给子Agent | 子Agent 自行读取 PRD 全文 |
+| 子Agent 分析产出全文 | **否** | 只 Grep 提取"跨维度依赖"章节 | 一致性检查 |
+| 子Agent 的其他章节内容 | **否** | 不读取 | 保护上下文 |
+| PRD 关键词存在性 | **是（Grep 搜索）** | Grep 搜索关键词匹配行 | PRD 质量预检 |
+| agent-registry.json | **是** | `jq` 或 Read 全文 | 获取子Agent ID |
+| architecture-design.md | **是（主Agent 自己产出）** | Read 全文 | 整合、排版、输出 |
+| 其他架构文档（tech-stack.md 等） | **是（仅特定章节）** | Grep 提取"跨维度依赖"章节 | 一致性检查 |
+
+**核心原则**：主Agent 不替代子Agent 做分析决策。读取的边界是"结构化元数据"（路径、ID、关键词出现次数）和"跨维度协调信息"（依赖声明），而非"领域分析内容"（技术选型理由、数据建模细节）。
 
 ### 上下文保护规则（15-18）
 

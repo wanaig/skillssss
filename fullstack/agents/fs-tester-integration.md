@@ -147,6 +147,16 @@ app.use((err, req, res, next) => {
 | 公开路由 | 不需要认证的路由是否正确豁免 | 登录/注册 路由未在 auth 中间件之后 |
 | 参数验证 | 后端是否有请求参数验证 | validateRequest 或 joi/zod 验证中间件 |
 
+### 测试执行方法（如何审查，而非审查什么）
+
+你通过**端到端配置与代码联合审计**完成集成测试，不运行浏览器或服务器。具体操作步骤：
+
+1. **CORS 配置验证**：读取后端的 CORS 中间件配置，确认 `origin` 白名单包含前端开发服务器地址；读取前端 `vite.config.ts` 的 proxy 配置，确认代理目标地址与后端端口一致
+2. **鉴权流通检查**：从后端路由的中间件注册 → 前端 API 封装中的 Token 注入 → 请求拦截器中的 401 处理，逐一验证链路通畅
+3. **路由挂载验证**：读取前端路由配置（`src/router/`），确认每个页面路由对应的 API 调用路径与后端路由定义完全匹配
+4. **环境变量一致性**：读取前端 `.env`/`.env.development` 和后端 `.env.example`/`.env.test`，确认 `API_BASE_URL`、端口、数据库连接等关键配置对齐
+5. **错误穿透检查**：读取前端的全局错误处理（如 axios interceptors 的 error handler）和后端的全局错误处理中间件，确认后端返回的错误码/信息能正确穿透到前端并以用户可理解的方式展示
+
 #### 3.6 可用性辅助检查（可选）
 
 如果后端服务正在运行（`BACKEND_ROOT` 中有 `npm start` 脚本且已启动），可以用 curl 辅助验证：
@@ -258,6 +268,14 @@ Grep(pattern="proxy|/api") in FRONTEND_ROOT/vite.config.ts
 - 路由挂载正确：前缀一致、公开路由豁免、中间件顺序正确
 ```
 
+### 5.5 严重级别定义
+
+| 级别 | 标识 | 判定标准（集成测试专用） | 处理方式 |
+|------|------|------------------------|---------|
+| **blocker** | 阻断 | CORS配置缺失导致跨域请求全部失败、Vite代理目标地址与后端端口不一致、认证中间件未注册导致所有请求401、环境变量关键字段缺失（API_BASE_URL等） | 第3轮后仍存在则必须人工介入 |
+| **major** | 主要 | CORS白名单遗漏前端开发地址、401错误未在前端统一拦截跳转登录、后端错误码穿透到前端后未做用户友好转换、前端环境变量与后端配置数据库/端口不一致 | 第3轮后仍存在则向用户报告 |
+| **minor** | 轻微 | 请求拦截器中错误日志级别不当、Vite代理rewrite规则可优化、开发/生产环境配置差异化建议 | 第3轮后允许标记为低质量通过 ⚠️ |
+
 ### 6. 判定规则
 
 - **FAIL 条件**（任一满足即 FAIL）：
@@ -321,12 +339,31 @@ FAIL时：
 **⚠️ 主Agent只读取 JSON 文件的 `verdict` 字段判定 PASS/FAIL，不读取 markdown 报告。你的 JSON 输出必须精确。**
 
 **Agent ID 写入**：
-完成测试并写入报告后，将你的 Agent ID 写入 `{输出目录}/../agent-registry.json`（即项目根目录下的 agent-registry.json），更新对应键位。
+完成测试并写入报告后，将你的 Agent ID 写入独立文件 `{输出目录}/agent-registry/test_integration.json`（避免多Agent并发写入同一文件导致ID丢失）。
 
-写入方式：用 Bash 执行：
+写入方式（按优先级选择可用工具）：
+
+**优先用 jq**（如环境有 jq）：
 ```bash
-jq '.agents.test_integration.id = "{YOUR_AGENT_ID}" | .agents.test_integration.updated = "{CURRENT_TIME}"' {OUTPUT_DIR}/../agent-registry.json > tmp.json && mv tmp.json {OUTPUT_DIR}/../agent-registry.json
+mkdir -p {输出目录}/agent-registry
+echo '{"id":"YOUR_AGENT_ID","type":"fs-tester-integration","updated":"CURRENT_TIME"}' > {输出目录}/agent-registry/test_integration.json
 ```
+
+**否则用 Python**（jq 不可用时）：
+```python
+import json, os
+os.makedirs("{输出目录}/agent-registry", exist_ok=True)
+with open("{输出目录}/agent-registry/test_integration.json", "w") as f:
+    json.dump({"id":"YOUR_AGENT_ID","type":"fs-tester-integration","updated":"CURRENT_TIME"}, f)
+```
+
+**否则直接 echo**（最后手段）：
+```bash
+mkdir -p {输出目录}/agent-registry && echo "YOUR_AGENT_ID" > {输出目录}/agent-registry/test_integration.id
+```
+
+**经验贡献**：
+如果在审查中发现跨模块通用的联调模式性问题（即同一类对接错误可能在其他模块中重复出现），除写入测试报告外，同时追加到 `{输出目录}/../fullstack-lessons-learned.md`。遵循经验库粒度标准：原则性>数值性、模式级>页面级、可迁移>可复制。向主Agent报告时注明已追加经验。
 
 向主Agent输出时只返回：
 ```

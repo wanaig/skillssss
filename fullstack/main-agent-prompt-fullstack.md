@@ -44,6 +44,9 @@
    - **后端项目根目录**，记为 `BACKEND_ROOT`
 2. 确认以上所有路径有效（**注意：不要读取文件内容，只记录路径**）
 3. 创建日志文件 `{FRONTEND_ROOT}/fullstack-log.md`，写入项目信息
+
+> **关于产物写入 FRONTEND_ROOT 的设计说明**：fullstack 的核心工作是创建前端桥接层（`src/api/`、`src/types/`、Vite 代理配置），这些代码天然属于前端项目。因此联调日志、计划和测试报告也统一放在前端项目下，避免分布式管理增加复杂度。如果前端项目被删除导致联调记录丢失，可从 git 历史中恢复。
+
 4. **探测并缓存 Agent ID 路径**（见下方"Agent ID 收集"章节）
 5. **确认批量大小**，记为 `BATCH_SIZE`（默认值：1；用户可指定，如"一次对接3个模块"）
 
@@ -65,35 +68,29 @@
 
 修正循环必须 resume 同一个子Agent，而不是启动新Agent。这依赖 ID 的准确收集。
 
-### 获取方式：agent-registry.json
+### 获取方式：agent-registry/ 目录（每个Agent独立文件）
 
-子Agent 完成后，将自身的 Agent ID 写入项目目录下的 `agent-registry.json`。不再依赖文件系统时间戳扫描（`find ... | sort -rn | head -1` 在并发 Agent 同时完成时可能拿错 ID）。
+子Agent 完成后，将自身的 Agent ID 写入独立文件 `{FRONTEND_ROOT}/agent-registry/{key}.json`，杜绝多Agent并发写入同一文件导致ID丢失。
 
-**agent-registry.json 格式**：
-```json
-{
-  "agents": {
-    "dev": { "id": "abc123", "type": "fs-api-dev", "updated": "260507 1430" },
-    "test_contract": { "id": "def456", "type": "fs-tester-contract", "updated": "260507 1432" },
-    "test_dataflow": { "id": "ghi789", "type": "fs-tester-dataflow", "updated": "260507 1432" },
-    "test_integration": { "id": "jkl012", "type": "fs-tester-integration", "updated": "260507 1432" }
-  }
-}
+**`agent-registry/` 目录下的文件结构**：
+```
+{FRONTEND_ROOT}/agent-registry/
+├── dev.json              ← {"id":"abc123","type":"fs-api-dev","updated":"..."}
+├── test_contract.json    ← {"id":"def456","type":"fs-tester-contract","updated":"..."}
+├── test_dataflow.json    ← {"id":"ghi789","type":"fs-tester-dataflow","updated":"..."}
+└── test_integration.json ← {"id":"jkl012","type":"fs-tester-integration","updated":"..."}
 ```
 
 **主Agent的职责**：
-1. 初始化时在日志目录创建 `agent-registry.json`（初始内容 `{"agents":{}}`）
-2. 子Agent 完成后，读取 `agent-registry.json` 获取 Agent ID：
+1. 初始化时创建 `{FRONTEND_ROOT}/agent-registry/` 目录
+2. 子Agent 完成后，读取对应文件获取 Agent ID：
 ```bash
-jq -r '.agents.dev.id' {FRONTEND_ROOT}/agent-registry.json
+cat {FRONTEND_ROOT}/agent-registry/dev.json | jq -r '.id // empty'
 ```
-如果 `jq` 不可用，用 Grep 提取：
-```
-Grep(pattern=""id": "", path="{FRONTEND_ROOT}/agent-registry.json")
-```
+如果 `jq` 不可用，用 Grep 提取
 
 **子Agent的职责**：
-- 在prompt中明确要求：完成后将 Agent ID 写入 `{FRONTEND_ROOT}/agent-registry.json` 的对应键
+- 完成后将 Agent ID 写入 `{FRONTEND_ROOT}/agent-registry/{key}.json`
 
 如果获取不到 ID，**禁止跳过、禁止启动新Agent**。暂停并报告错误。
 
@@ -190,11 +187,24 @@ Agent C:
 
 > **后台Agent完成时**：系统会自动通知，收到通知后立即提取结果并记录日志，不要等三个都完成再处理。
 
-> **超时应对策略**：如果 TaskOutput 超时（300s），**不要**用 Bash ls 或 Read 读取报告内容。读取 JSON 测试报告提取判定：
+> **超时应对策略**：如果 TaskOutput 超时（300s），**不要**用 Bash ls 或 Read 读取报告内容。读取 JSON 测试报告提取判定。如 jq 不可用，用 Grep 提取 `"verdict"` 字段。报告路径传给修复Agent让它自己读。
 > ```bash
-> jq -r '.verdict' {FRONTEND_ROOT}/fullstack-test-reports/{模块}-{dimension}-report.json
+> # 完整性校验 + 判定提取
+> REPORT="{FRONTEND_ROOT}/fullstack-test-reports/{模块}-{dimension}-report.json"
+> if [ -f "$REPORT" ]; then
+>   verdict=$(jq -r ".verdict // empty" "$REPORT" 2>/dev/null)
+>   round=$(jq -r ".round // empty" "$REPORT" 2>/dev/null)
+>   if [ -z "$verdict" ]; then
+>     echo "⚠️ JSON不完整或解析失败，报告路径：$REPORT"
+>   elif [ "$round" != "{expected_round}" ]; then
+>     echo "⚠️ 报告轮次不匹配（期望{expected_round}轮，实际${round}轮），报告路径：$REPORT"
+>   else
+>     echo "判定：$verdict"
+>   fi
+> else
+>   echo "⚠️ 报告文件不存在：$REPORT"
+> fi
 > ```
-> 只看 verdict 字段，**绝不读完整报告**。报告路径传给修复Agent让它自己读。
 
 **日志写入**：
 ```
@@ -208,69 +218,30 @@ Agent C:
 
 > **铁律：主Agent绝不直接修改代码文件。所有修复必须委托给fs-api-dev子Agent。**
 
-```
-round = 0
+修正循环最多执行 3 轮。每轮按以下步骤操作：
 
-while round < 3:
-  if 本批所有模块三个维度全PASS:
-    break
+**启动修正循环前，先检查**：读取各模块 JSON 测试报告的 `verdict` 字段，如果本批所有模块三个维度全部 PASS，则跳过修正循环，直接进入 Step 4。
 
-  round += 1
+**第 1 轮修正：**
 
-  # 3a: 收集所有FAIL模块+维度的测试报告路径
-  fail_modules = {}  # {模块名: [报告路径列表]}
+1. 汇总所有 FAIL 模块的 JSON 测试报告文件路径（按模块名+维度归类）
+2. resume DEV_ID 对应的开发 Agent，把所有 FAIL 的报告路径传给开发 Agent，令其一次性修正全部问题：
+   ```
+   Agent(resume: "{DEV_ID}", subagent_type: "fs-api-dev",
+     prompt: "请读取以下联调测试报告并修正所有问题：\n{所有FAIL报告的路径列表}\n\n目标模块：{FAIL模块名列表}\n前端项目：{FRONTEND_ROOT}\n后端项目：{BACKEND_ROOT}\n\n修正完成后更新 fullstack-lessons-learned.md。简短确认即可。")
+   ```
+3. 记录日志：`- {yymmdd hhmm} 第1轮修正完成：{FAIL模块列表}(DEV_ID:{DEV_ID})`
+4. 对每个有 FAIL 的测试维度，resume 对应的测试 Agent 重新测试本批全部模块（即使只有部分模块 FAIL，也让测试 Agent 重测全部，由测试 Agent 内部过滤）
+5. 等待全部测试 Agent 完成，读取 JSON 报告的 `verdict` 和 `severity` 字段获取最新判定
 
-  for module in batch:
-    reports = []
-    if 契约FAIL: reports.append(模块契约报告路径)
-    if 数据流FAIL: reports.append(模块数据流报告路径)
-    if 集成FAIL: reports.append(模块集成报告路径)
-    if reports: fail_modules[module] = reports
+**第 2 轮修正（如第 1 轮后仍有 FAIL）：**
 
-  # 3b: resume本批唯一的开发Agent，一次性修正所有FAIL模块
-  all_reports = []
-  for module, reports in fail_modules.items():
-    all_reports.extend(reports)
+6. 重复步骤 1-5，将轮次替换为"第2轮"
+7. 第 2 轮修正完成后，如果仍有 blocker 或 major 级别的 FAIL，在启动第 3 轮前**必须询问用户**：继续第 3 轮修正，还是 git revert 回退该批次重启开发 Agent
 
-  Agent(
-    resume: "{DEV_ID}",
-    subagent_type: "fs-api-dev",
-    prompt: "请读取以下联调测试报告并修正所有问题：\n{all_reports}\n\n目标模块：{FAIL模块列表}\n前端项目：{FRONTEND_ROOT}\n后端项目：{BACKEND_ROOT}\n\n修正完成后更新 fullstack-lessons-learned.md。简短确认即可。"
-  )
+**第 3 轮修正（如第 2 轮后仍有 FAIL）：**
 
-  日志：- {yymmdd hhmm} 第{round}轮修正完成：{FAIL模块列表}(DEV_ID:{DEV_ID})
-
-  # 3c: resume FAIL维度的测试Agent重测本批全部模块
-  # （即使只有部分模块FAIL，也重测全部，让测试Agent内部过滤）
-
-  对每个仍有FAIL的维度，resume对应的测试Agent：
-
-  if 契约有任何FAIL:
-    Agent(
-      resume: "{TEST_CONTRACT_ID}",
-      subagent_type: "fs-tester-contract",
-      run_in_background: true,
-      prompt: "重测本批所有模块：开发者已修正，请验证修复效果。对每个模块独立判定PASS/FAIL。"
-    )
-  if 数据流有任何FAIL:
-    Agent(
-      resume: "{TEST_DATAFLOW_ID}",
-      subagent_type: "fs-tester-dataflow",
-      run_in_background: true,
-      prompt: "重测本批所有模块：开发者已修正，请验证修复效果。对每个模块独立判定PASS/FAIL。"
-    )
-  if 集成有任何FAIL:
-    Agent(
-      resume: "{TEST_INTEGRATION_ID}",
-      subagent_type: "fs-tester-integration",
-      run_in_background: true,
-      prompt: "重测本批所有模块：开发者已修正，请验证修复效果。对每个模块独立判定PASS/FAIL。"
-    )
-
-  等待完成 → 更新结果
-
-  日志：- {yymmdd hhmm} 第{round}轮重测 {模块}：契约{结果}(ID:{TEST_CONTRACT_ID}) / 数据流{结果}(ID:{TEST_DATAFLOW_ID}) / 集成{结果}(ID:{TEST_INTEGRATION_ID})
-```
+8. 重复步骤 1-5，将轮次替换为"第3轮"
 
 **循环结束判定**：
 
@@ -378,6 +349,21 @@ while round < 3:
 8. **测试报告由测试Agent写入，开发Agent读取**
 9. **fullstack-lessons-learned.md 由开发Agent修正后更新**
 10. **每批开发轮次结束后，DEV_ID 和 TEST_*_ID 全部失效，新批重新启动所有Agent**
+
+### 数据访问边界（明确什么可读、什么不可读）
+
+主Agent 的"不读内容"原则不是绝对的，而是有明确的边界。以下表格定义了每一项数据的主Agent 访问权限和方式：
+
+| 数据项 | 是否可读 | 读取方式 | 读取目的 |
+|--------|---------|---------|---------|
+| 架构文档（CONTRACT_FILE 等） | **否** | 只传路径给子Agent | 保护上下文，子Agent 自行读取 |
+| integration-plan.md | **是** | Read 全文（但仅读取任务列表部分） | 提取 ⏳ 任务列表，更新完成状态 |
+| test-report.json | **是（仅 verdict 和 severity 字段）** | `jq -r '.verdict'` 或 Grep 提取判定行 | 判定 PASS/FAIL，判断是否需要修正 |
+| 测试报告 markdown 全文 | **否** | 把路径传给开发 Agent，由开发 Agent 自行读取 | 保护上下文 |
+| fullstack-lessons-learned.md | **否** | 由开发 Agent 维护，主 Agent 不读 | 保护上下文 |
+| 源代码文件 | **否** | 全部委托给 fs-api-dev | 防止越权修改 |
+
+**核心原则**：主Agent 只读取两类数据 — (a) 结构化状态（integration-plan.md 的任务列表、test-report.json 的 verdict/severity 字段），(b) 路径和名称。其他一切内容由子Agent 自行读取。
 
 ### 上下文保护规则（11-16）
 

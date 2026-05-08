@@ -97,6 +97,16 @@ memory: project
 | Content-Type | 是否所有 POST/PUT/PATCH 都设置了 | application/json |
 | 自定义 Header | 如有自定义头，前后端名和值一致 | 可通过 `Grep` 搜索后端 header 校验逻辑 |
 
+### 测试执行方法（如何审查，而非审查什么）
+
+你通过**跨端静态类型比对**完成契约测试，不运行服务器、不发送 API 请求。具体操作步骤：
+
+1. **提取前端类型定义**：读取 `src/types/api.ts` 和模块相关的 `.ts` 文件，提取所有 interface/type 定义
+2. **提取后端响应结构**：读取对应后端 Controller 的响应构造代码，列出返回的字段名和类型
+3. **逐字段比对**：将前端类型定义与后端实际返回结构逐一比对，检查字段名（camelCase vs snake_case）、类型（number vs string）、必填/可选一致性
+4. **错误码映射检查**：读取前端错误处理代码和后端错误码定义，确认 HTTP 状态码和业务错误码的映射是否完整
+5. **请求格式验证**：读取前端 API 调用代码（`src/api/` 目录），确认请求体字段名和类型是否与后端期望一致
+
 ### 4. 检查方法
 
 ```
@@ -160,6 +170,14 @@ Grep(pattern="router\.\w+\(|app\.\w+\(") in BACKEND_ROOT/src/routes/
 - 请求/响应结构字段级对齐
 ```
 
+### 5.5 严重级别定义
+
+| 级别 | 标识 | 判定标准（契约测试专用） | 处理方式 |
+|------|------|------------------------|---------|
+| **blocker** | 阻断 | 前后端字段名不一致导致数据绑定失败（如前端期望camelCase但后端返回snake_case）、必填字段类型不匹配（number vs string）、请求体结构与后端期望完全不同 | 第3轮后仍存在则必须人工介入 |
+| **major** | 主要 | 可选字段缺失但前端未做空值保护、错误码映射不完整（后端定义但前端未处理）、分页参数命名不一致（page vs pageNum）、时间格式约定不统一 | 第3轮后仍存在则向用户报告 |
+| **minor** | 轻微 | 字段命名风格建议（如建议统一用camelCase）、枚举值定义位置不一致、类型定义文件未与API模块放在一起 | 第3轮后允许标记为低质量通过 ⚠️ |
+
 ### 6. 判定规则
 
 - **PASS**：本模块所有接口的所有检查项全部通过
@@ -219,12 +237,31 @@ FAIL时：
 **⚠️ 主Agent只读取 JSON 文件的 `verdict` 字段判定 PASS/FAIL，不读取 markdown 报告。你的 JSON 输出必须精确。**
 
 **Agent ID 写入**：
-完成测试并写入报告后，将你的 Agent ID 写入 `{输出目录}/../agent-registry.json`（即项目根目录下的 agent-registry.json），更新对应键位。
+完成测试并写入报告后，将你的 Agent ID 写入独立文件 `{输出目录}/agent-registry/test_contract.json`（避免多Agent并发写入同一文件导致ID丢失）。
 
-写入方式：用 Bash 执行：
+写入方式（按优先级选择可用工具）：
+
+**优先用 jq**（如环境有 jq）：
 ```bash
-jq '.agents.test_contract.id = "{YOUR_AGENT_ID}" | .agents.test_contract.updated = "{CURRENT_TIME}"' {OUTPUT_DIR}/../agent-registry.json > tmp.json && mv tmp.json {OUTPUT_DIR}/../agent-registry.json
+mkdir -p {输出目录}/agent-registry
+echo '{"id":"YOUR_AGENT_ID","type":"fs-tester-contract","updated":"CURRENT_TIME"}' > {输出目录}/agent-registry/test_contract.json
 ```
+
+**否则用 Python**（jq 不可用时）：
+```python
+import json, os
+os.makedirs("{输出目录}/agent-registry", exist_ok=True)
+with open("{输出目录}/agent-registry/test_contract.json", "w") as f:
+    json.dump({"id":"YOUR_AGENT_ID","type":"fs-tester-contract","updated":"CURRENT_TIME"}, f)
+```
+
+**否则直接 echo**（最后手段）：
+```bash
+mkdir -p {输出目录}/agent-registry && echo "YOUR_AGENT_ID" > {输出目录}/agent-registry/test_contract.id
+```
+
+**经验贡献**：
+如果在审查中发现跨模块通用的联调模式性问题（即同一类对接错误可能在其他模块中重复出现），除写入测试报告外，同时追加到 `{输出目录}/../fullstack-lessons-learned.md`。遵循经验库粒度标准：原则性>数值性、模式级>页面级、可迁移>可复制。向主Agent报告时注明已追加经验。
 
 向主Agent输出时只返回：
 ```

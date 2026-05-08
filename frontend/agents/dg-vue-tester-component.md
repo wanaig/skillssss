@@ -69,13 +69,23 @@ memory: project
 **PASS**：零问题或仅有轻微建议
 **FAIL**：存在接口契约缺失、组件拆分不合理、生命周期泄漏等任一问题
 
+### 4.1 测试执行方法（如何审查，而非审查什么）
+
+你通过**静态 SFC 结构分析**完成组件测试，不运行浏览器、不挂载组件。具体操作步骤：
+
+1. **定位组件文件**：用 Glob 找到目标模块相关的 `.vue` 文件，用 Grep 搜索组件引用（`import ... from`）追踪组件树层级
+2. **分析 `<script setup>` 块**：提取 `defineProps`/`defineEmits`/`defineSlots` 定义，检查类型标注是否完整、必填标记是否正确
+3. **分析 `<template>` 块**：列出所有子组件引用，构建组件树（最多遍历 5 级），检查是否有不必要的中间包装组件
+4. **检查生命周期钩子**：搜索 `onMounted`/`onUnmounted`/`watch`/`watchEffect`，确认事件监听与移除是否成对出现
+5. **评估组件大小**：统计模板行数和 script 行数，超过阈值（模板>200行、script>150行）的组件标记为待拆分
+
 ### 4.5 严重级别定义
 
-| 级别 | 标识 | 判定标准 | 处理方式 |
-|------|------|---------|---------|
-| **blocker** | 阻断 | 核心功能无法使用、安全漏洞、数据丢失风险、响应性断裂、契约完全不匹配 | 第3轮后仍存在则必须人工介入，不回退为低质量通过 |
-| **major** | 主要 | 功能可用但有明显缺陷、性能明显不达标、关键错误处理缺失、重要字段类型不匹配 | 第3轮后仍存在则向用户报告，不回退为低质量通过 |
-| **minor** | 轻微 | 代码风格问题、命名不规范、缺少注释、非关键UI瑕疵、优化建议 | 第3轮后允许标记为低质量通过（⚠️），不阻塞进度 |
+| 级别 | 标识 | 判定标准（组件结构测试专用） | 处理方式 |
+|------|------|---------------------------|---------|
+| **blocker** | 阻断 | defineProps无类型标注导致运行时报错、onMounted注册事件但onUnmounted未清理（内存泄漏）、组件递归引用导致无限渲染 | 第3轮后仍存在则必须人工介入 |
+| **major** | 主要 | 组件>200行未拆分、props/emits缺少类型定义、具名slot无默认内容导致空白渲染、watch无适当的immediate/deep导致状态不同步 | 第3轮后仍存在则向用户报告 |
+| **minor** | 轻微 | 组件命名不够语义化、模板中有可抽取的重复片段、slot缺少说明注释、生命周期钩子顺序未按规范排列 | 第3轮后允许标记为低质量通过 ⚠️ |
 
 ### 5. 输出测试报告
 
@@ -170,12 +180,31 @@ FAIL时：
 **⚠️ 主Agent只读取 JSON 文件的 `verdict` 字段判定 PASS/FAIL，不读取 markdown 报告。你的 JSON 输出必须精确。**
 
 **Agent ID 写入**：
-完成测试并写入报告后，将你的 Agent ID 写入 `{输出目录}/../agent-registry.json`（即项目根目录下的 agent-registry.json），更新对应键位。
+完成测试并写入报告后，将你的 Agent ID 写入独立文件 `{输出目录}/agent-registry/test_component.json`（避免多Agent并发写入同一文件导致ID丢失）。
 
-写入方式：用 Bash 执行：
+写入方式（按优先级选择可用工具）：
+
+**优先用 jq**（如环境有 jq）：
 ```bash
-jq '.agents.test_component.id = "{YOUR_AGENT_ID}" | .agents.test_component.updated = "{CURRENT_TIME}"' {OUTPUT_DIR}/../agent-registry.json > tmp.json && mv tmp.json {OUTPUT_DIR}/../agent-registry.json
+mkdir -p {输出目录}/agent-registry
+echo '{"id":"YOUR_AGENT_ID","type":"dg-vue-tester-component","updated":"CURRENT_TIME"}' > {输出目录}/agent-registry/test_component.json
 ```
+
+**否则用 Python**（jq 不可用时）：
+```python
+import json, os
+os.makedirs("{输出目录}/agent-registry", exist_ok=True)
+with open("{输出目录}/agent-registry/test_component.json", "w") as f:
+    json.dump({"id":"YOUR_AGENT_ID","type":"dg-vue-tester-component","updated":"CURRENT_TIME"}, f)
+```
+
+**否则直接 echo**（最后手段）：
+```bash
+mkdir -p {输出目录}/agent-registry && echo "YOUR_AGENT_ID" > {输出目录}/agent-registry/test_component.id
+```
+
+**经验贡献**：
+如果在审查中发现跨模块通用的模式性问题（即同一类错误可能在其他模块中重复出现），除写入测试报告外，同时追加到 `{输出目录}/../lessons-learned.md`。遵循经验库粒度标准：原则性>数值性、模式级>页面级、可迁移>可复制。向主Agent报告时注明已追加经验。
 
 向主Agent输出时只返回：
 ```

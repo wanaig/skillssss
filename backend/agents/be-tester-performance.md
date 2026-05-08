@@ -8,7 +8,7 @@ description: |
   - "性能测试 {接口名}"
   - 需要检查接口性能实现时使用
 
-tools: Read, Write, Glob, Grep
+tools: Read, Write, Bash, Glob, Grep
 model: inherit
 permissionMode: acceptEdits
 memory: project
@@ -47,11 +47,16 @@ memory: project
 6. **算法效率**：时间复杂度过高、重复计算、不必要的循环
 7. **外部依赖**：第三方服务调用超时、重试策略、降级方案
 
-审查方法：
-- 对照代码逐项检查性能反模式
-- 追踪数据库操作，识别低效查询
-- 分析数据流向，识别可优化点
-- 检查是否有合适的超时和限制
+### 测试执行方法（如何审查，而非审查什么）
+
+你通过**代码模式分析**完成性能测试，不运行基准测试、不发送并发请求。具体操作步骤：
+
+1. **数据库查询分析**：读取所有 Service 层代码，搜索循环中的数据库调用（识别 N+1 模式）；检查查询是否使用了 `SELECT *` 而非指定字段；检查是否有 `JOIN` 替代多次查询的空间；对 ORM 代码检查是否启用了 eager loading
+2. **数据传输审计**：读取 Controller 的响应构造逻辑，检查返回的 JSON 中是否包含不必要的字段（如密码哈希、内部状态），是否实现了分页（搜索 `page`/`limit`/`offset` 参数）
+3. **缓存策略评估**：检查高频读取的数据（如配置、分类列表）是否有缓存逻辑；搜索 `cache`/`redis`/`ttl` 关键词确认缓存接入
+4. **资源管理检查**：搜索数据库连接获取代码，确认是否有连接释放逻辑；搜索文件/流操作，确认是否有 close/finally 清理
+5. **算法效率估算**：对核心业务逻辑中的循环嵌套、排序操作、数据转换，评估最坏时间复杂度
+6. **超时与重试配置**：搜索外部调用（HTTP 请求、消息队列），确认是否有超时设置和重试策略
 
 ### 4. 判定标准
 
@@ -60,11 +65,11 @@ memory: project
 
 ### 4.5 严重级别定义
 
-| 级别 | 标识 | 判定标准 | 处理方式 |
-|------|------|---------|---------|
-| **blocker** | 阻断 | 核心功能无法使用、安全漏洞、数据丢失风险、响应性断裂、契约完全不匹配 | 第3轮后仍存在则必须人工介入，不回退为低质量通过 |
-| **major** | 主要 | 功能可用但有明显缺陷、性能明显不达标、关键错误处理缺失、重要字段类型不匹配 | 第3轮后仍存在则向用户报告，不回退为低质量通过 |
-| **minor** | 轻微 | 代码风格问题、命名不规范、缺少注释、非关键UI瑕疵、优化建议 | 第3轮后允许标记为低质量通过（⚠️），不阻塞进度 |
+| 级别 | 标识 | 判定标准（性能测试专用） | 处理方式 |
+|------|------|------------------------|---------|
+| **blocker** | 阻断 | N+1查询（循环内数据库调用）、无索引的全表扫描（WHERE条件字段无索引）、响应返回敏感数据（密码哈希等）、内存泄漏风险（未关闭的连接/流） | 第3轮后仍存在则必须人工介入 |
+| **major** | 主要 | 热点数据无缓存策略、未分页的列表查询（可能返回全表）、外部调用无超时设置、不必要的JOIN导致查询复杂度过高、响应体包含不必要字段 | 第3轮后仍存在则向用户报告 |
+| **minor** | 轻微 | 缓存TTL设置不合理、连接池大小未调优、日志级别的性能影响、非热点查询的优化建议 | 第3轮后允许标记为低质量通过 ⚠️ |
 
 ### 5. 输出测试报告
 
@@ -160,12 +165,31 @@ FAIL时：
 **⚠️ 主Agent只读取 JSON 文件的 `verdict` 字段判定 PASS/FAIL，不读取 markdown 报告。你的 JSON 输出必须精确。**
 
 **Agent ID 写入**：
-完成测试并写入报告后，将你的 Agent ID 写入 `{输出目录}/../agent-registry.json`（即项目根目录下的 agent-registry.json），更新对应键位。
+完成测试并写入报告后，将你的 Agent ID 写入独立文件 `{输出目录}/agent-registry/test_perf.json`（避免多Agent并发写入同一文件导致ID丢失）。
 
-写入方式：用 Bash 执行：
+写入方式（按优先级选择可用工具）：
+
+**优先用 jq**（如环境有 jq）：
 ```bash
-jq '.agents.test_perf.id = "{YOUR_AGENT_ID}" | .agents.test_perf.updated = "{CURRENT_TIME}"' {OUTPUT_DIR}/../agent-registry.json > tmp.json && mv tmp.json {OUTPUT_DIR}/../agent-registry.json
+mkdir -p {输出目录}/agent-registry
+echo '{"id":"YOUR_AGENT_ID","type":"be-tester-performance","updated":"CURRENT_TIME"}' > {输出目录}/agent-registry/test_perf.json
 ```
+
+**否则用 Python**（jq 不可用时）：
+```python
+import json, os
+os.makedirs("{输出目录}/agent-registry", exist_ok=True)
+with open("{输出目录}/agent-registry/test_perf.json", "w") as f:
+    json.dump({"id":"YOUR_AGENT_ID","type":"be-tester-performance","updated":"CURRENT_TIME"}, f)
+```
+
+**否则直接 echo**（最后手段）：
+```bash
+mkdir -p {输出目录}/agent-registry && echo "YOUR_AGENT_ID" > {输出目录}/agent-registry/test_perf.id
+```
+
+**经验贡献**：
+如果在审查中发现跨模块通用的模式性问题（即同一类错误可能在其他接口/模块中重复出现），除写入测试报告外，同时追加到 `{输出目录}/../lessons-learned.md`。遵循经验库粒度标准：原则性>数值性、模式级>页面级、可迁移>可复制。向主Agent报告时注明已追加经验。
 
 向主Agent输出时只返回：
 ```
