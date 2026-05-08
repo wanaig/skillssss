@@ -121,6 +121,38 @@ jobs:
           fi
           echo "Fullstack naming conventions OK"
 
+  cross-ref:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check subagent_type references in master prompts exist
+        run: |
+          errors=0
+          # Collect all defined agent names from YAML frontmatter
+          defined_agents=""
+          for agent in architecture/agents/*.md backend/agents/*.md frontend/agents/*.md fullstack/agents/*.md flutter/agents/*.md; do
+            name=$(sed -n '/^---$/,/^---$/p' "$agent" | grep '^name:' | sed 's/^name: *//')
+            defined_agents="$defined_agents $name"
+          done
+
+          # Extract subagent_type references from master prompts and check them
+          for master in architecture/main-agent-prompt-*.md backend/main-agent-prompt*.md frontend/main-agent-prompt-*.md fullstack/main-agent-prompt-*.md flutter/main-agent-prompt-*.md; do
+            refs=$(grep -oP 'subagent_type:\s*"\K[^"]+' "$master" 2>/dev/null)
+            for ref in $refs; do
+              if ! echo "$defined_agents" | grep -qw "$ref"; then
+                echo "ERROR: $master references undefined agent type: $ref"
+                errors=$((errors+1))
+              fi
+            done
+          done
+
+          if [ $errors -gt 0 ]; then
+            echo "Found $errors unresolved agent type references"
+            exit 1
+          fi
+          echo "All subagent_type references resolve to defined agents"
+
   markdown:
     runs-on: ubuntu-latest
     steps:
@@ -132,6 +164,7 @@ jobs:
 
       - name: Lint markdown files
         run: |
+          npm ci
           npx markdownlint-cli2 "**/*.md" "#.git" --config '{
             "default": true,
             "line-length": false,

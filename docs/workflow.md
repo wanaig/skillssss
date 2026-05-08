@@ -1,4 +1,4 @@
-# 使用手册
+﻿# 使用手册
 
 ## 前置条件
 
@@ -42,8 +42,8 @@ BATCH_SIZE: 1 (或指定 N)
 
 ```
 使用 /backend/main-agent-prompt.md
-OUTPUT_DIR: {后端项目路径}
-REQUIREMENTS_FILE: {PRD 路径}
+PROJECT_ROOT: {后端项目路径}
+REQUIREMENT_FILE: {PRD 路径}
 TECH_STACK_FILE: {tech-stack.md 路径}
 DATA_ARCHITECTURE_FILE: {data-architecture.md 路径}
 CONTRACT_FILE: {api-contract-outline.md 路径}
@@ -104,5 +104,5 @@ BATCH_SIZE: 1 (或指定 N)
 | `main-log.md` | 各领域根目录 | 所有关键事件，时间戳精确到分钟 |
 | `dev-plan.md` / `integration-plan.md` | 各领域根目录 | 任务清单，带 ⏳/✅/⚠️ 状态 |
 | `test-report.json` | `test-reports/` | 测试Agent 产出的结构化判定 |
-| `agent-registry.json` | 各项目根目录 | Agent ID 键值索引 |
+| `agent-registry/{key}.json` | 各项目根目录 | Agent ID 键值索引 |
 | `lessons-learned.md` | 各项目根目录 | 跨批次累积的经验 |

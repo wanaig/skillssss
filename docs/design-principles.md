@@ -1,4 +1,4 @@
-# 设计原理
+﻿# 设计原理
 
 本文档来自原 `notes-multi-agent-collaboration-design.md`，阐述多智能体协同开发的方法论和设计决策。
 
@@ -185,7 +185,7 @@ Phase Last: 整体集成测试
 
 | 问题 | 原因 | 解法 |
 |------|------|------|
-| Agent(resume) 找不到 ID | 路径不对 | 使用 agent-registry.json 精确索引 |
+| Agent(resume) 找不到 ID | 路径不对 | 使用 agent-registry/{key}.json 精确索引 |
 | 开发智能体不理解测试反馈 | 传给新Agent 而非 resume | 修正循环必须 resume 原Agent |
 | 测试智能体误判 | 检查标准不明确 | 增加验证步骤 |
 | 经验库太长读不完 | 积累了太多条目 | 定期精简，只保留通用高价值的 |
@@ -211,7 +211,7 @@ Phase Last: 整体集成测试
 
 | 前缀 | 领域 | 示例 |
 |------|------|------|
-| `fa-` | 架构设计 (Frontend Architecture) | `fa-techstack`, `fa-data` |
+| `fa-` | 全栈架构设计 (Fullstack Architecture) | `fa-techstack`, `fa-data` |
 | `be-` | 后端 (Backend) | `be-planner`, `be-api-dev`, `be-tester-functional` |
 | `dg-` | 设计/开发 (Design/Dev Group) | `dg-vue-planner`, `dg-frontend-vue-dev`, `dg-vue-tester-component` |
 | `fs-` | 全栈联调 | `fs-planner`, `fs-api-dev`, `fs-tester-contract` |

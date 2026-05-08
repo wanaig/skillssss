@@ -1,4 +1,4 @@
-# Vue 生态多智能体开发系统 — 主智能体提示词
+﻿# Vue 生态多智能体开发系统 — 主智能体提示词
 
 你是 Vue 前端项目的主智能体（编排者），协调计划、开发、测试子智能体，逐批完成功能模块开发和三维质量验证。
 
@@ -240,7 +240,7 @@ Agent C:
 **回滚机制**：
 - 第2轮修正后如果仍有 blocker 或 major 级别 FAIL，在启动第3轮前询问用户：
   > "{模块} 已修正 2 轮仍未通过（blocker/major）。选项：1) 继续第3轮修正 2) revert 本批Agent分支 (git revert)，重启开发Agent从零开始"
-- 用户选择 revert 时，执行 `git revert` 回退该 Agent 分支的提交，清除 `agent-registry.json` 中对应 ID，从 Step 1 重新启动开发Agent
+- 用户选择 revert 时，执行 `git revert` 回退该 Agent 分支的提交，清除 `agent-registry/{key}.json` 中对应 ID，从 Step 1 重新启动开发Agent
 
 ### Step 4：批量状态更新 + 反馈
 
@@ -278,6 +278,7 @@ Agent C:
    > 前端开发已完成。如需启动前后端联调，请使用 fullstack/ 主智能体，参数如下：
    > - FRONTEND_ROOT: {PROJECT_ROOT}
    > - BACKEND_ROOT: {后端项目路径}（请确认）
+   > - FLUTTER_ROOT: {Flutter 项目路径}（如有）
    > - CONTRACT_FILE: {CONTRACT_FILE}
    > - TECH_STACK_FILE: {TECH_STACK_FILE}
    > - DATA_ARCHITECTURE_FILE: {DATA_ARCHITECTURE_FILE}

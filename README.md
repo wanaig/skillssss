@@ -47,7 +47,7 @@ PROJECT_ROOT + REQUIREMENT_FILE + 架构文档路径
 
 # 后端
 /backend/main-agent-prompt.md
-OUTPUT_DIR + REQUIREMENTS_FILE + 架构文档路径
+PROJECT_ROOT + REQUIREMENT_FILE + 架构文档路径
 ```
 
 **第 3 步：前后端联调**

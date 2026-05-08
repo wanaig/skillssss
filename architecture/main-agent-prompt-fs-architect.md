@@ -23,14 +23,14 @@
 ## 初始化
 
 1. 用户会提供需求文档路径（PRD/功能需求/产品文档）
-2. 确认输出目录路径，记为 `OUTPUT_DIR`
+2. 确认输出目录路径，记为 `PROJECT_ROOT`
 3. 确认需求文件路径，记为 `REQUIREMENT_FILE`（**注意：不要读取需求文件内容，只记录路径**）
-4. 创建日志文件 `{OUTPUT_DIR}/main-log.md`，写入项目信息
+4. 创建日志文件 `{PROJECT_ROOT}/main-log.md`，写入项目信息
 
 **日志写入**：
 ```
 - {yymmdd hhmm} 架构设计启动，需求：{REQUIREMENT_FILE}
-- {yymmdd hhmm} 输出目录：{OUTPUT_DIR}
+- {yymmdd hhmm} 输出目录：{PROJECT_ROOT}
 - {yymmdd hhmm} 成本追踪：本轮预计调用 {N} 个Agent
 ```
 
@@ -92,11 +92,11 @@ Grep(pattern="并发|性能|响应|SLA|可用|延迟", path="{REQUIREMENT_FILE}"
 
 ## Agent ID 收集
 
-子Agent 完成后，将自身的 Agent ID 写入独立文件 `{OUTPUT_DIR}/agent-registry/{key}.json`，杜绝多Agent并发写入同一文件导致ID丢失。
+子Agent 完成后，将自身的 Agent ID 写入独立文件 `{PROJECT_ROOT}/agent-registry/{key}.json`，杜绝多Agent并发写入同一文件导致ID丢失。
 
 **`agent-registry/` 目录下的文件结构**：
 ```
-{OUTPUT_DIR}/agent-registry/
+{PROJECT_ROOT}/agent-registry/
 ├── fa_techstack.json  ← {"id":"abc123","type":"fa-techstack","updated":"..."}
 ├── fa_data.json       ← {"id":"def456","type":"fa-data","updated":"..."}
 ├── fa_infra.json      ← {"id":"ghi789","type":"fa-infra","updated":"..."}
@@ -105,15 +105,15 @@ Grep(pattern="并发|性能|响应|SLA|可用|延迟", path="{REQUIREMENT_FILE}"
 ```
 
 **主Agent的职责**：
-1. 初始化时创建 `{OUTPUT_DIR}/agent-registry/` 目录
+1. 初始化时创建 `{PROJECT_ROOT}/agent-registry/` 目录
 2. 子Agent 完成后，读取对应文件获取 ID：
 ```bash
-cat {OUTPUT_DIR}/agent-registry/fa_techstack.json | jq -r '.id // empty'
+cat {PROJECT_ROOT}/agent-registry/fa_techstack.json | jq -r '.id // empty'
 ```
 如果 `jq` 不可用，用 Grep 提取
 
 **子Agent的职责**：
-- 完成后将 Agent ID 写入 `{OUTPUT_DIR}/agent-registry/{key}.json`
+- 完成后将 Agent ID 写入 `{PROJECT_ROOT}/agent-registry/{key}.json`
 
 ### ID 使用规则
 
@@ -137,27 +137,27 @@ cat {OUTPUT_DIR}/agent-registry/fa_techstack.json | jq -r '.id // empty'
 Agent A:
   subagent_type: "fa-techstack"
   run_in_background: true
-  prompt: "需求文件：{REQUIREMENT_FILE}\n输出目录：{OUTPUT_DIR}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n请分析并产出 tech-stack.md。完成后只返回文件路径。"
+  prompt: "需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n请分析并产出 tech-stack.md。完成后只返回文件路径。"
 
 Agent B:
   subagent_type: "fa-data"
   run_in_background: true
-  prompt: "需求文件：{REQUIREMENT_FILE}\n输出目录：{OUTPUT_DIR}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n请分析并产出 data-architecture.md。完成后只返回文件路径。"
+  prompt: "需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n请分析并产出 data-architecture.md。完成后只返回文件路径。"
 
 Agent C:
   subagent_type: "fa-infra"
   run_in_background: true
-  prompt: "需求文件：{REQUIREMENT_FILE}\n输出目录：{OUTPUT_DIR}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n请分析并产出 infra-architecture.md。完成后只返回文件路径。"
+  prompt: "需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n请分析并产出 infra-architecture.md。完成后只返回文件路径。"
 
 Agent D:
   subagent_type: "fa-security"
   run_in_background: true
-  prompt: "需求文件：{REQUIREMENT_FILE}\n输出目录：{OUTPUT_DIR}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n请分析并产出 security-architecture.md。完成后只返回文件路径。"
+  prompt: "需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n请分析并产出 security-architecture.md。完成后只返回文件路径。"
 
 Agent E:
   subagent_type: "fa-api-design"
   run_in_background: true
-  prompt: "需求文件：{REQUIREMENT_FILE}\n输出目录：{OUTPUT_DIR}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n请分析并产出 api-contract-outline.md。完成后只返回文件路径。"
+  prompt: "需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n请分析并产出 api-contract-outline.md。完成后只返回文件路径。"
 ```
 
 > **并发 = 5**：5 个分析Agent同时启动，无依赖关系。
@@ -188,11 +188,11 @@ Agent E:
 
 **只读每个文件中的以下章节，用 Grep 提取**：
 ```
-Grep(pattern="^## 跨维度依赖", path="{OUTPUT_DIR}/tech-stack.md")
-Grep(pattern="^## 跨维度依赖", path="{OUTPUT_DIR}/data-architecture.md")
-Grep(pattern="^## 跨维度依赖", path="{OUTPUT_DIR}/infra-architecture.md")
-Grep(pattern="^## 跨维度依赖", path="{OUTPUT_DIR}/security-architecture.md")
-Grep(pattern="^## 跨维度依赖", path="{OUTPUT_DIR}/api-contract-outline.md")
+Grep(pattern="^## 跨维度依赖", path="{PROJECT_ROOT}/tech-stack.md")
+Grep(pattern="^## 跨维度依赖", path="{PROJECT_ROOT}/data-architecture.md")
+Grep(pattern="^## 跨维度依赖", path="{PROJECT_ROOT}/infra-architecture.md")
+Grep(pattern="^## 跨维度依赖", path="{PROJECT_ROOT}/security-architecture.md")
+Grep(pattern="^## 跨维度依赖", path="{PROJECT_ROOT}/api-contract-outline.md")
 ```
 
 然后对每条依赖声明，检查对应维度是否满足。
@@ -304,7 +304,7 @@ else:
 2. 对每个冲突维度，resume 对应的子Agent：
    ```
    Agent(resume: "{该维度的 FA_ID}", subagent_type: "{原 subagent_type}",
-     prompt: "需求文件路径：{REQUIREMENT_FILE}\n输出目录：{OUTPUT_DIR}\n\n其他维度的分析结果与你存在以下冲突：\n{冲突描述 + 其他维度的相关段落}\n\n请修改你的分析文档以解决冲突，或论证为何你的方案更优（需给出说服理由）。完成后只返回文件路径。")
+     prompt: "需求文件路径：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n其他维度的分析结果与你存在以下冲突：\n{冲突描述 + 其他维度的相关段落}\n\n请修改你的分析文档以解决冲突，或论证为何你的方案更优（需给出说服理由）。完成后只返回文件路径。")
    ```
 3. 等待所有冲突Agent完成修正
 4. 重新执行 Phase 2 一致性检查
@@ -329,7 +329,7 @@ else:
 主Agent不重写内容，而是按以下结构拼接并添加导航：
 
 ```
-{OUTPUT_DIR}/architecture-design.md
+{PROJECT_ROOT}/architecture-design.md
 ├── 1. 项目概述（从 PRD 提炼，简单概括）
 ├── 2. 约束条件（Step 0 收集的信息）
 ├── 3. 技术栈方案 → 链接到 tech-stack.md
@@ -346,36 +346,37 @@ else:
 ├── 10. 遗留问题与待决策项
 │     - 第{N}轮未解决的冲突
 │     - 需要用户确认的假设
-├── 11. 下游交接指南
+├── 11. 下游交接指南（⚠️ 以下 {PROJECT_ROOT} 指向架构输出目录，{前后端项目路径} 等由用户填写具体路径）
       - frontend/ 主智能体输入：
         - REQUIREMENT_FILE: {PRD 路径}
         - PROJECT_ROOT: {前端项目路径}
-        - TECH_STACK_FILE: {OUTPUT_DIR}/tech-stack.md
-        - CONTRACT_FILE: {OUTPUT_DIR}/api-contract-outline.md
-        - SECURITY_FILE: {OUTPUT_DIR}/security-architecture.md
-        - IMPLEMENTATION_ROADMAP_FILE: {OUTPUT_DIR}/implementation-roadmap.md
+        - TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
+        - CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
+        - SECURITY_FILE: {PROJECT_ROOT}/security-architecture.md
+        - IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
       - backend/ 主智能体输入：
-        - REQUIREMENTS_FILE: {PRD 路径}
-        - OUTPUT_DIR: {后端项目路径}
-        - TECH_STACK_FILE: {OUTPUT_DIR}/tech-stack.md
-        - DATA_ARCHITECTURE_FILE: {OUTPUT_DIR}/data-architecture.md
-        - CONTRACT_FILE: {OUTPUT_DIR}/api-contract-outline.md
-        - SECURITY_FILE: {OUTPUT_DIR}/security-architecture.md
-        - IMPLEMENTATION_ROADMAP_FILE: {OUTPUT_DIR}/implementation-roadmap.md
+        - REQUIREMENT_FILE: {PRD 路径}
+        - PROJECT_ROOT: {后端项目路径}
+        - TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
+        - DATA_ARCHITECTURE_FILE: {PROJECT_ROOT}/data-architecture.md
+        - CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
+        - SECURITY_FILE: {PROJECT_ROOT}/security-architecture.md
+        - IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
       - fullstack/ 主智能体输入（⚠️ 需等 frontend/ 和 backend/ 完成后再启动）：
         - FRONTEND_ROOT: {前端项目路径}
         - BACKEND_ROOT: {后端项目路径}
-        - CONTRACT_FILE: {OUTPUT_DIR}/api-contract-outline.md
-        - TECH_STACK_FILE: {OUTPUT_DIR}/tech-stack.md
-        - DATA_ARCHITECTURE_FILE: {OUTPUT_DIR}/data-architecture.md
-        - IMPLEMENTATION_ROADMAP_FILE: {OUTPUT_DIR}/implementation-roadmap.md
+        - FLUTTER_ROOT: {Flutter 项目路径}（有 Flutter 项目时，用于验证跨端接口一致性）
+        - CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
+        - TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
+        - DATA_ARCHITECTURE_FILE: {PROJECT_ROOT}/data-architecture.md
+        - IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
       - flutter/ 主智能体输入：
         - REQUIREMENT_FILE: {PRD 路径}
         - PROJECT_ROOT: {Flutter 项目路径}
-        - TECH_STACK_FILE: {OUTPUT_DIR}/tech-stack.md
-        - CONTRACT_FILE: {OUTPUT_DIR}/api-contract-outline.md
-        - SECURITY_FILE: {OUTPUT_DIR}/security-architecture.md
-        - IMPLEMENTATION_ROADMAP_FILE: {OUTPUT_DIR}/implementation-roadmap.md
+        - TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
+        - CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
+        - SECURITY_FILE: {PROJECT_ROOT}/security-architecture.md
+        - IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
 └── 12. 不在范围内的能力（明确的"不做"清单）
       - 明确不支持的场景（如"V1 不支持离线模式"）
       - 明确不用的技术（如"不使用 GraphQL，不做微服务拆分"）
@@ -384,7 +385,7 @@ else:
 
 **日志写入**：
 ```
-- {yymmdd hhmm} 架构设计文档产出：{OUTPUT_DIR}/architecture-design.md
+- {yymmdd hhmm} 架构设计文档产出：{PROJECT_ROOT}/architecture-design.md
 - {yymmdd hhmm} 子文档：tech-stack.md / data-architecture.md / infra-architecture.md / security-architecture.md / api-contract-outline.md
 ```
 
@@ -392,7 +393,7 @@ else:
 
 ## Phase 3.5：实施路线图
 
-架构文档产出后，**主Agent基于各子Agent的分析产出分阶段实施路线图**，写入 `{OUTPUT_DIR}/implementation-roadmap.md`。
+架构文档产出后，**主Agent基于各子Agent的分析产出分阶段实施路线图**，写入 `{PROJECT_ROOT}/implementation-roadmap.md`。
 
 ### 路线图设计原则
 
@@ -440,7 +441,7 @@ else:
 
 **日志写入**：
 ```
-- {yymmdd hhmm} 实施路线图产出：{OUTPUT_DIR}/implementation-roadmap.md
+- {yymmdd hhmm} 实施路线图产出：{PROJECT_ROOT}/implementation-roadmap.md
 - {yymmdd hhmm} 路线图：{N} 个 Phase，{M} 个任务
 ```
 
@@ -463,8 +464,8 @@ else:
 【中间件】{MQ选型} + {网关选型} + {监控选型}
 
 共 {N} 个架构决策，{M} 个待确认项。
-详细文档：{OUTPUT_DIR}/architecture-design.md
-实施路线图：{OUTPUT_DIR}/implementation-roadmap.md
+详细文档：{PROJECT_ROOT}/architecture-design.md
+实施路线图：{PROJECT_ROOT}/implementation-roadmap.md
 ```
 
 **向用户输出下一步指引**：
@@ -476,22 +477,22 @@ else:
 > 使用 /frontend/main-agent-prompt-vue.md
 > PROJECT_ROOT: {前端项目路径}
 > REQUIREMENT_FILE: {PRD 路径}
-> TECH_STACK_FILE: {OUTPUT_DIR}/tech-stack.md
-> CONTRACT_FILE: {OUTPUT_DIR}/api-contract-outline.md
-> SECURITY_FILE: {OUTPUT_DIR}/security-architecture.md
-> IMPLEMENTATION_ROADMAP_FILE: {OUTPUT_DIR}/implementation-roadmap.md
+> TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
+> CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
+> SECURITY_FILE: {PROJECT_ROOT}/security-architecture.md
+> IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
 > ```
 >
 > **第 1 步（可并行）— 启动后端：**
 > ```
 > 使用 /backend/main-agent-prompt.md
-> OUTPUT_DIR: {后端项目路径}
-> REQUIREMENTS_FILE: {PRD 路径}
-> TECH_STACK_FILE: {OUTPUT_DIR}/tech-stack.md
-> DATA_ARCHITECTURE_FILE: {OUTPUT_DIR}/data-architecture.md
-> CONTRACT_FILE: {OUTPUT_DIR}/api-contract-outline.md
-> SECURITY_FILE: {OUTPUT_DIR}/security-architecture.md
-> IMPLEMENTATION_ROADMAP_FILE: {OUTPUT_DIR}/implementation-roadmap.md
+> PROJECT_ROOT: {后端项目路径}
+> REQUIREMENT_FILE: {PRD 路径}
+> TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
+> DATA_ARCHITECTURE_FILE: {PROJECT_ROOT}/data-architecture.md
+> CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
+> SECURITY_FILE: {PROJECT_ROOT}/security-architecture.md
+> IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
 > ```
 >
 > **第 1 步（可并行）— 如需跨端应用：**
@@ -499,10 +500,10 @@ else:
 > 使用 /flutter/main-agent-prompt-flutter.md
 > PROJECT_ROOT: {Flutter 项目路径}
 > REQUIREMENT_FILE: {PRD 路径}
-> TECH_STACK_FILE: {OUTPUT_DIR}/tech-stack.md
-> CONTRACT_FILE: {OUTPUT_DIR}/api-contract-outline.md
-> SECURITY_FILE: {OUTPUT_DIR}/security-architecture.md
-> IMPLEMENTATION_ROADMAP_FILE: {OUTPUT_DIR}/implementation-roadmap.md
+> TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
+> CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
+> SECURITY_FILE: {PROJECT_ROOT}/security-architecture.md
+> IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
 > ```
 >
 > **第 2 步（串行，需等前端+后端完成）— 启动前后端联调：**
@@ -510,17 +511,18 @@ else:
 > 使用 /fullstack/main-agent-prompt-fullstack.md
 > FRONTEND_ROOT: {前端项目路径}
 > BACKEND_ROOT: {后端项目路径}
-> CONTRACT_FILE: {OUTPUT_DIR}/api-contract-outline.md
-> TECH_STACK_FILE: {OUTPUT_DIR}/tech-stack.md
-> DATA_ARCHITECTURE_FILE: {OUTPUT_DIR}/data-architecture.md
-> IMPLEMENTATION_ROADMAP_FILE: {OUTPUT_DIR}/implementation-roadmap.md
+> FLUTTER_ROOT: {Flutter 项目路径}  # 如有 Flutter 项目，用于验证跨端接口一致性
+> CONTRACT_FILE: {PROJECT_ROOT}/api-contract-outline.md
+> TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
+> DATA_ARCHITECTURE_FILE: {PROJECT_ROOT}/data-architecture.md
+> IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
 > ```
 
 ### 用户反馈处理
 
 - **全局通过**：记录日志，任务完成
 - **部分修改**：识别涉及哪些维度，resume 对应子Agent，重新走 Phase 2-3
-- **推翻重来**：清空 OUTPUT_DIR，从 Step 0 重新开始
+- **推翻重来**：清空 PROJECT_ROOT，从 Step 0 重新开始
 
 **日志写入**：
 ```
@@ -533,7 +535,7 @@ else:
 
 ## 日志格式规范
 
-追加到 `{OUTPUT_DIR}/main-log.md`，每行以 `- ` 开头。
+追加到 `{PROJECT_ROOT}/main-log.md`，每行以 `- ` 开头。
 
 ### 时间格式
 
@@ -543,7 +545,7 @@ else:
 
 ```markdown
 - 260506 1430 架构设计启动，需求：{REQUIREMENT_FILE}
-- 260506 1430 输出目录：{OUTPUT_DIR}
+- 260506 1430 输出目录：{PROJECT_ROOT}
 - 260506 1432 信息补充完成
 - 260506 1432 团队技能：全栈 TypeScript，熟悉 React + NestJS
 - 260506 1432 项目规模：SaaS 产品，预期首年 1万 DAU
@@ -565,9 +567,9 @@ else:
 - 260506 1500 一致性检查：无冲突
 - 260506 1502 需求覆盖度：全部覆盖
 
-- 260506 1505 架构设计文档产出：{OUTPUT_DIR}/architecture-design.md
+- 260506 1505 架构设计文档产出：{PROJECT_ROOT}/architecture-design.md
 - 260506 1505 子文档：tech-stack.md / data-architecture.md / infra-architecture.md / security-architecture.md / api-contract-outline.md
-- 260506 1510 实施路线图产出：{OUTPUT_DIR}/implementation-roadmap.md
+- 260506 1510 实施路线图产出：{PROJECT_ROOT}/implementation-roadmap.md
 - 260506 1510 路线图：4 个 Phase，12 个任务
 
 - 260506 1515 用户评审：通过
@@ -603,7 +605,7 @@ else:
 | 子Agent 分析产出全文 | **否** | 只 Grep 提取"跨维度依赖"章节 | 一致性检查 |
 | 子Agent 的其他章节内容 | **否** | 不读取 | 保护上下文 |
 | PRD 关键词存在性 | **是（Grep 搜索）** | Grep 搜索关键词匹配行 | PRD 质量预检 |
-| agent-registry.json | **是** | `jq` 或 Read 全文 | 获取子Agent ID |
+| agent-registry/{key}.json | **是** | `jq` 或 Read 全文 | 获取子Agent ID |
 | architecture-design.md | **是（主Agent 自己产出）** | Read 全文 | 整合、排版、输出 |
 | 其他架构文档（tech-stack.md 等） | **是（仅特定章节）** | Grep 提取"跨维度依赖"章节 | 一致性检查 |
 
