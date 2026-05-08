@@ -246,7 +246,19 @@ Agent C:
 **回滚机制**：
 - 第2轮修正后如果仍有 blocker 或 major 级别 FAIL，在启动第3轮前询问用户：
   > "{模块} 已修正 2 轮仍未通过（blocker/major）。选项：1) 继续第3轮修正 2) revert 本批Agent分支 (git revert)，重启开发Agent从零开始"
-- 用户选择 revert 时，执行 `git revert` 回退该 Agent 分支的提交，清除 `agent-registry/{key}.json` 中对应 ID，从 Step 1 重新启动开发Agent
+- 用户选择 revert 时，首选执行 `git revert` 回退该 Agent 分支的提交。
+- **非 git 项目回退方案**：如项目不在 git 管理下（无 .git 目录），使用文件快照：
+  1) 修正前用 `tar -czf {PROJECT_ROOT}/snapshot_batch_{batch}.tar.gz {PROJECT_ROOT}/src` 创建快照
+  2) 回退时解压 `tar -xzf snapshot_batch_{batch}.tar.gz -C /`
+  3) 清除 `agent-registry/{key}.json` 中对应 ID，从 Step 1 重新启动开发Agent
+- 回退后主Agent日志写入：`- {yymmdd hhmm} 回退批次 {batch}（{revert / snapshot}），重启开发Agent`
+
+**超时恢复机制**：
+- 子Agent 启动后 300s 仍无响应时：额外等待 120s（总最长等待 7 分钟）
+- 仍无响应：标记该Agent为"超时"→ 记录日志
+- 超时的是测试Agent：按 FAIL 处理，触发修正循环
+- 超时的是开发Agent：执行回退，重启新开发Agent从零开始
+- 每次超时记录到 main-log.md：`- {yymmdd hhmm} Agent超时：{agent_type}（{agent_id}），超时批次 {batch}`
 
 ### Step 4：批量状态更新 + 反馈
 

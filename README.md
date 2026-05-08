@@ -1,12 +1,12 @@
 # Harness Engineering — 多智能体协同开发系统
 
-基于 AI Agent 的**多智能体协同开发框架**，通过 **1 个架构设计模块 + 4 个领域开发模块**共 **24 个子智能体**协作，实现从 PRD 到全栈代码的全流程自动化研发。
+基于 AI Agent 的**多智能体协同开发框架**，通过 **1 个架构设计模块 + 4 个领域开发模块 + 1 个部署模块**共 **27 个子智能体**协作，实现从 PRD 到生产部署的全流程自动化研发。
 
 ## 快速概览
 
 ```
-architecture/ → backend/ + frontend/ + flutter/ → fullstack/
-   (Phase 0)          (Phase 1, 可并行)            (Phase 2, 串行)
+architecture/ → backend/ + frontend/ + flutter/ → fullstack/ → deploy/
+   (Phase 0)          (Phase 1, 可并行)            (Phase 2)   (Phase 3)
 ```
 
 每个领域内部遵循统一的 **计划 → 批量开发-测试循环 → 收尾** 三阶段流水线。
@@ -18,6 +18,7 @@ architecture/ → backend/ + frontend/ + flutter/ → fullstack/
 ├── backend/            # Phase 1b: 后端 API 开发（5 个Agent）
 ├── frontend/           # Phase 1a: Vue 3 前端开发（5 个Agent）
 ├── fullstack/          # Phase 2: 前后端联调（5 个Agent）
+├── deploy/             # Phase 3: 生产部署上线（3 个Agent）
 ├── flutter/            # Phase 1c: Flutter 跨端开发（5 个Agent）
 ├── docs/               # 详细文档
 └── .github/workflows/  # CI 验证配置
@@ -59,7 +60,16 @@ PROJECT_ROOT + REQUIREMENT_FILE + 架构文档路径
 FRONTEND_ROOT + BACKEND_ROOT + CONTRACT_FILE + 架构文档路径
 ```
 
-**第 4 步：验证收尾**
+**第 4 步：生产部署上线**
+
+联调全部通过后，生成可部署的生产包：
+
+```
+/deploy/main-agent-prompt-deploy.md
+TECH_STACK_FILE + INFRA_FILE + SECURITY_FILE + 项目路径
+```
+
+**第 5 步：验证收尾**
 
 检查各领域的 `main-log.md`，确认全部模块 ✅。
 

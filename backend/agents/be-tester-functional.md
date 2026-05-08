@@ -167,8 +167,48 @@ FAIL时：
 
 **⚠️ 主Agent只读�?JSON 文件�?`verdict` 字段判定 PASS/FAIL，不读取 markdown 报告。你�?JSON 输出必须精确�?*
 
-**Agent ID 写入**�?
-完成测试并写入报告后，将你的 Agent ID 写入独立文件 `{项目根目录}/agent-registry/test_func.json`（避免多Agent并发写入同一文件导致ID丢失）�?
+
+### 5. 运行时验证（可选增强）
+
+如果项目中存在 `docker-compose.test.yml`（由 be-planner 创建），可启动测试环境进行实际 API 调用验证，补充静态分析的不足：
+
+```bash
+# 启动测试环境
+cd {项目根目录} && docker compose -f docker-compose.test.yml up -d --wait
+
+# 等待服务就绪
+for i in $(seq 1 30); do
+  if curl -sf http://localhost:3000/health > /dev/null 2>&1; then break; fi
+  sleep 2
+done
+
+# 逐接口测试（示例）
+# 正常请求
+curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/v1/users
+
+# 参数校验
+curl -s -X POST http://localhost:3000/api/v1/users -H "Content-Type: application/json" -d '{"email":"invalid"}'
+
+# 清理
+docker compose -f docker-compose.test.yml down -v
+```
+
+**运行时测试判定**：
+- 正常请求返回 2xx/3xx → PASS
+- 异常请求返回 4xx（含正确错误信息）→ PASS
+- 异常请求返回 5xx 或 crash → FAIL
+- Docker 不可用 → 跳过运行时测试，仅进行静态分析
+
+运行结果**追加**到 JSON 报告的 `runtime_results` 字段中（可选）。
+�?
+完成测试并写入报告后，将你的 
+### 5. 运行时验证（可选增强）
+
+如果项目中存在 docker-compose.test.yml，可启动测试环境进行实际 API 调用验证，补充静态分析的不足。
+
+运行时测试判定：正常请求返回 2xx/3xx → PASS，异常请求返回 4xx → PASS，异常请求返回 5xx 或 crash → FAIL，Docker 不可用 → 跳过。运行结果追加到 JSON 报告的 runtime_results 字段中。
+
+Agent ID 写入独立文件 `{项目根目录}/agent-registry/test_func.json`（避免多Agent并发写入同一文件导致ID丢失）�?
 
 写入方式（按优先级选择可用工具）：
 

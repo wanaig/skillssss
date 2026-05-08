@@ -517,6 +517,18 @@ else:
 > DATA_ARCHITECTURE_FILE: {PROJECT_ROOT}/data-architecture.md
 > IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
 > ```
+>
+> **第 3 步（串行，需等 fullstack/ 完成）— 启动生产部署：**
+> ```
+> 使用 /deploy/main-agent-prompt-deploy.md
+> TECH_STACK_FILE: {PROJECT_ROOT}/tech-stack.md
+> INFRA_FILE: {PROJECT_ROOT}/infra-architecture.md
+> SECURITY_FILE: {PROJECT_ROOT}/security-architecture.md
+> IMPLEMENTATION_ROADMAP_FILE: {PROJECT_ROOT}/implementation-roadmap.md
+> FRONTEND_ROOT: {前端项目路径}
+> BACKEND_ROOT: {后端项目路径}
+> DEPLOY_ROOT: {部署方案目录}
+> ```
 
 ### 用户反馈处理
 
