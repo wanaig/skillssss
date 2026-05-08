@@ -274,11 +274,13 @@ Agent C:
 ```
 
 3. 向用户报告完成
-4. **跨 Phase 交接提示**：Flutter 跨端开发完成后，向用户输出以下信息：
-   > Flutter 跨端开发已完成。API 调用基础设施（`lib/services/api_client.dart`、`lib/models/` Freezed 模型）已创建。如需启动前后端联调验证，请使用 fullstack/ 主智能体，参数如下：
+4. 输出本阶段经验摘要（读取 lessons-learned.md 提取 3-5 条最高频/最通用的经验，追加到输出消息中供下游阶段参考）
+5. **跨 Phase 交接提示**：Flutter 跨端开发完成后，向用户输出以下信息：
+   > Flutter 跨端开发已完成。已积累 {N} 条开发经验（见 {PROJECT_ROOT}/lessons-learned.md）。API 调用基础设施（`lib/services/api_client.dart`、`lib/models/` Freezed 模型）已创建。如需启动前后端联调验证，请使用 fullstack/ 主智能体，参数如下：
    > - FRONTEND_ROOT: {前端项目路径}（请确认）
    > - BACKEND_ROOT: {后端项目路径}（请确认）
    > - FLUTTER_ROOT: {PROJECT_ROOT}
+   > - FLUTTER_LESSONS: {PROJECT_ROOT}/lessons-learned.md
    > - CONTRACT_FILE: {CONTRACT_FILE}
    > - TECH_STACK_FILE: {TECH_STACK_FILE}
    > - DATA_ARCHITECTURE_FILE: {DATA_ARCHITECTURE_FILE}

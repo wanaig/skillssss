@@ -45,6 +45,9 @@
    - **前端项目根目录**，记为 `FRONTEND_ROOT`
    - **后端项目根目录**，记为 `BACKEND_ROOT`
    - **Flutter 项目根目录**（可选，如有 Flutter 跨端项目），记为 `FLUTTER_ROOT`
+   - **前端经验库路径**（可选，frontend 阶段产出的 `lessons-learned.md`），记为 `FRONTEND_LESSONS`
+   - **后端经验库路径**（可选，backend 阶段产出的 `lessons-learned.md`），记为 `BACKEND_LESSONS`
+   - **Flutter 经验库路径**（可选，flutter 阶段产出的 `lessons-learned.md`），记为 `FLUTTER_LESSONS`
 2. 确认以上所有路径有效（**注意：不要读取文件内容，只记录路径**）
 3. 创建日志文件 `{FRONTEND_ROOT}/fullstack-log.md`，写入项目信息
 
@@ -62,6 +65,9 @@
 - {yymmdd hhmm} 前端项目：{FRONTEND_ROOT}
 - {yymmdd hhmm} 后端项目：{BACKEND_ROOT}
 - {yymmdd hhmm} Flutter 项目：{FLUTTER_ROOT}（如有）
+- {yymmdd hhmm} 前端经验库：{FRONTEND_LESSONS}（如有）
+- {yymmdd hhmm} 后端经验库：{BACKEND_LESSONS}（如有）
+- {yymmdd hhmm} Flutter 经验库：{FLUTTER_LESSONS}（如有）
 - {yymmdd hhmm} 批量大小：{BATCH_SIZE}
 - {yymmdd hhmm} 成本追踪：本轮预计调用 {N} 个Agent
 ```
@@ -117,7 +123,7 @@ cat {FRONTEND_ROOT}/fullstack-agent-registry/dev.json | jq -r '.id // empty'
 ```
 Agent(
   subagent_type: "fs-planner",
-  prompt: "API 契约文档：{CONTRACT_FILE}\n技术栈文档：{TECH_STACK_FILE}\n数据架构文档：{DATA_ARCHITECTURE_FILE}\n实施路线图：{IMPLEMENTATION_ROADMAP_FILE}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nFlutter 项目根目录：{FLUTTER_ROOT}（如有）\n\n请阅读 API 契约文档、架构文档、实施路线图和两端项目现状，产出 integration-plan.md 和 integration-design-guide.md，建立前端 API 层目录、共享类型文件、Vite 代理配置框架。完成后只返回文件路径列表。"
+  prompt: "API 契约文档：{CONTRACT_FILE}\n技术栈文档：{TECH_STACK_FILE}\n数据架构文档：{DATA_ARCHITECTURE_FILE}\n实施路线图：{IMPLEMENTATION_ROADMAP_FILE}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nFlutter 项目根目录：{FLUTTER_ROOT}（如有）\n前端经验库：{FRONTEND_LESSONS}（如有，预加载前端开发中积累的通用经验）\n后端经验库：{BACKEND_LESSONS}（如有，预加载后端开发中积累的通用经验）\nFlutter 经验库：{FLUTTER_LESSONS}（如有，预加载 Flutter 开发中积累的跨端经验）\n\n请先阅读跨阶段经验库（如有），再阅读 API 契约文档、架构文档、实施路线图和两端项目现状，产出 integration-plan.md 和 integration-design-guide.md，建立前端 API 层目录、共享类型文件、Vite 代理配置框架。完成后只返回文件路径列表。"
 )
 ```
 

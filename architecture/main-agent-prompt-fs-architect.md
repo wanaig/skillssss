@@ -61,13 +61,13 @@
 
 信息补充完成后，**对 PRD 做一次轻量级质量检查**，用于提前发现信息缺失风险：
 
-用 Grep 搜索 PRD 中是否包含以下关键信息维度（不读完整内容，只确认存在性）：
+用 Grep 搜索 PRD 中是否包含以下关键信息维度（不读完整内容，只确认存在性；中英文混合搜索确保覆盖双语 PRD）：
 
 ```
-Grep(pattern="用户角色|权限|角色|admin|user|visitor|登录|注册", path="{REQUIREMENT_FILE}")
-Grep(pattern="实体|数据|字段|表|存储|上传", path="{REQUIREMENT_FILE}")
-Grep(pattern="流程|操作|步骤|状态|工作流", path="{REQUIREMENT_FILE}")
-Grep(pattern="并发|性能|响应|SLA|可用|延迟", path="{REQUIREMENT_FILE}")
+Grep(pattern="用户角色|权限|角色|admin|user role|permission|visitor|登录|注册|log ?in|sign ?up|auth", path="{REQUIREMENT_FILE}")
+Grep(pattern="实体|数据|字段|表|存储|上传|entity|schema|field|table|storage|upload|database", path="{REQUIREMENT_FILE}")
+Grep(pattern="流程|操作|步骤|状态|工作流|workflow|state|step|process|flow", path="{REQUIREMENT_FILE}")
+Grep(pattern="并发|性能|响应|SLA|可用|延迟|concurrency|performance|latency|QPS|availability|throughput", path="{REQUIREMENT_FILE}")
 ```
 
 **判定**：如果某个维度在 PRD 中完全没有提及，在下一条日志中标注风险：

@@ -44,7 +44,7 @@ version: 2.0.0
 - 实施路线图路径，记为 `IMPLEMENTATION_ROADMAP_FILE`
 - 前端项目根目录路径，记为 `FRONTEND_ROOT`
 - 后端项目根目录路径，记为 `BACKEND_ROOT`
-- Flutter 项目根目录路径（可选），记为 `FLUTTER_ROOT`。如果存在，需额外验证 Flutter 端 API 调用（Dio + Freezed 模型）与后端接口的一致性
+- Flutter 项目根目录路径（可选），记为 `FLUTTER_ROOT`\n- 前端经验库路径（可选），记为 `FRONTEND_LESSONS`。如果存在，需在阅读阶段预加载前端通用经验\n- 后端经验库路径（可选），记为 `BACKEND_LESSONS`。如果存在，需在阅读阶段预加载后端通用经验\n- Flutter 经验库路径（可选），记为 `FLUTTER_LESSONS`。如果存在，需在阅读阶段预加载跨端通用经验。如果存在，需额外验证 Flutter 端 API 调用（Dio + Freezed 模型）与后端接口的一致性
 - **是否为增量开�?*：检查项目目录是否已有代码。若有，标记为增量开发模式，产出 `existing-architecture-analysis.md`
 
 ### 2. 必读文件（按顺序�?
@@ -319,7 +319,7 @@ server: {
 },
 ```
 
-**创建空的经验�?* `fullstack-fullstack-lessons-learned.md`�?
+**创建空的经验�?* `fullstack-lessons-learned.md`�?
 
 ```markdown
 # 联调经验�?
@@ -353,7 +353,7 @@ Step 6: Bash 创建集成基础设施目录（src/api/, src/types/, fullstack-te
 Step 7: Write src/types/api.ts（共享类型定义）
 Step 8: Write src/api/request.ts（请求封装）
 Step 9: Edit/Write vite.config.ts（代理配置）
-Step 10: Write fullstack-fullstack-lessons-learned.md（经验库初始文件�?
+Step 10: Write fullstack-lessons-learned.md（经验库初始文件�?
 Step 11: Write integration-design-guide.md（前3-4个模块）
 Step 12: Edit integration-design-guide.md（追加第4-7个模块）
 Step 13: Edit integration-design-guide.md（追加第8-11个模块）
@@ -371,7 +371,7 @@ Step 13: Edit integration-design-guide.md（追加第8-11个模块）
 集成计划完成，产出文件：
 - {FRONTEND_ROOT}/integration-plan.md
 - {FRONTEND_ROOT}/integration-design-guide.md
-- {FRONTEND_ROOT}/fullstack-fullstack-lessons-learned.md
+- {FRONTEND_ROOT}/fullstack-lessons-learned.md
 - {FRONTEND_ROOT}/src/api/request.ts
 - {FRONTEND_ROOT}/src/types/api.ts
 - {FRONTEND_ROOT}/vite.config.ts（已更新代理配置�?
