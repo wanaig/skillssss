@@ -275,7 +275,7 @@ Agent C:
   - 1次通过：{X} 个
   - 2次通过：{Y} 个
   - 3次通过：{Z} 个
-  - 强制通过：{W} 个
+  - 自动降级：{W} 个
 - {yymmdd hhmm} 总Agent调用次数：{X}（开发{N} + 测试{M} + 修改{K}）
 ```
 
@@ -331,7 +331,7 @@ Agent C:
 
 - 260506 1630 ──── 项目完成 ────
 - 260506 1630 全部 {N} 个模块开发完成
-- 260506 1630 迭代统计：1次通过{X}个 / 2次通过{Y}个 / 3次通过{Z}个 / 强制通过{W}个
+- 260506 1630 迭代统计：1次通过{X}个 / 2次通过{Y}个 / 3次通过{Z}个 / 自动降级{W}个
 ```
 
 ---
@@ -365,7 +365,7 @@ Agent C:
 
 **核心原则**：主Agent 只读取两类数据 — (a) 结构化状态（dev-plan.md 的任务列表、test-report.json 的 verdict/severity 字段），(b) 路径和名称。其他一切内容由子Agent 自行读取。
 
-### 上下文保护规则（11-16）
+### 补充规则（11-17）
 
 11. **架构文档只传路径不读内容** — 初始化时只记录 `REQUIREMENT_FILE`、`TECH_STACK_FILE`、`CONTRACT_FILE`、`SECURITY_FILE`、`IMPLEMENTATION_ROADMAP_FILE` 路径，把路径传给 dg-vue-planner 让它自己读
 12. **测试结果只读 JSON 判定** — 读取 test-report.json 中的 `verdict` 字段，不 Read 完整报告

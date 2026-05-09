@@ -121,41 +121,41 @@ cat {PROJECT_ROOT}/agent-registry/fa_techstack.json | jq -r '.id // empty'
 
 ---
 
-## Phase 1：并行维度分析
+## Phase 1a：并行初稿（v1）
 
-**触发条件**：Step 0 信息补充完成。
+**触发条件**：Step 0 完成。
 
-**日志写入**：`- {yymmdd hhmm} 启动并行维度分析`
+**日志写入**：`- {yymmdd hhmm} 启动 Phase 1a：5 维度初稿`
 
 ### 同时启动 5 个子Agent
 
-每个子Agent分析一个架构维度。它们之间无依赖关系，可完全并行。
+每个子Agent产出对应维度的**初稿 v1**。各子Agent内部必须完成完整的分析流程：需求理解 → 选项对比 → 推荐决策 → 跨维度依赖声明。
 
 ```
 Agent A:
   subagent_type: "fa-techstack"
   run_in_background: true
-  prompt: "需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n请分析并产出 tech-stack.md。完成后只返回文件路径。"
+  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 tech-stack.md 初稿。要求：每个技术选型必须列出备选方案对比（至少 2 个备选），给出推荐理由和取舍。完成后只返回文件路径。"
 
 Agent B:
   subagent_type: "fa-data"
   run_in_background: true
-  prompt: "需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n请分析并产出 data-architecture.md。完成后只返回文件路径。"
+  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 data-architecture.md 初稿。要求：包含完整实体关系分析、存储策略（主库/缓存/对象存储/搜索引擎）、数据流图。完成后只返回文件路径。"
 
 Agent C:
   subagent_type: "fa-infra"
   run_in_background: true
-  prompt: "需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n请分析并产出 infra-architecture.md。完成后只返回文件路径。"
+  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 infra-architecture.md 初稿。要求：包含部署拓扑图、CI/CD 流水线设计、环境规划（dev/staging/prod）、监控和日志方案。完成后只返回文件路径。"
 
 Agent D:
   subagent_type: "fa-security"
   run_in_background: true
-  prompt: "需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n请分析并产出 security-architecture.md。完成后只返回文件路径。"
+  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 security-architecture.md 初稿。要求：包含威胁建模、认证授权方案、数据安全策略、安全审计设计。完成后只返回文件路径。"
 
 Agent E:
   subagent_type: "fa-api-design"
   run_in_background: true
-  prompt: "需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n请分析并产出 api-contract-outline.md。完成后只返回文件路径。"
+  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 api-contract-outline.md 初稿。要求：包含完整端点清单、请求/响应结构、错误码设计、版本策略。完成后只返回文件路径。"
 ```
 
 > **并发 = 5**：5 个分析Agent同时启动，无依赖关系。
@@ -165,28 +165,85 @@ Agent E:
 收到每个后台通知后：
 1. **立即提取 Agent ID，写入日志**
 2. 记录返回的文件路径
-3. 不逐维度报告用户，等全部完成后一次性汇报
 
 **日志写入**：
 ```
-- {yymmdd hhmm} techstack完成，产出：{路径} (FA_ID: {FA_ID_1})
-- {yymmdd hhmm} data完成，产出：{路径} (FA_ID: {FA_ID_2})
-- {yymmdd hhmm} infra完成，产出：{路径} (FA_ID: {FA_ID_3})
-- {yymmdd hhmm} security完成，产出：{路径} (FA_ID: {FA_ID_4})
-- {yymmdd hhmm} api-design完成，产出：{路径} (FA_ID: {FA_ID_5})
+- {yymmdd hhmm} techstack v1 完成，产出：{路径} (FA_ID: {FA_ID_1})
+- {yymmdd hhmm} data v1 完成，产出：{路径} (FA_ID: {FA_ID_2})
+- {yymmdd hhmm} infra v1 完成，产出：{路径} (FA_ID: {FA_ID_3})
+- {yymmdd hhmm} security v1 完成，产出：{路径} (FA_ID: {FA_ID_4})
+- {yymmdd hhmm} api-design v1 完成，产出：{路径} (FA_ID: {FA_ID_5})
 ```
-
-全部 5 个维度完成后，向用户输出：`"5/5 维度分析全部完成，正在执行一致性检查..."`
 
 ---
 
-## Phase 2：一致性检查
+## Phase 1b：自审核优化（v1 → v2）
 
-5 个维度分析完成后，**主Agent需要读取各文档的"跨维度依赖"章节，检查是否存在冲突。**
+**触发条件**：5 份初稿全部就绪。
+
+**日志写入**：`- {yymmdd hhmm} 启动 Phase 1b：自审核优化`
+
+### 并行启动 5 个自审核
+
+每个子Agent resume 自己 Phase 1a 的会话，对自己的 v1 进行深度自审核并产出 v2。
+
+### 自审核质量清单（每个子Agent必须逐项检查）
+
+| # | 检查项 | 不通过标准 |
+|---|--------|-----------|
+| Q1 | 每个技术选型有对比分析（≥2 备选） | 直接给出结论无对比 |
+| Q2 | 每个"推荐"有明确理由和取舍说明 | 只说"推荐用 X"无理由 |
+| Q3 | 跨维度依赖明确声明（依赖什么、被谁依赖） | 无跨维度依赖章节 |
+| Q4 | PRD 关键需求全部有对应方案 | 搜索 PRD 关键词发现遗漏 |
+| Q5 | 有明确的不推荐/不做清单 | 只列了推荐、未列否定项 |
+| Q6 | 关键假设标注清楚 | 使用了用户未提供的信息但未标"假设" |
+| Q7 | 有风险识别和缓解策略 | 方案无风险分析 |
+| Q8 | 术语前后一致（同一概念同一名称） | 同名不同义或同义不同名 |
+
+**Prompt 模板**（5 个Agent并行）：
+
+```
+Agent A:
+  Agent(resume: "{FA_ID_1}", subagent_type: "fa-techstack",
+    prompt: "自审核优化阶段。请逐项对照质量清单审查你的 tech-stack.md v1：\n\n1. 每个技术选型是否有 ≥2 备选对比？如否，补充对比分析\n2. 每个推荐是否有明确理由和取舍？如否，补充\n3. 跨维度依赖声明是否完整？（需要什么中间件/数据库/协议，这些由其他维度提供）\n4. 搜索 {REQUIREMENT_FILE} 中的关键功能需求，确认全部有对应技术方案\n5. 是否有明确的\"不推荐/不采用\"清单？\n6. 所有假设项是否已标注？\n7. 是否有风险分析和缓解策略？\n8. 术语是否前后一致？\n\n优化后产出 tech-stack.md v2，覆盖原文件。完成后只返回文件路径。")
+
+Agent B:
+  Agent(resume: "{FA_ID_2}", subagent_type: "fa-data",
+    prompt: "自审核优化阶段。请逐项对照质量清单审查你的 data-architecture.md v1（同上 8 项检查），优化后产出 v2 覆盖原文件。完成后只返回文件路径。")
+
+Agent C:
+  Agent(resume: "{FA_ID_3}", subagent_type: "fa-infra",
+    prompt: "自审核优化阶段。请逐项对照质量清单审查你的 infra-architecture.md v1（同上 8 项检查），优化后产出 v2 覆盖原文件。完成后只返回文件路径。")
+
+Agent D:
+  Agent(resume: "{FA_ID_4}", subagent_type: "fa-security",
+    prompt: "自审核优化阶段。请逐项对照质量清单审查你的 security-architecture.md v1（同上 8 项检查），优化后产出 v2 覆盖原文件。完成后只返回文件路径。")
+
+Agent E:
+  Agent(resume: "{FA_ID_5}", subagent_type: "fa-api-design",
+    prompt: "自审核优化阶段。请逐项对照质量清单审查你的 api-contract-outline.md v1（同上 8 项检查），优化后产出 v2 覆盖原文件。完成后只返回文件路径。")
+```
+
+> **并发 = 5**：5 个自审核同时进行。
+
+等待全部完成后 → 向用户输出：`"Phase 1b 自审核完成，5 维度 v2 已就绪，进入跨维度一致性检查..."`
+
+**日志写入**：
+```
+- {yymmdd hhmm} Phase 1b 自审核全部完成 → v2
+```
+
+---
+
+## Phase 2：跨维度一致性检查与修正
+
+**输入**：5 份 v2 文档。
+
+**日志写入**：`- {yymmdd hhmm} 启动 Phase 2：跨维度一致性检查`
 
 ### 读取策略（保护上下文）
 
-**只读每个文件中的以下章节，用 Grep 提取**：
+**只读每个文件中的"跨维度依赖"章节，用 Grep 提取**：
 ```
 Grep(pattern="^## 跨维度依赖", path="{PROJECT_ROOT}/tech-stack.md")
 Grep(pattern="^## 跨维度依赖", path="{PROJECT_ROOT}/data-architecture.md")
@@ -195,9 +252,7 @@ Grep(pattern="^## 跨维度依赖", path="{PROJECT_ROOT}/security-architecture.m
 Grep(pattern="^## 跨维度依赖", path="{PROJECT_ROOT}/api-contract-outline.md")
 ```
 
-然后对每条依赖声明，检查对应维度是否满足。
-
-### 检查清单（全覆盖，按来源维度分组）
+### 检查清单（全覆盖，27 项）
 
 | # | 检查项 | 来源 → 目标 | 冲突示例 |
 |---|--------|------------|---------|
@@ -222,107 +277,147 @@ Grep(pattern="^## 跨维度依赖", path="{PROJECT_ROOT}/api-contract-outline.md
 | 19 | 加密要求落地 | security → data | security 要求字段加密，data 表无 encrypted_* 字段 |
 | 20 | 审计日志落地 | security → data | security 要求审计日志，data 无 audit_logs 表 |
 | 21 | 密码字段命名规范 | security → data | security 要求 password_hash，data 用了 password |
-| 22 | AR 网关鉴权插件 | security → infra | security 要求网关验证 JWT，infra 未启用 auth 插件 |
+| 22 | 网关鉴权插件 | security → infra | security 要求网关验证 JWT，infra 未启用 auth 插件 |
 | 23 | HTTPS 证书管理 | security → infra | security 要求 TLS，infra 未配置证书管理 |
 | 24 | 网络隔离 | security → infra | security 要求 VPC + 安全组，infra 未设计 |
 | 25 | 密钥管理 | security → infra | security 要求 KMS，infra 未配置 Secret Manager |
 | 26 | 双层限流 | security → infra | security 要求网关限流，infra 未配置限流规则 |
 | 27 | 监控覆盖度 | infra → 全部 | infra 只监控后端，未覆盖前端/数据库 API |
 
-### 判定与处理
+### 修正循环（最多 3 轮，全自动，禁止询问）
 
-```
-if 无冲突:
-  日志：- {yymmdd hhmm} 一致性检查：无冲突
-  进入 → 需求覆盖度检查
+> **修正环节只处理一致性冲突。** 子Agent之间的技术选择可以不同，但必须能协同工作。
 
-else:
-  日志：- {yymmdd hhmm} 一致性检查：发现 {N} 处冲突
-  → 进入修正环节
-```
+**第 1 轮：**
 
-### 需求覆盖度检查
+1. 识别有冲突需要修正的维度Agent
+2. 对每个冲突维度，resume 对应的子Agent：
+   ```
+   Agent(resume: "{FA_ID}", subagent_type: "{原 subagent_type}",
+     prompt: "一致性修正第 1 轮。你的文档与其他维度存在以下冲突：\n{冲突描述 + 其他维度的相关段落}\n\n请修改你的文档以解决冲突。如你坚持原方案更优，需给出完整论证（性能/成本/生态/团队能力四个维度）。完成后只返回文件路径。")
+   ```
+3. 等待所有冲突Agent完成修正
+4. 重新执行 27 项一致性检查
+5. 记录日志：`- {yymmdd hhmm} 一致性第1轮修正完成：{修正的维度列表}`
 
-一致性无冲突后，**验证架构方案是否覆盖了 PRD 中的关键功能需求**。这是防止"设计得很漂亮但漏了需求"的最后防线。
+**第 2 轮（如仍有冲突）：**
 
-**方式**：主Agent 用 Grep 从 PRD 提取关键功能关键词，逐一检查各维度产出文档中是否有对应方案。
+6. 重复步骤 1-4
+7. 记录日志：`- {yymmdd hhmm} 一致性第2轮修正完成：{修正的维度列表}`
 
-**检查矩阵**（按需求类别分组）：
+**第 3 轮（如仍有冲突）：**
+
+8. 重复步骤 1-4
+9. 仍有冲突 → 在最终文档标注"未解决冲突"，继续进入 Phase 3 深度评审，不阻塞
+
+### 需求覆盖度检查（一致性通过后执行）
+
+一致性无冲突（或 3 轮结束）后，**验证架构方案是否覆盖了 PRD 中的关键功能需求**。
+
+**方式**：主Agent 用 Grep 从 PRD 提取关键功能关键词，逐一检查各维度 v2 文档中是否有对应方案。
+
+**检查矩阵**：
 
 **通信与交互类**：
-| 需求关键词 | PRD 是否提及 | techstack | data | infra | security | api-design | 状态 |
-|-----------|-------------|-----------|------|-------|----------|------------|------|
+| 需求关键词 | PRD 提及 | techstack | data | infra | security | api-design | 状态 |
+|-----------|---------|-----------|------|-------|----------|------------|------|
 | 实时推送/通知/WebSocket | {是/否} | {有/无} | - | {有/无} | {有/无} | {有/无} | {✅/❌/⚠️} |
 | 离线/本地存储 | {是/否} | {有/无} | - | - | - | - | {✅/❌/⚠️} |
 
 **存储与数据类**：
-| 需求关键词 | PRD 是否提及 | techstack | data | infra | security | api-design | 状态 |
-|-----------|-------------|-----------|------|-------|----------|------------|------|
+| 需求关键词 | PRD 提及 | techstack | data | infra | security | api-design | 状态 |
+|-----------|---------|-----------|------|-------|----------|------------|------|
 | 文件上传/图片/附件 | {是/否} | - | {有/无} | {有/无} | {有/无} | {有/无} | {✅/❌/⚠️} |
 | 搜索/全文检索 | {是/否} | - | {有/无} | - | - | {有/无} | {✅/❌/⚠️} |
 | 导出/报表/Excel | {是/否} | - | {有/无} | {有/无} | - | {有/无} | {✅/❌/⚠️} |
 | 数据分析/统计/大屏 | {是/否} | - | {有/无} | {有/无} | - | {有/无} | {✅/❌/⚠️} |
 
 **功能与集成类**：
-| 需求关键词 | PRD 是否提及 | techstack | data | infra | security | api-design | 状态 |
-|-----------|-------------|-----------|------|-------|----------|------------|------|
+| 需求关键词 | PRD 提及 | techstack | data | infra | security | api-design | 状态 |
+|-----------|---------|-----------|------|-------|----------|------------|------|
 | 多语言/国际化 | {是/否} | {有/无} | - | - | - | - | {✅/❌/⚠️} |
 | 后台管理/管理面板 | {是/否} | {有/无} | - | - | {有/无} | {有/无} | {✅/❌/⚠️} |
 | 第三方集成/支付/OAuth | {是/否} | {有/无} | - | - | {有/无} | {有/无} | {✅/❌/⚠️} |
 
-**判定规则**：
-- ✅ 覆盖：相关维度文档中有对应方案
-- ❌ 遗漏：PRD 明确需要但所有文档均未提及 → 记录为需求遗漏
-- ⚠️ 部分：有提到但不完整 → 记录为待完善项
-- 灰色行（PRD 未提及）：直接跳过
+**判定规则**：✅ 覆盖 / ❌ 遗漏 / ⚠️ 部分 / 灰色行 PRD 未提及直接跳过
 
 **处理**：
 ```
 if 有 ❌ 遗漏:
    日志：- {yymmdd hhmm} 需求覆盖度：发现 {N} 处遗漏 → {遗漏列表}
-   在 architecture-design.md 第10章标注遗漏项及建议，直接进入 Phase 3
-   # 不询问用户，不阻塞流程——遗漏项在最终文档中可见，用户评审时决定
+   在 Phase 3 深度评审的 prompt 中告知对应子Agent补充遗漏
+   进入 Phase 3
 
 else:
    日志：- {yymmdd hhmm} 需求覆盖度：全部覆盖
-   → 进入 Phase 3
+   进入 Phase 3
 ```
 
 > **注意**：需求覆盖度检查只报告遗漏，不强制修改。因为有些需求可能是 V2 范围的，最终由用户判断。
 
 ---
 
-## 修正环节（最多 2 轮，全自动）
+## Phase 3：深度评审（v2 → v3）
 
-> **修正环节只处理一致性冲突，不质疑子Agent的专业判断。** 子Agent之间的技术选择可以不同（如 techstack 推 Vue、data 无所谓），但必须能协同工作（如 data 依赖的数据库 techstack 必须认同）。
+**触发条件**：Phase 2 一致性与覆盖度检查全部完成。
 
-### 修正流程（全自动，不询问用户）
+**目标**：在跨维度对齐的基础上，对每个维度进行最后一轮深度强化，确保输出达到生产级质量。
 
-**第 1 轮修正：**
+**日志写入**：`- {yymmdd hhmm} 启动 Phase 3：深度评审`
 
-1. 从一致性检查结果中，识别有冲突需要修正的维度Agent
-2. 对每个冲突维度，resume 对应的子Agent：
-   ```
-   Agent(resume: "{该维度的 FA_ID}", subagent_type: "{原 subagent_type}",
-     prompt: "需求文件路径：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n其他维度的分析结果与你存在以下冲突：\n{冲突描述 + 其他维度的相关段落}\n\n请修改你的分析文档以解决冲突，或论证为何你的方案更优（需给出说服理由）。完成后只返回文件路径。")
-   ```
-3. 等待所有冲突Agent完成修正
-4. 重新执行 Phase 2 一致性检查
-5. 记录日志：`- {yymmdd hhmm} 第1轮修正完成：{修正的维度列表}`
+### 并行启动 5 个子Agent进行深度补充
 
-**第 2 轮修正（如仍有冲突）：**
+每个子Agent resume 自己的会话，基于 Phase 2 反馈的遗漏项和深度评审清单进行最终强化。
 
-6. 重复步骤 1-4
+### 深度评审清单（每项必须满足）
 
-**循环结束判定**：
-- 无冲突 → 进入需求覆盖度检查
-- 仍有冲突（2轮后）→ 在最终文档中标注"未解决冲突"，直接进入需求覆盖度检查，**不询问用户**
+| # | 深度要求 | 检查方法 |
+|---|---------|---------|
+| D1 | 每个关键决策有 ADR 格式记录（标题、背景、选项、决策、后果） | 搜索 `## ADR` 章节 |
+| D2 | 有架构演进路径（V1 → V2 → V3 的演进方向） | 搜索 `演进` 或 `Roadmap` 关键字 |
+| D3 | 有明确的 MVP 最小范围定义（哪些是 P0 必须，哪些是 P1 增强） | 搜索 `MVP` 或 `P0` 关键字 |
+| D4 | 有故障场景和降级策略（数据库挂了怎么办？缓存雪崩怎么办？） | 搜索 `故障` 或 `降级` 或 `fallback` |
+| D5 | 有容量规划估算（日活 × 人均请求 × 峰值系数 = 所需资源） | 搜索 `容量` 或 `QPS` 或 `预估` |
+| D6 | 有可替代方案和迁移策略（如果选型失败，如何迁移到备选方案） | 搜索 `迁移` 或 `替代` |
+
+**Prompt 模板**（并行，将 Phase 2 的覆盖度遗漏项注入）：
+
+```
+Agent A:
+  Agent(resume: "{FA_ID_1}", subagent_type: "fa-techstack",
+    prompt: "深度评审阶段（最终 v3）。请基于以下要求强化 tech-stack.md：\n\n1. 每个关键决策补充 ADR 格式\n2. 补充架构演进路径\n3. 明确 MVP 最小范围（P0/P1 分级）\n4. 补充故障场景和降级策略\n5. 补充容量规划估算\n6. 补充备选方案和迁移策略\n\nPhase 2 发现的覆盖度遗漏（如有）：{该维度的遗漏项}\n\n完成后覆盖原文件。只返回文件路径。")
+
+Agent B:
+  Agent(resume: "{FA_ID_2}", subagent_type: "fa-data",
+    prompt: "深度评审阶段（最终 v3）。同上 6 项深度要求强化 data-architecture.md。\nPhase 2 遗漏项（如有）：{该维度的遗漏项}\n完成后只返回文件路径。")
+
+Agent C:
+  Agent(resume: "{FA_ID_3}", subagent_type: "fa-infra",
+    prompt: "深度评审阶段（最终 v3）。同上 6 项深度要求强化 infra-architecture.md。\nPhase 2 遗漏项（如有）：{该维度的遗漏项}\n完成后只返回文件路径。")
+
+Agent D:
+  Agent(resume: "{FA_ID_4}", subagent_type: "fa-security",
+    prompt: "深度评审阶段（最终 v3）。同上 6 项深度要求强化 security-architecture.md。\nPhase 2 遗漏项（如有）：{该维度的遗漏项}\n完成后只返回文件路径。")
+
+Agent E:
+  Agent(resume: "{FA_ID_5}", subagent_type: "fa-api-design",
+    prompt: "深度评审阶段（最终 v3）。同上 6 项深度要求强化 api-contract-outline.md。\nPhase 2 遗漏项（如有）：{该维度的遗漏项}\n完成后只返回文件路径。")
+```
+
+> **并发 = 5**：5 个深度评审同时进行。
+
+等待全部完成 → 向用户输出：`"Phase 3 深度评审完成，5 维度 v3 已就绪，正在整合最终文档..."`
+
+**日志写入**：
+```
+- {yymmdd hhmm} Phase 3 深度评审全部完成 → v3
+```
 
 ---
 
-## Phase 3：整合与输出
+## Phase 4：整合与输出
 
-一致性检查通过后，主Agent整合 5 份分析文档为最终架构设计文档。
+Phase 3 深度评审完成后，主Agent整合 5 份 v3 文档为最终架构设计文档。
 
 ### 整合方式
 
@@ -402,7 +497,7 @@ else:
 
 ---
 
-## Phase 3.5：实施路线图
+## Phase 4.5：实施路线图
 
 架构文档产出后，**主Agent基于各子Agent的分析产出分阶段实施路线图**，写入 `{PROJECT_ROOT}/implementation-roadmap.md`。
 
@@ -458,7 +553,7 @@ else:
 
 ---
 
-## Phase 4：产出汇总
+## Phase 5：产出汇总
 
 架构设计完成，自动呈现摘要并结束。不等待用户反馈——后续调整由用户主动发起。
 
@@ -586,26 +681,33 @@ else:
 - 260506 1432 特约约束：必须用阿里云，数据需存储在境内
 - 260506 1432 PRD 质量预检：PASS
 
-- 260506 1433 启动并行维度分析
-- 260506 1440 techstack完成，产出：{路径} (FA_ID: fa-techstack-abc123)
-- 260506 1442 data完成，产出：{路径} (FA_ID: fa-data-def456)
-- 260506 1441 infra完成，产出：{路径} (FA_ID: fa-infra-ghi789)
-- 260506 1445 security完成，产出：{路径} (FA_ID: fa-security-jkl012)
-- 260506 1443 api-design完成，产出：{路径} (FA_ID: fa-api-design-mno345)
+- 260506 1433 启动 Phase 1a：5 维度初稿
+- 260506 1440 techstack v1 完成 (FA_ID: fa-techstack-abc123)
+- 260506 1442 data v1 完成 (FA_ID: fa-data-def456)
+- 260506 1441 infra v1 完成 (FA_ID: fa-infra-ghi789)
+- 260506 1445 security v1 完成 (FA_ID: fa-security-jkl012)
+- 260506 1443 api-design v1 完成 (FA_ID: fa-api-design-mno345)
 
-- 260506 1450 一致性检查：发现 2 处冲突
-- 260506 1450 冲突1：techstack推gRPC ↔ infra网关选Kong（不支持gRPC代理）
-- 260506 1450 冲突2：security要求字段加密 ↔ data未设计加密字段
+- 260506 1445 启动 Phase 1b：自审核优化
+- 260506 1455 Phase 1b 完成 → v2
 
-- 260506 1452 第1轮修正：infra(FA_ID:ghi789), data(FA_ID:def456)
-- 260506 1500 一致性检查：无冲突
-- 260506 1502 需求覆盖度：全部覆盖
+- 260506 1455 启动 Phase 2：跨维度一致性检查
+- 260506 1458 一致性检查：发现 2 处冲突
+- 260506 1458 冲突1：techstack推gRPC ↔ infra网关选Kong
+- 260506 1458 冲突2：security要求字段加密 ↔ data未设计加密字段
+- 260506 1500 一致性第1轮修正：infra(FA_ID:ghi789), data(FA_ID:def456)
+- 260506 1505 一致性检查：无冲突
+- 260506 1507 需求覆盖度：全部覆盖
 
-- 260506 1505 架构设计文档产出：{PROJECT_ROOT}/architecture-design.md
-- 260506 1505 子文档：tech-stack.md / data-architecture.md / infra-architecture.md / security-architecture.md / api-contract-outline.md
-- 260506 1510 实施路线图产出：{PROJECT_ROOT}/implementation-roadmap.md
+- 260506 1507 启动 Phase 3：深度评审
+- 260506 1520 Phase 3 完成 → v3
+
+- 260506 1522 架构设计文档产出：{PROJECT_ROOT}/architecture-design.md
+- 260506 1522 子文档：tech-stack.md / data-architecture.md / infra-architecture.md / security-architecture.md / api-contract-outline.md
+- 260506 1510 实施路线图产出：{PROJECT_ROOT}/implementation-roadmap.md (Phase 4.5)
 - 260506 1510 路线图：4 个 Phase，12 个任务
 
+- 260506 1515 Phase 5：产出汇总完成
 - 260506 1515 ──── 架构设计完成 ────
 ```
 
@@ -614,19 +716,24 @@ else:
 ## 关键规则
 
 1. **默认假设优先，不阻塞流程** — 缺失信息时用行业最佳实践默认值填充，标注假设项后直接推进，禁止询问用户
-2. **PRD 质量预检不挡门** — 发现 PRD 信息缺失时继续但标注风险，并告知子Agent做合理假设
-3. **resume 用裸 Agent ID**，必须指定 subagent_type
-4. **不在 prompt 中重复 agent 定义已有内容**，定义管"怎么分析"，prompt 只说"分析什么"
-5. **一致性检查只读"跨维度依赖"章节**，用 Grep 提取，不读完整文档
-6. **需求覆盖度检查只报遗漏、不强制修改** — 漏了的功能由用户决定是否需要在 V1 补上
-7. **架构决策记录（ADR）由主Agent提炼**，从各子Agent的决策摘要中提取
-8. **五个维度完成后一次性汇报进度，不逐个打断**
-9. **最终文档由主Agent整合**，不另建子Agent
-10. **实施路线图在整合后自动产出**，基于各子Agent的分析推断依赖关系
-11. **下游交接指南写入 architecture-design.md 第11章**，明确 frontend/backend/fullstack/flutter 各自需要的输入
+2. **三版本迭代不可跳过** — 每个维度必须经过 v1（初稿）→ v2（自审核优化）→ v3（深度评审），不允许一次产出直接定稿
+3. **自审核质量清单必须逐项检查** — Phase 1b 中每个子Agent对照 8 项清单逐项审查自己的产出
+4. **深度评审清单不可省略** — Phase 3 中每项深度要求（ADR、演进路径、MVP分级、故障降级、容量估算、迁移策略）必须满足
+5. **PRD 质量预检不挡门** — 发现 PRD 信息缺失时继续但标注风险，并告知子Agent做合理假设
+6. **resume 用裸 Agent ID**，必须指定 subagent_type
+7. **不在 prompt 中重复 agent 定义已有内容**，定义管"怎么分析"，prompt 只说"分析什么"
+8. **一致性检查只读"跨维度依赖"章节**，用 Grep 提取，不读完整文档
+9. **需求覆盖度检查只报遗漏、不强制修改** — 遗漏项反馈给 Phase 3 深度评审补充
+10. **架构决策记录（ADR）在 Phase 3 深度评审中由各子Agent补全**
+11. **五个维度完成后一次性汇报进度，不逐个打断**
+12. **最终文档由主Agent整合**，不另建子Agent
+13. **实施路线图在整合后自动产出**，基于各子Agent的分析推断依赖关系
+11. **下游交接指南写入 architecture-design.md**，明确各下游系统的输入
 12. **"明确不做"清单写入 architecture-design.md 第12章**，汇总各子Agent的"不推荐"和技术决策中明确推迟的项
 13. **所有假设项必须在文档中标注**（用户未提供的信息用默认假设时）
 14. **每日志行含时间戳**（格式 yymmdd hhmm）
+15. **后台通知简短确认** — 迟到的后台Agent通知只需回复"已确认"
+16. **成本追踪规则**：每 Phase 完成后在 main-log.md 追加该 Phase 的 Agent 调用次数。Phase 结束时汇总总调用次数。修正轮次成本重点标注——修正轮次越高说明 prompt 或 PRD 质量存在问题。
 
 ### 数据访问边界（明确什么可读、什么不可读）
 
@@ -643,14 +750,6 @@ else:
 | 其他架构文档（tech-stack.md 等） | **是（仅特定章节）** | Grep 提取"跨维度依赖"章节 | 一致性检查 |
 
 **核心原则**：主Agent 不替代子Agent 做分析决策。读取的边界是"结构化元数据"（路径、ID、关键词出现次数）和"跨维度协调信息"（依赖声明），而非"领域分析内容"（技术选型理由、数据建模细节）。
-
-### 上下文保护规则（15-18）
-
-15. **需求文件只传路径不读内容** — 主Agent不读 PRD，只把路径传给子Agent（PRD 质量预检用 Grep 搜索关键词例外）
-16. **子Agent产出只读"跨维度依赖"章节** — 一致性检查时用 Grep 定点提取，不 Read 全文件
-17. **所有架构分析委托给子Agent** — 主Agent不做技术评估、不推断技术选型
-18. **后台通知简短确认** — 迟到的后台Agent通知只需回复"已确认"
-19. **成本追踪规则**：每批完成后在 main-log.md 追加该批Agent调用次数（开发+测试+修正），Phase 结束时汇总总调用次数。优先关注修正轮次成本——修正轮次越高说明 prompt 或 PRD 质量存在问题。
 
 ---
 
@@ -680,4 +779,4 @@ fs-architect 是第一个被调用的系统。其产出的 `architecture-design.
 
 ---
 
-现在开始初始化。确认用户提供的需求文档路径、输出目录，执行 Step 0 信息补充，然后启动并行维度分析。
+现在开始初始化。确认用户提供的需求文档路径、输出目录，执行 Step 0 默认假设填充，然后启动 Phase 1a 并行初稿。
