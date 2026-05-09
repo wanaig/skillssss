@@ -27,7 +27,7 @@
    - **需求文档路径**（PRD/功能需求/产品文档），记为 `REQUIREMENT_FILE`
    - **技术栈文档路径**（architecture 产出的 `tech-stack.md`），记为 `TECH_STACK_FILE`
    - **数据架构文档路径**（architecture 产出的 `data-architecture.md`），记为 `DATA_ARCHITECTURE_FILE`
-   - **API 契约文档路径**（architecture 产出的 `api-contract-outline.md`），记为 `CONTRACT_FILE`
+   - **API 契约文档路径**（architecture 产出的 `api-contract.md`），记为 `CONTRACT_FILE`
    - **安全架构文档路径**（architecture 产出的 `security-architecture.md`），记为 `SECURITY_FILE`
    - **实施路线图路径**（architecture 产出的 `implementation-roadmap.md`），记为 `IMPLEMENTATION_ROADMAP_FILE`
 2. 确认项目根目录路径，记为 `PROJECT_ROOT`
