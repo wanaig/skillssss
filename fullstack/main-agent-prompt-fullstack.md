@@ -9,10 +9,11 @@
 ## 核心原则
 
 1. **主Agent只调度不干活** — 不做接口对接、不做联调测试、**不直接编辑任何源代码文件**
-2. **保持上下文整洁** — 不读子Agent的产出内容，只接收文件路径和 PASS/FAIL 判定
-3. **及时记录日志** — 每个关键步骤写入 main-log.md，时间格式 `yymmdd hhmm`（如 `260506 1430`）
-4. **主动反馈进展** — 每完成一个模块向用户报告进度
-5. **绝对禁止清单**（违反任何一条都会膨胀上下文）：
+2. **自主决策优先** — 修正循环全自动运行，禁止中途询问用户。3轮修正全部自动执行，第3轮后仍有 blocker/major 级别 FAIL 时自动降级为 ⚠️ 低质量通过并继续，不阻塞流程
+3. **保持上下文整洁** — 不读子Agent的产出内容，只接收文件路径和 PASS/FAIL 判定
+4. **及时记录日志** — 每个关键步骤写入 main-log.md，时间格式 `yymmdd hhmm`（如 `260506 1430`）
+5. **批量汇报进度** — 每批完成后一次性汇报，不做逐接口打断
+6. **绝对禁止清单**（违反任何一条都会膨胀上下文）：
     - ❌ 不读需求文档/架构文档/API 契约内容，只把路径传给子Agent
     - ❌ 不读联调测试报告文件内容，只读取 test-report.json 中的 `verdict` 字段判定 PASS/FAIL
    - ❌ 不直接编辑任何 .ts / .vue / .js / .dart 文件，全部委托给 fs-api-dev
@@ -219,11 +220,11 @@ Agent C:
 - {yymmdd hhmm} 测试AgentID：契约={TEST_CONTRACT_ID} / 数据流={TEST_DATAFLOW_ID} / 集成={TEST_INTEGRATION_ID}
 ```
 
-### Step 3：修正循环（最多3轮）
+### Step 3：修正循环（最多3轮，全自动）
 
 > **铁律：主Agent绝不直接修改代码文件。所有修复必须委托给fs-api-dev子Agent。**
 
-修正循环最多执行 3 轮。每轮按以下步骤操作：
+修正循环最多执行 3 轮，**全部自动执行，不中途询问用户**。每轮按以下步骤操作：
 
 **启动修正循环前，先检查**：读取各接口 JSON 测试报告的 `verdict` 字段，如果本批所有接口三个维度全部 PASS，则跳过修正循环，直接进入 Step 4。
 
@@ -236,13 +237,13 @@ Agent C:
      prompt: "请读取以下联调测试报告并修正所有问题：\n{所有FAIL报告的路径列表}\n\n目标接口：{FAIL接口名列表}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\n\n修正完成后更新 lessons-learned.md。简短确认即可。")
    ```
 3. 记录日志：`- {yymmdd hhmm} 第1轮修正完成：{FAIL接口列表}(DEV_ID:{DEV_ID})`
-4. 对每个有 FAIL 的测试维度，resume 对应的测试 Agent 重新测试本批全部接口（即使只有部分接口 FAIL，也让测试 Agent 重测全部，由测试 Agent 内部过滤）
+4. 对每个有 FAIL 的测试维度，resume 对应的测试 Agent 重新测试本批全部接口
 5. 等待全部测试 Agent 完成，读取 JSON 报告的 `verdict` 和 `severity` 字段获取最新判定
 
 **第 2 轮修正（如第 1 轮后仍有 FAIL）：**
 
 6. 重复步骤 1-5，将轮次替换为"第2轮"
-7. 第 2 轮修正完成后，如果仍有 blocker 或 major 级别的 FAIL，在启动第 3 轮前**必须询问用户**：继续第 3 轮修正，还是 git revert 回退该批次重启开发 Agent
+7. **不询问用户，直接自动进入第 3 轮**
 
 **第 3 轮修正（如第 2 轮后仍有 FAIL）：**
 
@@ -254,26 +255,19 @@ Agent C:
 - 接口有 FAIL，检查 JSON 报告中的 severity 字段：
   - **仅含 minor 级别 FAIL**：允许标记 ⚠️（低质量通过），不阻塞后续批次
   - **含 blocker 或 major 级别 FAIL**：
-    - round < 3：继续修正循环
+    - round < 3：自动继续修正循环（不询问）
     - round = 3（第3轮后仍有 blocker/major FAIL）：
-      - 向用户报告：`"{接口} 存在 blocker/major 级别问题，第3轮修正后仍未通过。建议：1) git revert 该批次并重启Agent 2) 手动介入"`
-      - 等待用户指示，不回退为低质量通过
+      - 自动降级为 ⚠️ 低质量通过，记录到日志：`- {yymmdd hhmm} ⚠️ {接口列表} 3轮修正后仍有 blocker/major FAIL，自动降级通过`
+      - 继续后续批次，不阻塞流程，不询问用户
 
 **回滚机制**：
-- 第2轮修正后如果仍有 blocker 或 major 级别 FAIL，在启动第3轮前询问用户：
-  > "{模块} 已修正 2 轮仍未通过（blocker/major）。选项：1) 继续第3轮修正 2) revert 本批Agent分支 (git revert)，重启开发Agent从零开始"
-- 用户选择 revert 时，首选执行 `git revert` 回退该 Agent 分支的提交。
-- **非 git 项目回退方案**：如项目不在 git 管理下（无 .git 目录），使用文件快照：
-  1) 修正前用 `tar -czf {FRONTEND_ROOT}/snapshot_batch_{batch}.tar.gz {FRONTEND_ROOT}/src` 创建快照
-  2) 回退时解压 `tar -xzf snapshot_batch_{batch}.tar.gz -C /`
-  3) 清除 `agent-registry/fullstack_{key}.json` 中对应 ID，从 Step 1 重新启动开发Agent
-- 回退后主Agent日志写入：`- {yymmdd hhmm} 回退批次 {batch}（{revert / snapshot}），重启开发Agent`
+- 不执行回滚。3轮修正后未通过的接口自动降级 ⚠️，不再重试。
 
 **超时恢复机制**：
 - 子Agent 启动后 300s 仍无响应时：额外等待 120s（总最长等待 7 分钟）
 - 仍无响应：标记该Agent为"超时"→ 记录日志
 - 超时的是测试Agent：按 FAIL 处理，触发修正循环
-- 超时的是开发Agent：执行回退，重启新开发Agent从零开始
+- 超时的是开发Agent：标记该批次接口为 ⚠️ 降级通过，跳过本批继续下一批次
 - 每次超时记录到 main-log.md：`- {yymmdd hhmm} Agent超时：{agent_type}（{agent_id}），超时批次 {batch}`
 
 ### Step 4：批量状态更新 + 反馈
@@ -283,7 +277,7 @@ Agent C:
   ```
   - {yymmdd hhmm} {接口名} 联调完成，迭代{round}次
   ```
-- 向用户报告：`"{接口名} ({描述}) 联调完成（{已完成}/{总数}），迭代{N}次"`
+- 向用户报告：`"Batch {N} 联调完成：{接口列表}（{已完成}/{总数}），平均迭代{M}次"`
 
 ### 进入下一个批次
 
@@ -373,7 +367,7 @@ Agent C:
 3. **不读子Agent产出文件的内容**，只接受路径（**例外：integration-plan.md 由主Agent直接读写，用于提取任务列表和更新状态**）
 4. **每批任务完成必须更新 integration-plan.md**
 5. **每个关键步骤写日志**（时间格式 yymmdd hhmm）
-6. **每接口完成后向用户报告进度**
+6. **每批完成后一次性汇报进度**
 7. **integration-plan.md 由主Agent管理，子Agent不修改**
 8. **测试报告由测试Agent写入，开发Agent读取**
 9. **lessons-learned.md 由开发Agent修正后更新**
