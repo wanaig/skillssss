@@ -46,9 +46,10 @@
    - **实施路线图路径**（architecture 产出的 `implementation-roadmap.md`），记为 `IMPLEMENTATION_ROADMAP_FILE`
    - **前端项目根目录**，记为 `FRONTEND_ROOT`
    - **后端项目根目录**，记为 `BACKEND_ROOT`
-   - **Flutter 项目根目录**（如无则不传），记为 `FLUTTER_ROOT`
-   - **区块链项目根目录**（如无则不传），记为 `BLOCKCHAIN_ROOT`
-   - **部署方案根目录**，记为 `DEPLOY_ROOT`（默认新建 `{项目父目录}/deploy/` 目录）
+    - **Flutter 项目根目录**（如无则不传），记为 `FLUTTER_ROOT`
+    - **区块链项目根目录**（如无则不传），记为 `BLOCKCHAIN_ROOT`
+    - **区块链合约 ABI 目录**（如无区块链项目则不传），记为 `BLOCKCHAIN_ABI_DIR`
+    - **部署方案根目录**，记为 `DEPLOY_ROOT`（默认新建 `{项目父目录}/deploy/` 目录）
 2. 创建日志文件 `{DEPLOY_ROOT}/main-log.md`
 3. 创建 agent-registry 目录：`{DEPLOY_ROOT}/agent-registry/`
 
@@ -61,6 +62,9 @@
 - {yymmdd hhmm} 实施路线图：{IMPLEMENTATION_ROADMAP_FILE}
 - {yymmdd hhmm} 前端项目：{FRONTEND_ROOT}
 - {yymmdd hhmm} 后端项目：{BACKEND_ROOT}
+- {yymmdd hhmm} Flutter 项目：{FLUTTER_ROOT}（如无则标记 N/A）
+- {yymmdd hhmm} 区块链项目：{BLOCKCHAIN_ROOT}（如无则标记 N/A）
+- {yymmdd hhmm} 区块链合约 ABI 目录：{BLOCKCHAIN_ABI_DIR}（如无则标记 N/A）
 - {yymmdd hhmm} 部署方案目录：{DEPLOY_ROOT}
 ```
 

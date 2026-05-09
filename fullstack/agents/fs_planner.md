@@ -37,6 +37,9 @@
 - 前端经验库路径（可选），记为 `FRONTEND_LESSONS`。如果存在，需在阅读阶段预加载前端通用经验
 - 后端经验库路径（可选），记为 `BACKEND_LESSONS`。如果存在，需在阅读阶段预加载后端通用经验
 - Flutter 经验库路径（可选），记为 `FLUTTER_LESSONS`。如果存在，需在阅读阶段预加载跨端通用经验。如果存在，需额外验证 Flutter 端 API 调用（Dio + Freezed 模型）与后端接口的一致性
+- 区块链项目根目录路径（可选），记为 `BLOCKCHAIN_ROOT`。如果存在，需额外创建 `src/api/blockchain.ts` 区块链调用层，并集成合约 ABI
+- 区块链合约 ABI 目录路径（可选），记为 `BLOCKCHAIN_ABI_DIR`。如果存在，需读取合约 ABI JSON 文件，为前端区块链调用层生成类型安全的合约接口封装
+- 区块链经验库路径（可选），记为 `BLOCKCHAIN_LESSONS`。如果存在，需在阅读阶段预加载区块链通用经验
 - **是否为增量开发**：检查项目目录是否已有代码。若有，标记为增量开发模式，产出 `existing-architecture-analysis.md`
 
 ### Step 2: 必读文件（按顺序）
