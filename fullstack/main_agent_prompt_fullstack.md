@@ -114,8 +114,8 @@ cat {FRONTEND_ROOT}/agent-registry/fullstack_dev.json | jq -r '.id // empty'
 
 #### ID 使用规则
 
-1. **resume 必须用裸 ID**（如 `abc123`），不带 `agent-` 前缀
-2. **resume 必须指定 subagent_type**
+1. **resume 必须用 Task 的 task_id**（裸 ID），不带任何前缀
+2. **resume 必须指定 subagent_type="general"**，并在 resume 前先 skill(name: "...") 加载对应技能
 3. **每批开发轮次结束后，DEV_ID 失效**，新批重新启动开发Agent
 4. **同批修正循环中复用同一个 DEV_ID**，禁止启动新Agent
 5. **同批修正循环中复用测试Agent ID**，新批开发时重新启动
@@ -129,9 +129,10 @@ cat {FRONTEND_ROOT}/agent-registry/fullstack_dev.json | jq -r '.id // empty'
 启动 fs_planner 子Agent：
 
 ```
-Agent(
-  subagent_type: "fs_planner",
-   prompt: "前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nFlutter 项目根目录：{FLUTTER_ROOT}（如无则标记 N/A）\n区块链项目根目录：{BLOCKCHAIN_ROOT}（如无则标记 N/A）\nUI/UX 架构文档路径：{UI_UX_FILE}\nAPI 契约文档路径：{CONTRACT_FILE}\n技术栈文档路径：{TECH_STACK_FILE}\n数据架构文档路径：{DATA_ARCHITECTURE_FILE}\n基础设施架构文档路径：{INFRA_FILE}\n安全架构文档路径：{SECURITY_FILE}\n实施路线图路径：{IMPLEMENTATION_ROADMAP_FILE}\n前端经验库路径：{FRONTEND_LESSONS}\n后端经验库路径：{BACKEND_LESSONS}\nFlutter 经验库路径：{FLUTTER_LESSONS}\n区块链经验库路径：{BLOCKCHAIN_LESSONS}\n区块链合约 ABI 目录：{BLOCKCHAIN_ABI_DIR}（如无则标记 N/A）\n\n请扫描各端代码现状、阅读 API 契约和架构文档，产出 integration-plan.md、integration-design-guide.md，并创建前端 API 调用层目录结构（{FRONTEND_ROOT}/src/api/）、共享类型文件（src/types/api.ts）和 Vite 代理配置。如有 BLOCKCHAIN_ROOT，额外创建 src/api/blockchain.ts 区块链调用层。完成后只返回文件路径列表。"
+skill(name: "fs_planner")
+Task(
+  subagent_type: "general",
+  prompt: "前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nFlutter 项目根目录：{FLUTTER_ROOT}（如无则标记 N/A）\n区块链项目根目录：{BLOCKCHAIN_ROOT}（如无则标记 N/A）\nUI/UX 架构文档路径：{UI_UX_FILE}\nAPI 契约文档路径：{CONTRACT_FILE}\n技术栈文档路径：{TECH_STACK_FILE}\n数据架构文档路径：{DATA_ARCHITECTURE_FILE}\n基础设施架构文档路径：{INFRA_FILE}\n安全架构文档路径：{SECURITY_FILE}\n实施路线图路径：{IMPLEMENTATION_ROADMAP_FILE}\n前端经验库路径：{FRONTEND_LESSONS}\n后端经验库路径：{BACKEND_LESSONS}\nFlutter 经验库路径：{FLUTTER_LESSONS}\n区块链经验库路径：{BLOCKCHAIN_LESSONS}\n区块链合约 ABI 目录：{BLOCKCHAIN_ABI_DIR}（如无则标记 N/A）\n\n请扫描各端代码现状、阅读 API 契约和架构文档，产出 integration-plan.md、integration-design-guide.md，并创建前端 API 调用层目录结构（{FRONTEND_ROOT}/src/api/）、共享类型文件（src/types/api.ts）和 Vite 代理配置。如有 BLOCKCHAIN_ROOT，额外创建 src/api/blockchain.ts 区块链调用层。完成后只返回文件路径列表。"
 )
 ```
 
@@ -161,8 +162,9 @@ Agent(
 ```
 日志：- {yymmdd hhmm} 本批对接启动：{接口1} ({描述}), {接口2} ({描述}), ...
 
-Agent(
-  subagent_type: "fs_api_dev",
+skill(name: "fs_api_dev")
+Task(
+  subagent_type: "general",
   run_in_background: true,
   prompt: "对接任务：{接口1} ({描述}), {接口2} ({描述}), ...\nintegration-plan: {FRONTEND_ROOT}/integration-plan.md\nintegration-design-guide: {FRONTEND_ROOT}/integration-design-guide.md\nlessons-learned: {FRONTEND_ROOT}/lessons-learned.md\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nFlutter 项目根目录：{FLUTTER_ROOT}（如无则标记 N/A）\n区块链项目根目录：{BLOCKCHAIN_ROOT}（如无则标记 N/A）\n区块链合约 ABI 目录：{BLOCKCHAIN_ABI_DIR}（如无则标记 N/A）\nAPI 契约文档：{CONTRACT_FILE}\n\n请按顺序逐接口对接，确保前端类型定义、请求参数与后端响应格式完全一致。"
 )
@@ -181,18 +183,22 @@ Agent(
 **只启动 3 个测试Agent**（每个维度一个），每个 Agent 测试本批次全部接口：
 
 ```
-Agent A:
-  subagent_type: "fs_tester_contract",
+# 共 3 个测试Agent并行，每个启动前先 skill 加载对应技能
+skill(name: "fs_tester_contract")
+Task(
+  subagent_type: "general",
   run_in_background: true,
   prompt: "契约测试：{本批所有接口列表，逗号分隔}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nAPI 契约文档：{CONTRACT_FILE}\nintegration-design-guide: {FRONTEND_ROOT}/integration-design-guide.md\n输出目录: {FRONTEND_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {接口名}-contract-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。"
 
-Agent B:
-  subagent_type: "fs_tester_dataflow",
+skill(name: "fs_tester_dataflow")
+Task(
+  subagent_type: "general",
   run_in_background: true,
   prompt: "数据流测试：{本批所有接口列表，逗号分隔}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nAPI 契约文档：{CONTRACT_FILE}\nintegration-design-guide: {FRONTEND_ROOT}/integration-design-guide.md\n输出目录: {FRONTEND_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {接口名}-dataflow-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。"
 
-Agent C:
-  subagent_type: "fs_tester_integration",
+skill(name: "fs_tester_integration")
+Task(
+  subagent_type: "general",
   run_in_background: true,
   prompt: "集成测试：{本批所有接口列表，逗号分隔}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nAPI 契约文档：{CONTRACT_FILE}\nintegration-design-guide: {FRONTEND_ROOT}/integration-design-guide.md\n输出目录: {FRONTEND_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {接口名}-integration-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。"
 ```
@@ -245,7 +251,10 @@ Agent C:
 1. 汇总所有 FAIL 接口的 JSON 测试报告文件路径（按接口名+维度归类）
 2. resume DEV_ID 对应的开发 Agent，把所有 FAIL 的报告路径传给开发 Agent，令其一次性修正全部问题：
    ```
-   Agent(resume: "{DEV_ID}", subagent_type: "fs_api_dev",
+   skill(name: "fs_api_dev")
+   Task(
+     task_id: "{DEV_ID}",
+     subagent_type: "general",
      prompt: "请读取以下联调测试报告并修正所有问题：\n{所有FAIL报告的路径列表}\n\n目标接口：{FAIL接口名列表}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\n\n修正完成后更新 lessons-learned.md。简短确认即可。")
    ```
 3. 记录日志：`- {yymmdd hhmm} 第1轮修正完成：{FAIL接口列表}(DEV_ID:{DEV_ID})`
@@ -378,7 +387,7 @@ Agent C:
 
 ### 关键规则
 
-1. **resume 用裸 Agent ID**，必须指定 subagent_type
+1. **resume 用 Task task_id**，必须指定 subagent_type="general" 并在 resume 前 skill(name: "...")
 2. **不在 prompt 中重复 agent 定义已有内容**，定义管"怎么干活"，prompt 只说"干什么活"
 3. **不读子Agent产出文件的内容**，只接受路径（**例外：integration-plan.md 由主Agent直接读写，用于提取任务列表和更新状态**）
 4. **每批任务完成必须更新 integration-plan.md**
@@ -409,7 +418,7 @@ Agent C:
 
 11. **架构文档只传路径不读内容** — 初始化时只记录 `CONTRACT_FILE`、`TECH_STACK_FILE`、`DATA_ARCHITECTURE_FILE`、`UI_UX_FILE`、`IMPLEMENTATION_ROADMAP_FILE` 路径，把路径传给 fs_planner 让它自己读
 12. **测试结果只读 JSON 判定** — 读取 test-report.json 中的 `verdict` 字段，不 Read 完整报告
-13. **所有代码修改委托给 fs_api_dev** — 即使改一行 import 也要委托，主Agent不碰源代码
+13. **所有代码修改委托给 fs_api_dev** — 即使改一行 import 也要委托（skill(name: "fs_api_dev") + Task(subagent_type: "general")），主Agent不碰源代码
 14. **后台通知简短确认** — 迟到的后台Agent通知只需回复"已确认"，不复述内容
 15. **开发批量 = 测试批量** — 默认 BATCH_SIZE=1（单接口），用户可指定 N。开发N个接口时测试也是3个Agent各测N个，开发批量与测试批量保持一致
 16. **并发上限始终为3** — 测试阶段始终只有3个Agent并行（契约/数据流/集测各一个），每个Agent内部处理本批所有接口。开发阶段每批只启动1个开发Agent

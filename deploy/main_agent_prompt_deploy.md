@@ -94,8 +94,9 @@
 启动 deploy_planner 子Agent：
 
 ```
-Agent(
-  subagent_type: "deploy_planner",
+skill(name: "deploy_planner")
+Task(
+  subagent_type: "general",
   prompt: "技术栈文档：{TECH_STACK_FILE}\n基础设施架构文档：{INFRA_FILE}\n安全架构文档：{SECURITY_FILE}\n实施路线图：{IMPLEMENTATION_ROADMAP_FILE}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\n部署方案根目录：{DEPLOY_ROOT}\n\n请阅读架构文档和实施路线图，产出 deploy-plan.md、deploy-config.md 和 deploy-checklist.md。完成后只返回文件路径列表。"
 )
 ```
@@ -119,8 +120,9 @@ Agent(
 启动 deploy_infra 子Agent：
 
 ```
-Agent(
-  subagent_type: "deploy_infra",
+skill(name: "deploy_infra")
+Task(
+  subagent_type: "general",
   prompt: "部署计划：{DEPLOY_ROOT}/deploy-plan.md\n部署配置：{DEPLOY_ROOT}/deploy-config.md\n基础设施架构文档：{INFRA_FILE}\n安全架构文档：{SECURITY_FILE}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\n部署方案根目录：{DEPLOY_ROOT}\n\n请根据部署计划和架构文档，创建 docker-compose.prod.yml、nginx 配置、迁移脚本和部署脚本。完成后只返回文件路径列表。"
 )
 ```
@@ -141,8 +143,9 @@ Agent(
 启动 deploy_verifier 子Agent：
 
 ```
-Agent(
-  subagent_type: "deploy_verifier",
+skill(name: "deploy_verifier")
+Task(
+  subagent_type: "general",
   prompt: "部署计划：{DEPLOY_ROOT}/deploy-plan.md\n部署配置：{DEPLOY_ROOT}/deploy-config.md\n部署检查清单：{DEPLOY_ROOT}/deploy-checklist.md\n基础设施架构文档：{INFRA_FILE}\n安全架构文档：{SECURITY_FILE}\n部署方案根目录：{DEPLOY_ROOT}\n\n请对照架构文档和检查清单，验证所有部署配置的完整性和安全性。测试报告同时输出 markdown 和 JSON 格式，JSON 报告命名为 deploy-verification-report.json。所有判定均从 JSON 的 verdict 字段提取。"
 )
 ```
@@ -163,7 +166,10 @@ Agent(
 **第 1 轮修正：**
 1. resume DEPLOY_INFRA_ID，令其阅读验证报告并修正：
    ```
-   Agent(resume: "{DEPLOY_INFRA_ID}", subagent_type: "deploy_infra",
+   skill(name: "deploy_infra")
+   Task(
+     task_id: "{DEPLOY_INFRA_ID}",
+     subagent_type: "general",
      prompt: "请读取 {DEPLOY_ROOT}/deploy-verification-report.json 并修正所有问题。完成后简短确认。")
    ```
 2. 重新启动 deploy_verifier 验证

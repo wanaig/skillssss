@@ -81,8 +81,8 @@ If `jq` is unavailable, use Grep to extract.
 If ID cannot be obtained, **do not skip, do not start a new agent**. Pause and report the error.
 
 **ID usage rules**:
-1. **Resume must use bare ID** (e.g. `abc123`), without `agent-` prefix
-2. **Resume must specify subagent_type**
+1. **Resume must use Task task_id** (bare ID), without any prefix
+2. **Resume must specify subagent_type="general"**, and call skill(name: "...") first to load the corresponding skill
 3. **After each batch's development rounds end, DEV_ID expires**; new batch restarts dev agent
 4. **Reuse the same DEV_ID within correction loop of the same batch**, never start a new agent
 5. **Reuse test agent IDs within correction loop of the same batch**; restart tests when new batch starts
@@ -94,8 +94,9 @@ If ID cannot be obtained, **do not skip, do not start a new agent**. Pause and r
 Launch bc_planner sub-agent:
 
 ```
-Agent(
-  subagent_type: "bc_planner",
+skill(name: "bc_planner")
+Task(
+  subagent_type: "general",
   prompt: "需求文件路径：{REQUIREMENT_FILE}\n技术栈文档路径：{TECH_STACK_FILE}\n数据架构文档路径：{DATA_ARCHITECTURE_FILE}\nAPI 契约文档路径：{CONTRACT_FILE}\n安全架构文档路径：{SECURITY_FILE}\n实施路线图路径：{IMPLEMENTATION_ROADMAP_FILE}\n项目根目录：{PROJECT_ROOT}\n\n请阅读需求文档、架构文档及实施路线图，产出 dev-plan.md、contract-design-guide.md，并搭建项目基础设施（Hardhat + Solidity + FISCO BCOS 配置）。完成后只返回文件路径列表。"
 )
 ```
@@ -124,8 +125,9 @@ For the current batch, launch **1** bc_solidity_dev sub-agent to develop all con
 ```
 Log: - {yymmdd hhmm} 本批开发启动：{合约1} ({描述}), {合约2} ({描述}), ...
 
-Agent(
-  subagent_type: "bc_solidity_dev",
+skill(name: "bc_solidity_dev")
+Task(
+  subagent_type: "general",
   run_in_background: true,
   prompt: "开发任务：{合约1} ({描述}), {合约2} ({描述}), ...\ndev-plan: {PROJECT_ROOT}/dev-plan.md\ncontract-design-guide: {PROJECT_ROOT}/contract-design-guide.md\nlessons-learned: {PROJECT_ROOT}/lessons-learned.md\n项目根目录：{PROJECT_ROOT}\n需求文档路径：{REQUIREMENT_FILE}\n\n请按顺序逐合约开发，遵循 FISCO BCOS Solidity 规范，每个合约包含完整的事件定义、权限控制和 NatSpec 注释。"
 )
@@ -144,18 +146,22 @@ Log: - {yymmdd hhmm} 本批开发完成：{合约1}, {合约2} 已创建 (DEV_ID
 **Launch only 3 test agents** (one per dimension), each testing all contracts in this batch:
 
 ```
-Agent A:
-  subagent_type: "bc_tester_functional",
+# 共 3 个测试Agent并行，每个启动前先 skill 加载对应技能
+skill(name: "bc_tester_functional")
+Task(
+  subagent_type: "general",
   run_in_background: true,
   prompt: "功能测试：{本批所有合约列表，逗号分隔}\n待测项目：{PROJECT_ROOT}\ncontract-design-guide: {PROJECT_ROOT}/contract-design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {合约名}-functional-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。"
 
-Agent B:
-  subagent_type: "bc_tester_security",
+skill(name: "bc_tester_security")
+Task(
+  subagent_type: "general",
   run_in_background: true,
   prompt: "安全测试：{本批所有合约列表，逗号分隔}\n待测项目：{PROJECT_ROOT}\ncontract-design-guide: {PROJECT_ROOT}/contract-design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {合约名}-security-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。"
 
-Agent C:
-  subagent_type: "bc_tester_gas",
+skill(name: "bc_tester_gas")
+Task(
+  subagent_type: "general",
   run_in_background: true,
   prompt: "燃耗测试：{本批所有合约列表，逗号分隔}\n待测项目：{PROJECT_ROOT}\ncontract-design-guide: {PROJECT_ROOT}/contract-design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {合约名}-gas-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。"
 ```
@@ -208,7 +214,10 @@ Correction loop runs at most 3 rounds, **fully automatic, never ask user midway*
 1. Collect all FAIL contract JSON test report file paths (categorized by contract name + dimension)
 2. Resume DEV_ID dev agent, pass all FAIL report paths to the dev agent to fix all issues at once:
    ```
-   Agent(resume: "{DEV_ID}", subagent_type: "bc_solidity_dev",
+   skill(name: "bc_solidity_dev")
+   Task(
+     task_id: "{DEV_ID}",
+     subagent_type: "general",
      prompt: "请读取以下测试报告并修正所有问题：\n{所有FAIL报告的路径列表}\n\n目标合约：{FAIL合约名列表}\n项目根目录：{PROJECT_ROOT}\n\n修正完成后更新 lessons-learned.md。简短确认即可。")
    ```
 3. Log: `- {yymmdd hhmm} 第1轮修正完成：{FAIL合约列表}(DEV_ID:{DEV_ID})`
@@ -325,7 +334,7 @@ Append to `{PROJECT_ROOT}/main-log.md`, each line starting with `- `.
 
 ### 8. Key Rules
 
-1. **Resume uses bare Agent ID**, must specify subagent_type
+1. **Resume uses Task task_id**, must specify subagent_type="general" and call skill(name: "...") before resume
 2. **Don't repeat agent definition content in prompts** — definitions govern "how to work", prompts only say "what work to do"
 3. **Don't read sub-agent output file content**, only accept paths (**exception: dev-plan.md is directly read/written by master agent for extracting task list and updating status**)
 4. **Must update dev-plan.md after each batch of tasks completes**
@@ -356,7 +365,7 @@ The master agent's "don't read" principle is not absolute — it has clear bound
 
 11. **Architecture docs: pass paths only, don't read content** — during initialization, only record paths; pass them to bc_planner to read itself
 12. **Test results: only read JSON verdict** — read `verdict` field from test-report.json, don't Read full report
-13. **All code modifications delegated to bc_solidity_dev** — even one-line changes must be delegated; master agent never touches contract source code
+13. **All code modifications delegated to bc_solidity_dev** — even one-line changes must be delegated (skill(name: "bc_solidity_dev") + Task(subagent_type: "general")); master agent never touches contract source code
 14. **Brief acknowledgment for background notifications** — late background agent notifications only need "已确认" reply, don't repeat content
 15. **Dev batch size = Test batch size** — default BATCH_SIZE=1 (single contract), user can specify N. When developing N contracts, testing is also 3 agents each testing N. Dev and test batch sizes stay consistent
 16. **Concurrency limit always 3** — testing phase always has only 3 agents in parallel (functional/security/gas one each), each agent internally handles all contracts in this batch. Dev phase only launches 1 dev agent per batch

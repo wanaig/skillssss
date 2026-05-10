@@ -122,7 +122,7 @@ cat {PROJECT_ROOT}/agent-registry/fa_techstack.json | jq -r '.id // empty'
 
 #### ID 使用规则
 
-1. **resume 用裸 ID**，必须指定 subagent_type
+1. **resume 用 Task task_id**，必须指定 subagent_type="general"，在 resume 前先 skill(name: "...") 加载对应技能
 2. **修正环节中复用同一个维度Agent的 ID**，禁止启动新Agent
 3. **修正环节结束后所有 FA_ID 失效**
 
@@ -139,34 +139,41 @@ cat {PROJECT_ROOT}/agent-registry/fa_techstack.json | jq -r '.id // empty'
 每个子Agent产出对应维度的**初稿 v1**。各子Agent内部必须完成完整的分析流程：需求理解 → 选项对比 → 推荐决策 → 跨维度依赖声明。
 
 ```
-Agent A (fa_techstack):
-  subagent_type: "fa_techstack"
-  run_in_background: true
+# 6 个分析Agent同时启动，启动前先 skill 加载对应技能
+skill(name: "fa_techstack")
+Task(
+  subagent_type: "general",
+  run_in_background: true,
   prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 tech-stack.md 初稿。要求：每个技术选型必须列出备选方案对比（至少 2 个备选），给出推荐理由和取舍。完成后只返回文件路径。"
 
-Agent B (fa_data):
-  subagent_type: "fa_data"
-  run_in_background: true
+skill(name: "fa_data")
+Task(
+  subagent_type: "general",
+  run_in_background: true,
   prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 data-architecture.md 初稿。\n\n精度要求（非建议，必须产出）：\n1. 每个实体列出完整字段清单（字段名、类型、约束、默认值、注释）\n2. 索引策略（主键/唯一/普通/联合索引，含索引选择理由）\n3. 分库分表策略（如需要）\n4. 迁移脚本模板（liquibase/flyway 格式）\n5. 存储策略（主库/缓存/对象存储/搜索引擎，含 Key 设计/TTL/一致性策略）\n6. 完整实体关系图\n完成后只返回文件路径。"
 
-Agent C (fa_infra):
-  subagent_type: "fa_infra"
-  run_in_background: true
+skill(name: "fa_infra")
+Task(
+  subagent_type: "general",
+  run_in_background: true,
   prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 infra-architecture.md 初稿。\n\n精度要求：\n1. 部署拓扑图（节点/网络/存储）\n2. CI/CD 流水线设计（含阶段定义和触发条件）\n3. 环境规划（dev/staging/prod 完整配置矩阵）\n4. docker-compose.yml 骨架（服务/端口/卷/网络定义）\n5. 监控和日志方案（指标/告警规则/日志收集）\n6. 容量规划（CPU/内存/存储/带宽估算）\n完成后只返回文件路径。"
 
-Agent D (fa_security):
-  subagent_type: "fa_security"
-  run_in_background: true
+skill(name: "fa_security")
+Task(
+  subagent_type: "general",
+  run_in_background: true,
   prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 security-architecture.md 初稿。要求：包含威胁建模、认证授权方案、数据安全策略、安全审计设计。完成后只返回文件路径。"
 
-Agent E (fa_api_design):
-  subagent_type: "fa_api_design"
-  run_in_background: true
+skill(name: "fa_api_design")
+Task(
+  subagent_type: "general",
+  run_in_background: true,
   prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 api-contract.md 初稿。\n\n精度要求（非建议，必须产出）：\n1. 每个端点：Method + Path + 请求字段（名/类型/必填/校验规则/示例值）\n2. 每个端点：响应字段（名/类型/含义/示例值）、错误码（HTTP状态码+业务码+message）\n3. 枚举字段列出全部合法值\n4. DTO/Entity 映射对照（API 字段 ↔ 数据库字段）\n5. 认证/鉴权要求标注（每个端点标注需要的角色/权限）\n6. 分页/排序/筛选参数规范化\n7. OpenAPI 3.0 YAML 骨架（info/paths/components 三节点完整）\n完成后只返回文件路径。"
 
-Agent F (fa-ui-ux):
-  subagent_type: "fa-ui-ux"
-  run_in_background: true
+skill(name: "fa-ui-ux")
+Task(
+  subagent_type: "general",
+  run_in_background: true,
   prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 ui-ux-architecture.md 初稿。\n\n精度要求（非建议，必须产出）：\n1. 完整页面/路由树（页面名、路由路径、页面组件、权限要求）\n2. 组件树架构（Layout → Page → Section → Component 层级，标明可复用组件）\n3. 页面布局规格（每页面列出板块分区、响应式断点策略）\n4. 设计 Token（颜色/字体/间距/圆角/阴影 规范表）\n5. 页面状态覆盖（每页面列出 loading/empty/error/edge-case 态）\n6. 交互流图（核心用户旅程的页面跳转流程图）\n7. API-页面映射表（每页面列出调用的 API 端点）\n完成后只返回文件路径。"
 ```
 
@@ -213,32 +220,44 @@ Agent F (fa-ui-ux):
 | Q7 | 有风险识别和缓解策略 | 方案无风险分析 |
 | Q8 | 术语前后一致（同一概念同一名称） | 同名不同义或同义不同名 |
 
-**Prompt 模板**（5 个Agent并行）：
+**Prompt 模板**（6 个Agent并行，resume 前先 skill 加载对应技能）：
 
 ```
-Agent A:
-  Agent(resume: "{FA_ID_1}", subagent_type: "fa_techstack",
-    prompt: "自审核优化阶段。请逐项对照质量清单审查你的 tech-stack.md v1：\n\n1. 每个技术选型是否有 ≥2 备选对比？如否，补充对比分析\n2. 每个推荐是否有明确理由和取舍？如否，补充\n3. 跨维度依赖声明是否完整？（需要什么中间件/数据库/协议，这些由其他维度提供）\n4. 搜索 {REQUIREMENT_FILE} 中的关键功能需求，确认全部有对应技术方案\n5. 是否有明确的\"不推荐/不采用\"清单？\n6. 所有假设项是否已标注？\n7. 是否有风险分析和缓解策略？\n8. 术语是否前后一致？\n\n优化后产出 tech-stack.md v2，覆盖原文件。完成后只返回文件路径。")
+skill(name: "fa_techstack")
+Task(
+  task_id: "{FA_ID_1}",
+  subagent_type: "general",
+  prompt: "自审核优化阶段。请逐项对照质量清单审查你的 tech-stack.md v1：\n\n1. 每个技术选型是否有 ≥2 备选对比？如否，补充对比分析\n2. 每个推荐是否有明确理由和取舍？如否，补充\n3. 跨维度依赖声明是否完整？（需要什么中间件/数据库/协议，这些由其他维度提供）\n4. 搜索 {REQUIREMENT_FILE} 中的关键功能需求，确认全部有对应技术方案\n5. 是否有明确的\"不推荐/不采用\"清单？\n6. 所有假设项是否已标注？\n7. 是否有风险分析和缓解策略？\n8. 术语是否前后一致？\n\n优化后产出 tech-stack.md v2，覆盖原文件。完成后只返回文件路径。")
 
-Agent B:
-  Agent(resume: "{FA_ID_2}", subagent_type: "fa_data",
-    prompt: "自审核优化阶段。请逐项对照质量清单审查你的 data-architecture.md v1（同上 8 项检查），优化后产出 v2 覆盖原文件。完成后只返回文件路径。")
+skill(name: "fa_data")
+Task(
+  task_id: "{FA_ID_2}",
+  subagent_type: "general",
+  prompt: "自审核优化阶段。请逐项对照质量清单审查你的 data-architecture.md v1（同上 8 项检查），优化后产出 v2 覆盖原文件。完成后只返回文件路径。")
 
-Agent C:
-  Agent(resume: "{FA_ID_3}", subagent_type: "fa_infra",
-    prompt: "自审核优化阶段。请逐项对照质量清单审查你的 infra-architecture.md v1（同上 8 项检查），优化后产出 v2 覆盖原文件。完成后只返回文件路径。")
+skill(name: "fa_infra")
+Task(
+  task_id: "{FA_ID_3}",
+  subagent_type: "general",
+  prompt: "自审核优化阶段。请逐项对照质量清单审查你的 infra-architecture.md v1（同上 8 项检查），优化后产出 v2 覆盖原文件。完成后只返回文件路径。")
 
-Agent D:
-  Agent(resume: "{FA_ID_4}", subagent_type: "fa_security",
-    prompt: "自审核优化阶段。请逐项对照质量清单审查你的 security-architecture.md v1（同上 8 项检查），优化后产出 v2 覆盖原文件。完成后只返回文件路径。")
+skill(name: "fa_security")
+Task(
+  task_id: "{FA_ID_4}",
+  subagent_type: "general",
+  prompt: "自审核优化阶段。请逐项对照质量清单审查你的 security-architecture.md v1（同上 8 项检查），优化后产出 v2 覆盖原文件。完成后只返回文件路径。")
 
-Agent E:
-  Agent(resume: "{FA_ID_5}", subagent_type: "fa_api_design",
-    prompt: "自审核优化阶段。请逐项对照质量清单审查你的 api-contract.md v1（同上 8 项检查），优化后产出 v2 覆盖原文件。完成后只返回文件路径。")
+skill(name: "fa_api_design")
+Task(
+  task_id: "{FA_ID_5}",
+  subagent_type: "general",
+  prompt: "自审核优化阶段。请逐项对照质量清单审查你的 api-contract.md v1（同上 8 项检查），优化后产出 v2 覆盖原文件。完成后只返回文件路径。")
 
-Agent F:
-  Agent(resume: "{FA_ID_6}", subagent_type: "fa-ui-ux",
-    prompt: "自审核优化阶段。请逐项对照质量清单审查你的 ui-ux-architecture.md v1（同上 8 项检查），优化后产出 v2 覆盖原文件。完成后只返回文件路径。")
+skill(name: "fa-ui-ux")
+Task(
+  task_id: "{FA_ID_6}",
+  subagent_type: "general",
+  prompt: "自审核优化阶段。请逐项对照质量清单审查你的 ui-ux-architecture.md v1（同上 8 项检查），优化后产出 v2 覆盖原文件。完成后只返回文件路径。")
 ```
 
 > **并发 = 6**：6 个自审核同时进行。
@@ -317,9 +336,12 @@ Grep(pattern="^## 跨维度依赖", path="{PROJECT_ROOT}/ui-ux-architecture.md")
 **第 1 轮：**
 
 1. 识别有冲突需要修正的维度Agent
-2. 对每个冲突维度，resume 对应的子Agent：
+2. 对每个冲突维度，resume 对应的子Agent（skill 加载 + Task resume）：
    ```
-   Agent(resume: "{FA_ID}", subagent_type: "{原 subagent_type}",
+   skill(name: "{原 skill 名}")
+   Task(
+     task_id: "{FA_ID}",
+     subagent_type: "general",
      prompt: "一致性修正第 1 轮。你的文档与其他维度存在以下冲突：\n{冲突描述 + 其他维度的相关段落}\n\n请修改你的文档以解决冲突。如你坚持原方案更优，需给出完整论证（性能/成本/生态/团队能力四个维度）。完成后只返回文件路径。")
    ```
 3. 等待所有冲突Agent完成修正
@@ -406,32 +428,44 @@ else:
 | D5 | 有容量规划估算（日活 × 人均请求 × 峰值系数 = 所需资源） | 搜索 `容量` 或 `QPS` 或 `预估` |
 | D6 | 有可替代方案和迁移策略（如果选型失败，如何迁移到备选方案） | 搜索 `迁移` 或 `替代` |
 
-**Prompt 模板**（并行，将 Phase 2 的覆盖度遗漏项注入）：
+**Prompt 模板**（并行，将 Phase 2 的覆盖度遗漏项注入，resume 前先 skill 加载对应技能）：
 
 ```
-Agent A:
-  Agent(resume: "{FA_ID_1}", subagent_type: "fa_techstack",
-    prompt: "深度评审阶段（最终 v3）。请基于以下要求强化 tech-stack.md：\n\n1. 每个关键决策补充 ADR 格式\n2. 补充架构演进路径\n3. 明确 MVP 最小范围（P0/P1 分级）\n4. 补充故障场景和降级策略\n5. 补充容量规划估算\n6. 补充备选方案和迁移策略\n\nPhase 2 发现的覆盖度遗漏（如有）：{该维度的遗漏项}\n\n完成后覆盖原文件。只返回文件路径。")
+skill(name: "fa_techstack")
+Task(
+  task_id: "{FA_ID_1}",
+  subagent_type: "general",
+  prompt: "深度评审阶段（最终 v3）。请基于以下要求强化 tech-stack.md：\n\n1. 每个关键决策补充 ADR 格式\n2. 补充架构演进路径\n3. 明确 MVP 最小范围（P0/P1 分级）\n4. 补充故障场景和降级策略\n5. 补充容量规划估算\n6. 补充备选方案和迁移策略\n\nPhase 2 发现的覆盖度遗漏（如有）：{该维度的遗漏项}\n\n完成后覆盖原文件。只返回文件路径。")
 
-Agent B:
-  Agent(resume: "{FA_ID_2}", subagent_type: "fa_data",
-    prompt: "深度评审阶段（最终 v3）。同上 6 项深度要求强化 data-architecture.md。\nPhase 2 遗漏项（如有）：{该维度的遗漏项}\n完成后只返回文件路径。")
+skill(name: "fa_data")
+Task(
+  task_id: "{FA_ID_2}",
+  subagent_type: "general",
+  prompt: "深度评审阶段（最终 v3）。同上 6 项深度要求强化 data-architecture.md。\nPhase 2 遗漏项（如有）：{该维度的遗漏项}\n完成后只返回文件路径。")
 
-Agent C:
-  Agent(resume: "{FA_ID_3}", subagent_type: "fa_infra",
-    prompt: "深度评审阶段（最终 v3）。同上 6 项深度要求强化 infra-architecture.md。\nPhase 2 遗漏项（如有）：{该维度的遗漏项}\n完成后只返回文件路径。")
+skill(name: "fa_infra")
+Task(
+  task_id: "{FA_ID_3}",
+  subagent_type: "general",
+  prompt: "深度评审阶段（最终 v3）。同上 6 项深度要求强化 infra-architecture.md。\nPhase 2 遗漏项（如有）：{该维度的遗漏项}\n完成后只返回文件路径。")
 
-Agent D:
-  Agent(resume: "{FA_ID_4}", subagent_type: "fa_security",
-    prompt: "深度评审阶段（最终 v3）。同上 6 项深度要求强化 security-architecture.md。\nPhase 2 遗漏项（如有）：{该维度的遗漏项}\n完成后只返回文件路径。")
+skill(name: "fa_security")
+Task(
+  task_id: "{FA_ID_4}",
+  subagent_type: "general",
+  prompt: "深度评审阶段（最终 v3）。同上 6 项深度要求强化 security-architecture.md。\nPhase 2 遗漏项（如有）：{该维度的遗漏项}\n完成后只返回文件路径。")
 
-Agent E:
-  Agent(resume: "{FA_ID_5}", subagent_type: "fa_api_design",
-    prompt: "深度评审阶段（最终 v3）。同上 6 项深度要求强化 api-contract.md。\nPhase 2 遗漏项（如有）：{该维度的遗漏项}\n完成后只返回文件路径。")
+skill(name: "fa_api_design")
+Task(
+  task_id: "{FA_ID_5}",
+  subagent_type: "general",
+  prompt: "深度评审阶段（最终 v3）。同上 6 项深度要求强化 api-contract.md。\nPhase 2 遗漏项（如有）：{该维度的遗漏项}\n完成后只返回文件路径。")
 
-Agent F:
-  Agent(resume: "{FA_ID_6}", subagent_type: "fa-ui-ux",
-    prompt: "深度评审阶段（最终 v3）。同上 6 项深度要求强化 ui-ux-architecture.md。\nPhase 2 遗漏项（如有）：{该维度的遗漏项}\n完成后只返回文件路径。")
+skill(name: "fa-ui-ux")
+Task(
+  task_id: "{FA_ID_6}",
+  subagent_type: "general",
+  prompt: "深度评审阶段（最终 v3）。同上 6 项深度要求强化 ui-ux-architecture.md。\nPhase 2 遗漏项（如有）：{该维度的遗漏项}\n完成后只返回文件路径。")
 ```
 
 > **并发 = 6**：6 个深度评审同时进行。
