@@ -290,16 +290,18 @@ Task(
 4. 输出本阶段经验摘要（读取 lessons-learned.md 提取 3-5 条最高频/最通用的经验，追加到输出消息中供下游阶段参考）
 5. **跨 Phase 交接提示**：前端开发全部完成后，向用户输出以下信息：
    > 前端开发已完成。已积累 {N} 条开发经验（见 {PROJECT_ROOT}/lessons-learned.md）。如需启动前后端联调，请使用 fullstack/ 主智能体，参数如下：
-   > - FRONTEND_ROOT: {PROJECT_ROOT}
-   > - BACKEND_ROOT: {后端项目路径}（请确认）
-   > - FLUTTER_ROOT: {Flutter 项目路径}（如有）
-   > - BLOCKCHAIN_ROOT: {区块链项目路径}（如有）
-   > - FRONTEND_LESSONS: {PROJECT_ROOT}/lessons-learned.md
-   > - CONTRACT_FILE: {CONTRACT_FILE}
-   > - UI_UX_FILE: {UI_UX_FILE}
-   > - TECH_STACK_FILE: {TECH_STACK_FILE}
-   > - DATA_ARCHITECTURE_FILE: {架构阶段产出的 data-architecture.md 路径}
-   > - IMPLEMENTATION_ROADMAP_FILE: {IMPLEMENTATION_ROADMAP_FILE}
+    > - FRONTEND_ROOT: {PROJECT_ROOT}
+    > - BACKEND_ROOT: {后端项目路径}（请确认）
+    > - FLUTTER_ROOT: {Flutter 项目路径}（如有）
+    > - BLOCKCHAIN_ROOT: {区块链项目路径}（如有）
+    > - FRONTEND_LESSONS: {PROJECT_ROOT}/lessons-learned.md
+    > - CONTRACT_FILE: {CONTRACT_FILE}
+    > - UI_UX_FILE: {UI_UX_FILE}
+    > - INFRA_FILE: {架构阶段产出的 infra-architecture.md 路径}
+    > - SECURITY_FILE: {SECURITY_FILE}
+    > - TECH_STACK_FILE: {TECH_STACK_FILE}
+    > - DATA_ARCHITECTURE_FILE: {架构阶段产出的 data-architecture.md 路径}
+    > - IMPLEMENTATION_ROADMAP_FILE: {IMPLEMENTATION_ROADMAP_FILE}
 
 ### 日志格式规范
 

@@ -109,7 +109,7 @@ architecture/ ──▶  ┌─ backend/  ─┐    │    前后端联调
 | `fa-data` | 数据架构设计 | `data-architecture.md` |
 | `fa-infra` | 基础设施架构 | `infra-architecture.md` |
 | `fa-security` | 安全架构设计 | `security-architecture.md` |
-| `fa-api-design` | API 契约设计 | `api-contract-outline.md` |
+| `fa-api-design` | API 契约设计 | `api-contract.md` |
 
 ### backend/ — 5 个 Agent
 

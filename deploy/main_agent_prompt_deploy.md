@@ -44,8 +44,8 @@
    - **基础设施架构文档路径**（architecture 产出的 `infra-architecture.md`），记为 `INFRA_FILE`
    - **安全架构文档路径**（architecture 产出的 `security-architecture.md`），记为 `SECURITY_FILE`
    - **实施路线图路径**（architecture 产出的 `implementation-roadmap.md`），记为 `IMPLEMENTATION_ROADMAP_FILE`
-   - **前端项目根目录**，记为 `FRONTEND_ROOT`
-   - **后端项目根目录**，记为 `BACKEND_ROOT`
+    - **前端项目根目录**，记为 `FRONTEND_ROOT`
+    - **后端项目根目录**，记为 `BACKEND_ROOT`
     - **Flutter 项目根目录**（如无则不传），记为 `FLUTTER_ROOT`
     - **区块链项目根目录**（如无则不传），记为 `BLOCKCHAIN_ROOT`
     - **区块链合约 ABI 目录**（如无区块链项目则不传），记为 `BLOCKCHAIN_ABI_DIR`

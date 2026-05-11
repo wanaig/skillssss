@@ -328,7 +328,7 @@ Task(
    > 前后端联调已完成。前后端接口已对齐，共覆盖 {N} 个接口。已积累 {K} 条联调经验（见 {FRONTEND_ROOT}/lessons-learned.md）。如需启动生产部署，请使用 deploy/ 主智能体，参数如下：
    > - FRONTEND_ROOT: {FRONTEND_ROOT}
    > - BACKEND_ROOT: {BACKEND_ROOT}
-   > - FLUTTER_ROOT: {FLUTTER_ROOT}（如有）
+    > - FLUTTER_ROOT: {FLUTTER_ROOT}（如有）
     > - BLOCKCHAIN_ROOT: {BLOCKCHAIN_ROOT}（如有）
     > - BLOCKCHAIN_ABI_DIR: {BLOCKCHAIN_ABI_DIR}（如有区块链项目）
    > - TECH_STACK_FILE: {TECH_STACK_FILE}

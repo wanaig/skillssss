@@ -45,7 +45,7 @@ PRD 路径: {你的需求文档路径}
 PROJECT_ROOT: {前端项目路径}
 REQUIREMENT_FILE: {PRD 路径}
 TECH_STACK_FILE: {tech-stack.md 路径}
-CONTRACT_FILE: {api-contract-outline.md 路径}
+CONTRACT_FILE: {api-contract.md 路径}
 SECURITY_FILE: {security-architecture.md 路径}
 IMPLEMENTATION_ROADMAP_FILE: {implementation-roadmap.md 路径}
 BATCH_SIZE: 1 (或指定 N)
@@ -59,7 +59,7 @@ PROJECT_ROOT: {后端项目路径}
 REQUIREMENT_FILE: {PRD 路径}
 TECH_STACK_FILE: {tech-stack.md 路径}
 DATA_ARCHITECTURE_FILE: {data-architecture.md 路径}
-CONTRACT_FILE: {api-contract-outline.md 路径}
+CONTRACT_FILE: {api-contract.md 路径}
 SECURITY_FILE: {security-architecture.md 路径}
 IMPLEMENTATION_ROADMAP_FILE: {implementation-roadmap.md 路径}
 BATCH_SIZE: 1 (或指定 N)
@@ -71,7 +71,7 @@ BATCH_SIZE: 1 (或指定 N)
 PROJECT_ROOT: {Flutter 项目路径}
 REQUIREMENT_FILE: {PRD 路径}
 TECH_STACK_FILE: {tech-stack.md 路径}
-CONTRACT_FILE: {api-contract-outline.md 路径}
+CONTRACT_FILE: {api-contract.md 路径}
 SECURITY_FILE: {security-architecture.md 路径}
 IMPLEMENTATION_ROADMAP_FILE: {implementation-roadmap.md 路径}
 
@@ -82,7 +82,7 @@ PROJECT_ROOT: {区块链项目路径}
 REQUIREMENT_FILE: {PRD 路径}
 TECH_STACK_FILE: {tech-stack.md 路径}
 DATA_ARCHITECTURE_FILE: {data-architecture.md 路径}
-CONTRACT_FILE: {api-contract-outline.md 路径}
+CONTRACT_FILE: {api-contract.md 路径}
 SECURITY_FILE: {security-architecture.md 路径}
 IMPLEMENTATION_ROADMAP_FILE: {implementation-roadmap.md 路径}
 
@@ -96,7 +96,7 @@ FRONTEND_ROOT: {前端项目路径}
 BACKEND_ROOT: {后端项目路径}
 FLUTTER_ROOT: {Flutter 项目路径（如有）}
 BLOCKCHAIN_ROOT: {区块链项目路径（如有）}
-CONTRACT_FILE: {api-contract-outline.md 路径}
+CONTRACT_FILE: {api-contract.md 路径}
 TECH_STACK_FILE: {tech-stack.md 路径}
 DATA_ARCHITECTURE_FILE: {data-architecture.md 路径}
 IMPLEMENTATION_ROADMAP_FILE: {implementation-roadmap.md 路径}
