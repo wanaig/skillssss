@@ -2,34 +2,49 @@
 
 ## Build, test, and lint commands
 
-Use the repository root (`/skillssss`) for all commands.
+Run commands from the repository root (`/skillssss`).
 
-| Purpose | Command |
-|---|---|
-| Install tooling | `npm ci` |
-| Lint all Markdown | `npm run lint` |
-| Lint one file | `npx markdownlint-cli2 path/to/file.md` |
-| Run one CI-style structure check | `for dir in architecture backend frontend fullstack flutter deploy blockchain; do [ -d "$dir" ] || { echo "Missing directory: $dir"; exit 1; }; done` |
+- Install tooling:
+  `npm ci`
+- Lint all Markdown:
+  `npm run lint`
+- Lint one file:
+  `npx markdownlint-cli2 path/to/file.md`
+- Run one CI-style structure check:
 
-There is no application build script and no unit/integration test suite in `package.json`; repository validation is prompt/document checks plus Markdown linting.
+  ```bash
+  for dir in architecture backend frontend fullstack flutter deploy blockchain; do
+    [ -d "$dir" ] || { echo "Missing directory: $dir"; exit 1; }
+  done
+  ```
+
+There is no application build command and no unit/integration test suite in
+`package.json`. Validation is prompt/document checks plus Markdown linting.
 
 ## High-level architecture
 
-This repository is a multi-agent prompt/template system (not a runnable product app). The intended execution flow is phase-based:
+This repository is a multi-agent prompt/template system, not a runnable app.
+Execution flow is phase-based:
 
 ```text
-architecture/ -> (frontend/ + backend/ + flutter/ + blockchain/) -> fullstack/ -> deploy/
-   Phase 0                     Phase 1 (parallel)                  Phase 2    Phase 3
+architecture/ -> (frontend/ + backend/ + flutter/ + blockchain/)
+               -> fullstack/ -> deploy/
+Phase 0           Phase 1 (parallel)            Phase 2    Phase 3
 ```
 
-Key cross-phase contract:
+Cross-phase handoff:
 
-1. `architecture/` produces shared design artifacts (`tech-stack.md`, `data-architecture.md`, `infra-architecture.md`, `security-architecture.md`, `api-contract.md`, `ui-ux-architecture.md`, `implementation-roadmap.md`).
-2. `frontend/`, `backend/`, `flutter/`, `blockchain/` consume those artifacts and run their own planner/dev/tester loops.
-3. `fullstack/` aligns frontend/backend (and optional flutter/blockchain) against API/data contracts.
-4. `deploy/` packages production deployment after integration is complete.
+1. `architecture/` creates design artifacts consumed by downstream phases:
+   `tech-stack.md`, `data-architecture.md`, `infra-architecture.md`,
+   `security-architecture.md`, `api-contract.md`, `ui-ux-architecture.md`,
+   `implementation-roadmap.md`.
+2. `frontend/`, `backend/`, `flutter/`, and `blockchain/` run independent
+   planner/dev/tester loops against those artifacts.
+3. `fullstack/` aligns frontend/backend (plus optional flutter/blockchain)
+   to API/data contracts.
+4. `deploy/` creates deployment outputs after integration is complete.
 
-Documentation source of truth for architecture and flow:
+Use these docs as primary references:
 
 - `docs/architecture.md`
 - `docs/workflow.md`
@@ -37,14 +52,23 @@ Documentation source of truth for architecture and flow:
 
 ## Key conventions in this codebase
 
-1. **Main-agent prompts orchestrate; sub-agents do execution.** The domain main prompt files (`*/main_agent_prompt*.md`) are written as orchestrators that delegate planning/dev/testing to `*/agents/*.md` skills.
-2. **File-based state is canonical.** Typical state and handoff files are `main-log.md`, `dev-plan.md` or `integration-plan.md`, `agent-registry/*.json`, `test-report.json`, and `lessons-learned.md`.
-3. **Batch loop contract is consistent across domains.** `BATCH_SIZE` defaults to `1`, and development batch size is expected to match testing batch size.
-4. **Resume contract is explicit.** Resume flows use prior task IDs and repeatedly require `subagent_type: "general"` together with explicit `skill(name: "...")` loading.
-5. **Naming is underscore-based in prompt files.** Skill calls and filenames use underscore forms such as `be_planner`, `dg_vue_planner`, `fs_tester_contract`, and `main_agent_prompt_vue.md`.
-6. **Prompt structure is standardized.** Prompt files consistently follow sections like `# Skill: ...`, `## When to Use This Skill`, and `## Core Workflow`; preserve this structure when editing.
-7. **Agent authoring is CI-validated.** `.github/workflows/validate.yml` checks required top-level domains and validates prompt/agent metadata conventions, cross-references, and Markdown linting behavior.
-
+1. Main-agent prompts orchestrate, sub-agents execute. Domain main prompts in
+   `*/main_agent_prompt*.md` delegate planning/dev/testing to skills in
+   `*/agents/*.md`.
+2. File-based state is canonical: `main-log.md`, `dev-plan.md` or
+   `integration-plan.md`, `agent-registry/*.json`, `test-report.json`,
+   and `lessons-learned.md`.
+3. `BATCH_SIZE` defaults to `1`, and dev batch size is expected to match test
+   batch size in each domain loop.
+4. Resume flows use prior task IDs and require
+   `subagent_type: "general"` with explicit `skill(name: "...")` loading.
+5. Naming is underscore-based in prompt files and skill calls, e.g.
+   `be_planner`, `dg_vue_planner`, `fs_tester_contract`,
+   and `main_agent_prompt_vue.md`.
+6. Prompt structure is standardized. Preserve sections like
+   `# Skill: ...`, `## When to Use This Skill`, and `## Core Workflow`.
+7. `.github/workflows/validate.yml` is the CI reference for repository
+   structure, metadata/cross-reference checks, and Markdown lint behavior.
 
 # 强制交互协议
 ## 核心规则：每次回复结束前必须调用 `ask_user` 工具
