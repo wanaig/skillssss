@@ -2,7 +2,7 @@
 
 # 系统架构详情
 
-Harness Engineering 系统的全局架构、执行顺序、依赖关系、24 个 Agent 角色总览、各领域内部工作流程、以及模块间传递的关键接口约定。
+Harness Engineering 系统的全局架构、执行顺序、依赖关系、34 个 Agent 角色总览、各领域内部工作流程、以及模块间传递的关键接口约定。
 
 ## When to Use This Skill
 
@@ -19,12 +19,12 @@ Harness Engineering 系统的全局架构、执行顺序、依赖关系、24 个
                         │         Phase 0: architecture/       │
                         │         技术架构设计（必须最先执行）    │
                         │                                       │
-                        │  5 个子Agent 并行分析 5 个维度：        │
+                        │  6 个子Agent 并行分析 6 个维度：        │
                         │  techstack · data · infra             │
                         │  security · api-design                │
                         │                                       │
                         │  产出：architecture-design.md          │
-                        │       + 5 份维度分析文档               │
+                        │       + 6 份维度分析文档               │
                         │       + implementation-roadmap.md     │
                         └──────────────┬───────────────────────┘
                                        │
@@ -99,9 +99,9 @@ architecture/ ──▶  ┌─ backend/  ─┐    │    前后端联调
 | **Phase 2** | `fullstack/` | frontend **且** backend 完成 | 不可并行 |
 | **Phase 3** | `deploy/` | fullstack 完成 | 不可并行 |
 
-## 智能体角色总览（24 个）
+## 智能体角色总览（34 个）
 
-### architecture/ — 5 个 Agent
+### architecture/ — 6 个 Agent
 
 | Agent | 角色 | 产出 |
 |-------|------|------|

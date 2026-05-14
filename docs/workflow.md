@@ -30,9 +30,9 @@ PRD 路径: {你的需求文档路径}
 
 架构主智能体会：
 1. 收集项目约束信息（团队技能、规模、合规等）
-2. 并行启动 5 个维度分析Agent（techstack / data / infra / security / api-design）
+2. 并行启动 6 个维度分析Agent（techstack / data / infra / security / api-design / uiux）
 3. 一致性检查和需求覆盖度检查
-4. 产出 `architecture-design.md` + 5 份维度文档 + `implementation-roadmap.md`
+4. 产出 `architecture-design.md` + 6 份维度文档 + `implementation-roadmap.md`
 
 ## 第 2 步：前后端并行开发
 
@@ -41,7 +41,7 @@ PRD 路径: {你的需求文档路径}
 ### 启动前端
 
 ```
-使用 /frontend/main-agent-prompt-vue.md
+使用 /frontend/main_agent_prompt_vue.md
 PROJECT_ROOT: {前端项目路径}
 REQUIREMENT_FILE: {PRD 路径}
 TECH_STACK_FILE: {tech-stack.md 路径}
@@ -54,7 +54,7 @@ BATCH_SIZE: 1 (或指定 N)
 ### 启动后端
 
 ```
-使用 /backend/main-agent-prompt.md
+使用 /backend/main_agent_prompt.md
 PROJECT_ROOT: {后端项目路径}
 REQUIREMENT_FILE: {PRD 路径}
 TECH_STACK_FILE: {tech-stack.md 路径}
@@ -67,7 +67,7 @@ BATCH_SIZE: 1 (或指定 N)
 
 ### 如需跨平台应用（Flutter）
 
-使用 /flutter/main-agent-prompt-flutter.md
+使用 /flutter/main_agent_prompt_flutter.md
 PROJECT_ROOT: {Flutter 项目路径}
 REQUIREMENT_FILE: {PRD 路径}
 TECH_STACK_FILE: {tech-stack.md 路径}
@@ -77,7 +77,7 @@ IMPLEMENTATION_ROADMAP_FILE: {implementation-roadmap.md 路径}
 
 ### 如需区块链智能合约（FISCO BCOS）
 
-使用 /blockchain/main-agent-prompt-blockchain.md
+使用 /blockchain/main_agent_prompt_blockchain.md
 PROJECT_ROOT: {区块链项目路径}
 REQUIREMENT_FILE: {PRD 路径}
 TECH_STACK_FILE: {tech-stack.md 路径}
@@ -91,7 +91,7 @@ IMPLEMENTATION_ROADMAP_FILE: {implementation-roadmap.md 路径}
 ⚠️ **必须等 frontend/ 和 backend/ 全部完成后再执行。**
 
 ```
-使用 /fullstack/main-agent-prompt-fullstack.md
+使用 /fullstack/main_agent_prompt_fullstack.md
 FRONTEND_ROOT: {前端项目路径}
 BACKEND_ROOT: {后端项目路径}
 FLUTTER_ROOT: {Flutter 项目路径（如有）}

@@ -14,7 +14,7 @@
 
 ## Core Content
 
-本文档来自原 `notes-multi-agent-collaboration-design.md`，阐述多智能体协同开发的方法论和设计决策。
+本文档来自原 `notes_multi_agent_collaboration_design.md`，阐述多智能体协同开发的方法论和设计决策。
 
 ---
 

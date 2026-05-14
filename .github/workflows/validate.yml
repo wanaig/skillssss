@@ -66,20 +66,20 @@ jobs:
           errors=0
           names=$(ls frontend/agents/ | sed 's/\.md$//')
           
-          # Dev agent should be dg-frontend-vue-dev
-          if ! echo "$names" | grep -q "dg-frontend-vue-dev"; then
-            echo "ERROR: Expected frontend dev agent: dg-frontend-vue-dev"
+          # Dev agent should be dg_frontend_vue_dev
+          if ! echo "$names" | grep -q "dg_frontend_vue_dev"; then
+            echo "ERROR: Expected frontend dev agent: dg_frontend_vue_dev"
             errors=$((errors+1))
           fi
           
-          # Planner should be dg-vue-planner
-          if ! echo "$names" | grep -q "dg-vue-planner"; then
-            echo "ERROR: Expected frontend planner: dg-vue-planner"
+          # Planner should be dg_vue_planner
+          if ! echo "$names" | grep -q "dg_vue_planner"; then
+            echo "ERROR: Expected frontend planner: dg_vue_planner"
             errors=$((errors+1))
           fi
           
-          # Testers should all use dg-vue-tester-* prefix
-          for tester in dg-vue-tester-component dg-vue-tester-logic dg-vue-tester-style; do
+          # Testers should all use dg_vue_tester_* prefix
+          for tester in dg_vue_tester_component dg_vue_tester_logic dg_vue_tester_style; do
             if ! echo "$names" | grep -q "$tester"; then
               echo "ERROR: Expected frontend tester: $tester"
               errors=$((errors+1))
@@ -95,7 +95,7 @@ jobs:
         run: |
           errors=0
           names=$(ls backend/agents/ | sed 's/\.md$//')
-          for agent in be-planner be-api-dev be-tester-functional be-tester-performance be-tester-security; do
+          for agent in be_planner be_api_dev be_tester_functional be_tester_performance be_tester_security; do
             if ! echo "$names" | grep -q "$agent"; then
               echo "ERROR: Expected backend agent: $agent"
               errors=$((errors+1))
@@ -110,7 +110,7 @@ jobs:
         run: |
           errors=0
           names=$(ls fullstack/agents/ | sed 's/\.md$//')
-          for agent in fs-planner fs-api-dev fs-tester-contract fs-tester-dataflow fs-tester-integration; do
+          for agent in fs_planner fs_api_dev fs_tester_contract fs_tester_dataflow fs_tester_integration; do
             if ! echo "$names" | grep -q "$agent"; then
               echo "ERROR: Expected fullstack agent: $agent"
               errors=$((errors+1))
@@ -125,7 +125,7 @@ jobs:
         run: |
           errors=0
           names=$(ls flutter/agents/ | sed 's/\.md$//')
-          for agent in dg-flutter-planner dg-flutter-dev dg-flutter-tester-crossplatform dg-flutter-tester-logic dg-flutter-tester-style; do
+          for agent in dg_flutter_planner dg_flutter_dev dg_flutter_tester_crossplatform dg_flutter_tester_logic dg_flutter_tester_style; do
             if ! echo "$names" | grep -q "$agent"; then
               echo "ERROR: Expected flutter agent: $agent"
               errors=$((errors+1))
@@ -140,7 +140,7 @@ jobs:
         run: |
           errors=0
           names=$(ls blockchain/agents/ | sed 's/\.md$//')
-          for agent in bc-planner bc-solidity-dev bc-tester-functional bc-tester-security bc-tester-gas; do
+          for agent in bc_planner bc_solidity_dev bc_tester_functional bc_tester_security bc_tester_gas; do
             if ! echo "$names" | grep -q "$agent"; then
               echo "ERROR: Expected blockchain agent: $agent"
               errors=$((errors+1))
@@ -167,7 +167,7 @@ jobs:
           done
 
           # Extract subagent_type references from master prompts and check them
-          for master in architecture/main-agent-prompt-*.md backend/main-agent-prompt*.md frontend/main-agent-prompt-*.md fullstack/main-agent-prompt-*.md flutter/main-agent-prompt-*.md deploy/main-agent-prompt-*.md blockchain/main-agent-prompt-*.md; do
+          for master in architecture/main_agent_prompt*.md backend/main_agent_prompt*.md frontend/main_agent_prompt*.md fullstack/main_agent_prompt*.md flutter/main_agent_prompt*.md deploy/main_agent_prompt*.md blockchain/main_agent_prompt*.md; do
             refs=$(grep -oP 'subagent_type:\s*"\K[^"]+' "$master" 2>/dev/null)
             for ref in $refs; do
               if ! echo "$defined_agents" | grep -qw "$ref"; then
@@ -187,15 +187,40 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Lint markdown files
+      - name: Lint changed markdown files (blocking)
         run: |
           npm ci
-          npx markdownlint-cli2 "**/*.md" "#.git" --config '{
+          DIFF_RANGE=""
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch --no-tags --prune --depth=1 origin "${{ github.base_ref }}"
+            DIFF_RANGE="origin/${{ github.base_ref }}...HEAD"
+            CHANGED_MD=$(git diff --name-only "$DIFF_RANGE" -- '*.md')
+          else
+            if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+              CHANGED_MD=$(git ls-files '*.md')
+            else
+              DIFF_RANGE="${{ github.event.before }}...${{ github.sha }}"
+              CHANGED_MD=$(git diff --name-only "$DIFF_RANGE" -- '*.md')
+            fi
+          fi
+
+          if [ -z "$CHANGED_MD" ]; then
+            echo "No markdown changes detected"
+            exit 0
+          fi
+
+          echo "Linting changed markdown files:"
+          echo "$CHANGED_MD"
+          mapfile -t md_files <<< "$CHANGED_MD"
+          set +e
+          npx markdownlint-cli2 "${md_files[@]}" --config '{
             "default": true,
             "line-length": false,
             "no-inline-html": false,
@@ -206,14 +231,53 @@ jobs:
             "no-emphasis-as-heading": false,
             "first-line-heading": false,
             "no-alt-text": false
-          }' || true
-          echo "Markdown lint completed (warnings are non-blocking)"
+          }' > /tmp/markdownlint.out 2>&1
+          lint_exit=$?
+          set -e
+
+          if [ $lint_exit -eq 0 ]; then
+            echo "Markdown lint passed"
+            exit 0
+          fi
+
+          cat /tmp/markdownlint.out
+
+          if [ -z "$DIFF_RANGE" ]; then
+            echo "Markdown lint failed on initial push (no diff base available)"
+            exit 1
+          fi
+
+          git diff -U0 "$DIFF_RANGE" -- '*.md' > /tmp/markdown.diff
+          awk '
+            /^\+\+\+ b\// { file=substr($0, 7); next }
+            /^@@/ {
+              split($0, parts, " ")
+              split(parts[3], span, ",")
+              start=span[1]
+              sub(/^\+/, "", start)
+              count=(span[2] == "" ? 1 : span[2])
+              for (i = 0; i < count; i++) {
+                if (count > 0) print file ":" (start + i)
+              }
+            }
+          ' /tmp/markdown.diff | sort -u > /tmp/changed_lines.txt
+
+          awk -F: '/^[^:]+:[0-9]+/ {print $1 ":" $2}' /tmp/markdownlint.out | sort -u > /tmp/lint_lines.txt
+          comm -12 /tmp/lint_lines.txt /tmp/changed_lines.txt > /tmp/new_lint_lines.txt
+
+          if [ -s /tmp/new_lint_lines.txt ]; then
+            echo "Markdown lint errors on changed lines:"
+            grep -Ff /tmp/new_lint_lines.txt /tmp/markdownlint.out || true
+            exit 1
+          fi
+
+          echo "Markdown lint has historical issues outside changed lines; passing incremental gate"
 
       - name: Check for broken internal links
         run: |
           errors=0
           # Check referenced files exist
-          for file in README.md notes-multi-agent-collaboration-design.md; do
+          for file in README.md notes_multi_agent_collaboration_design.md; do
             # Extract relative file paths from markdown links
             grep -oP '\[.*?\]\(\./.*?\.md\)' "$file" | grep -oP '(?<=\(\./)[^)]+' | while read path; do
               if [ ! -f "$path" ]; then

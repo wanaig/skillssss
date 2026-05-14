@@ -2,7 +2,7 @@
 
 # 设计笔记 — 多智能体协同开发
 
-补充参考文档，包含 v2 版本改进项对照、历史方法记录、模型选择原则和与其他方法的对比分析。设计原理正篇已迁移至 docs/design-principles.md。
+补充参考文档，包含 v2 版本改进项对照、历史方法记录、模型选择原则和与其他方法的对比分析。设计原理正篇已迁移至 docs/design_principles.md。
 
 ## When to Use This Skill
 
@@ -13,7 +13,7 @@
 
 ## Core Content
 
-> ⚠️ 本文档的设计原理内容已迁移至 [`docs/design-principles.md`](docs/design-principles.md)。
+> ⚠️ 本文档的设计原理内容已迁移至 [`docs/design_principles.md`](docs/design_principles.md)。
 > 本文件保留作为补充参考，包含一些未纳入正式文档的思考片段。
 
 ---
@@ -26,7 +26,7 @@
 |------|------|
 | 系统架构详情 | [`docs/architecture.md`](docs/architecture.md) |
 | 使用手册 | [`docs/workflow.md`](docs/workflow.md) |
-| 设计原理 | [`docs/design-principles.md`](docs/design-principles.md) |
+| 设计原理 | [`docs/design_principles.md`](docs/design_principles.md) |
 | 项目概述 | [`README.md`](README.md) |
 
 ---
