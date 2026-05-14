@@ -15,107 +15,143 @@ Harness Engineering 系统的详细使用流程，从架构设计到前后端并
 
 ## 前置条件
 
-- 支持 Agent / Task 功能的 AI 编程环境
-- 一份 PRD 需求文档（功能需求/产品文档）
+1. 支持 Agent/Task/Skill 调用的 AI 编程环境
+2. 一份 PRD 文档（`REQUIREMENT_FILE`）
+3. 准备好各项目目录（前端、后端、可选 Flutter、可选区块链、部署输出目录）
 
-## 第 1 步：架构设计（必须最先执行）
+## 路径变量模板（推荐先准备）
 
-加载 architecture 主智能体：
-
-```
-使用 fs-architect 主智能体
-PRD 路径: {你的需求文档路径}
-输出目录: {架构文档输出目录}
-```
-
-架构主智能体会：
-1. 收集项目约束信息（团队技能、规模、合规等）
-2. 并行启动 6 个维度分析Agent（techstack / data / infra / security / api-design / uiux）
-3. 一致性检查和需求覆盖度检查
-4. 产出 `architecture-design.md` + 6 份维度文档 + `implementation-roadmap.md`
-
-## 第 2 步：前后端并行开发
-
-架构设计完成后，可同时启动前端和后端开发。
-
-### 启动前端
-
-```
-使用 /frontend/main_agent_prompt_vue.md
-PROJECT_ROOT: {前端项目路径}
-REQUIREMENT_FILE: {PRD 路径}
-TECH_STACK_FILE: {tech-stack.md 路径}
-CONTRACT_FILE: {api-contract.md 路径}
-SECURITY_FILE: {security-architecture.md 路径}
-IMPLEMENTATION_ROADMAP_FILE: {implementation-roadmap.md 路径}
-BATCH_SIZE: 1 (或指定 N)
+```text
+REQUIREMENT_FILE={D:\path\to\prd.md}
+ARCH_ROOT={D:\path\to\architecture-output}
+FRONTEND_ROOT={D:\path\to\frontend}
+BACKEND_ROOT={D:\path\to\backend}
+FLUTTER_ROOT={D:\path\to\flutter}            # 可选
+BLOCKCHAIN_ROOT={D:\path\to\blockchain}      # 可选
+DEPLOY_ROOT={D:\path\to\deploy-output}
 ```
 
-### 启动后端
+## Phase 0：架构设计（必须先执行）
 
-```
-使用 /backend/main_agent_prompt.md
-PROJECT_ROOT: {后端项目路径}
-REQUIREMENT_FILE: {PRD 路径}
-TECH_STACK_FILE: {tech-stack.md 路径}
-DATA_ARCHITECTURE_FILE: {data-architecture.md 路径}
-CONTRACT_FILE: {api-contract.md 路径}
-SECURITY_FILE: {security-architecture.md 路径}
-IMPLEMENTATION_ROADMAP_FILE: {implementation-roadmap.md 路径}
-BATCH_SIZE: 1 (或指定 N)
+使用 `architecture/main_agent_prompt_fs_architect.md`：
+
+```text
+REQUIREMENT_FILE
+PROJECT_ROOT={ARCH_ROOT}
 ```
 
-### 如需跨平台应用（Flutter）
+输出（位于 `ARCH_ROOT`）：
 
-使用 /flutter/main_agent_prompt_flutter.md
-PROJECT_ROOT: {Flutter 项目路径}
-REQUIREMENT_FILE: {PRD 路径}
-TECH_STACK_FILE: {tech-stack.md 路径}
-CONTRACT_FILE: {api-contract.md 路径}
-SECURITY_FILE: {security-architecture.md 路径}
-IMPLEMENTATION_ROADMAP_FILE: {implementation-roadmap.md 路径}
-
-### 如需区块链智能合约（FISCO BCOS）
-
-使用 /blockchain/main_agent_prompt_blockchain.md
-PROJECT_ROOT: {区块链项目路径}
-REQUIREMENT_FILE: {PRD 路径}
-TECH_STACK_FILE: {tech-stack.md 路径}
-DATA_ARCHITECTURE_FILE: {data-architecture.md 路径}
-CONTRACT_FILE: {api-contract.md 路径}
-SECURITY_FILE: {security-architecture.md 路径}
-IMPLEMENTATION_ROADMAP_FILE: {implementation-roadmap.md 路径}
-
-## 第 3 步：前后端联调
-
-⚠️ **必须等 frontend/ 和 backend/ 全部完成后再执行。**
-
+```text
+architecture-design.md
+tech-stack.md
+data-architecture.md
+infra-architecture.md
+security-architecture.md
+api-contract.md
+ui-ux-architecture.md
+implementation-roadmap.md
 ```
-使用 /fullstack/main_agent_prompt_fullstack.md
-FRONTEND_ROOT: {前端项目路径}
-BACKEND_ROOT: {后端项目路径}
-FLUTTER_ROOT: {Flutter 项目路径（如有）}
-BLOCKCHAIN_ROOT: {区块链项目路径（如有）}
-CONTRACT_FILE: {api-contract.md 路径}
-TECH_STACK_FILE: {tech-stack.md 路径}
-DATA_ARCHITECTURE_FILE: {data-architecture.md 路径}
-IMPLEMENTATION_ROADMAP_FILE: {implementation-roadmap.md 路径}
-BATCH_SIZE: 1 (或指定 N)
 
-联调主智能体会：
-1. 读取 API 契约文档 + 扫描各端代码现状
-2. 创建前端 API 调用层（`src/api/`、`src/types/api.ts`、`vite.config.ts` 代理）
-3. 如有 BLOCKCHAIN_ROOT，额外创建 `src/api/blockchain.ts` 区块链调用层
-4. 逐模块对接接口：前端类型定义 ↔ 后端响应格式
-5. 三维测试：契约一致性 / 数据流完整性 / 端到端集成
-6. 修正循环确保各端完全对齐
+## Phase 1：并行开发（可同时启动）
 
-## 第 4 步：验证收尾
+### 1) 前端
 
-所有领域完成后，检查各领域的 `main-log.md` 确认：
-- 全部模块标记 ✅
-- 迭代统计汇总
-- `lessons-learned.md` 记录的经验可复用到下个项目
+使用 `frontend/main_agent_prompt_vue.md`：
+
+```text
+PROJECT_ROOT={FRONTEND_ROOT}
+REQUIREMENT_FILE
+TECH_STACK_FILE={ARCH_ROOT}\tech-stack.md
+CONTRACT_FILE={ARCH_ROOT}\api-contract.md
+SECURITY_FILE={ARCH_ROOT}\security-architecture.md
+IMPLEMENTATION_ROADMAP_FILE={ARCH_ROOT}\implementation-roadmap.md
+BATCH_SIZE=1
+```
+
+### 2) 后端
+
+使用 `backend/main_agent_prompt.md`：
+
+```text
+PROJECT_ROOT={BACKEND_ROOT}
+REQUIREMENT_FILE
+TECH_STACK_FILE={ARCH_ROOT}\tech-stack.md
+DATA_ARCHITECTURE_FILE={ARCH_ROOT}\data-architecture.md
+CONTRACT_FILE={ARCH_ROOT}\api-contract.md
+SECURITY_FILE={ARCH_ROOT}\security-architecture.md
+IMPLEMENTATION_ROADMAP_FILE={ARCH_ROOT}\implementation-roadmap.md
+BATCH_SIZE=1
+```
+
+### 3) Flutter（可选）
+
+使用 `flutter/main_agent_prompt_flutter.md`：
+
+```text
+PROJECT_ROOT={FLUTTER_ROOT}
+REQUIREMENT_FILE
+TECH_STACK_FILE={ARCH_ROOT}\tech-stack.md
+CONTRACT_FILE={ARCH_ROOT}\api-contract.md
+SECURITY_FILE={ARCH_ROOT}\security-architecture.md
+IMPLEMENTATION_ROADMAP_FILE={ARCH_ROOT}\implementation-roadmap.md
+BATCH_SIZE=1
+```
+
+### 4) 区块链（可选）
+
+使用 `blockchain/main_agent_prompt_blockchain.md`：
+
+```text
+PROJECT_ROOT={BLOCKCHAIN_ROOT}
+REQUIREMENT_FILE
+TECH_STACK_FILE={ARCH_ROOT}\tech-stack.md
+DATA_ARCHITECTURE_FILE={ARCH_ROOT}\data-architecture.md
+CONTRACT_FILE={ARCH_ROOT}\api-contract.md
+SECURITY_FILE={ARCH_ROOT}\security-architecture.md
+IMPLEMENTATION_ROADMAP_FILE={ARCH_ROOT}\implementation-roadmap.md
+BATCH_SIZE=1
+```
+
+## Phase 2：前后端联调（串行）
+
+⚠️ **必须等 frontend/ 和 backend/ 完成后再执行。**
+
+使用 `fullstack/main_agent_prompt_fullstack.md`：
+
+```text
+FRONTEND_ROOT
+BACKEND_ROOT
+FLUTTER_ROOT={可选}
+BLOCKCHAIN_ROOT={可选}
+CONTRACT_FILE={ARCH_ROOT}\api-contract.md
+TECH_STACK_FILE={ARCH_ROOT}\tech-stack.md
+DATA_ARCHITECTURE_FILE={ARCH_ROOT}\data-architecture.md
+IMPLEMENTATION_ROADMAP_FILE={ARCH_ROOT}\implementation-roadmap.md
+BATCH_SIZE=1
+```
+
+## Phase 3：生产部署（最后执行）
+
+使用 `deploy/main_agent_prompt_deploy.md`：
+
+```text
+TECH_STACK_FILE={ARCH_ROOT}\tech-stack.md
+INFRA_FILE={ARCH_ROOT}\infra-architecture.md
+SECURITY_FILE={ARCH_ROOT}\security-architecture.md
+IMPLEMENTATION_ROADMAP_FILE={ARCH_ROOT}\implementation-roadmap.md
+FRONTEND_ROOT
+BACKEND_ROOT
+DEPLOY_ROOT
+```
+
+## 验证收尾
+
+所有阶段完成后，检查：
+
+1. 各领域 `main-log.md` 是否全部模块 ✅
+2. `test-reports/` 的测试结论是否通过
+3. `lessons-learned.md` 是否形成经验沉淀
 
 ## BATCH_SIZE 说明
 
