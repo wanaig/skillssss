@@ -191,13 +191,13 @@ Task(
 
 1. 向用户输出部署就绪摘要：
    > 部署方案已就绪。核心配置：
-   > 
+   >
    > 【部署形态】Docker Compose / K8s（3 个 service）
    > 【域名】api.example.com + app.example.com
    > 【TLS】已配置 HTTPS + HSTS
    > 【安全】密钥已生成，CORS 已收紧，限流已启用
    > 【监控】健康检查 + 日志收集 + 告警就绪
-   > 
+   >
    > 部署命令：
    > ```bash
    > cd {DEPLOY_ROOT}
@@ -205,7 +205,7 @@ Task(
    > # 编辑 .env.production，填入实际密钥和域名
    > chmod +x deploy.sh && ./deploy.sh
    > ```
-   > 
+   >
    > 详细检查清单：{DEPLOY_ROOT}/deploy-checklist.md
 
 2. 写入最终统计到 main-log.md：

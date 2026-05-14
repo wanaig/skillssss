@@ -4,7 +4,7 @@
   "private": true,
   "description": "Harness Engineering — 多智能体协同开发系统 Prompt 模板集合",
   "scripts": {
-    "lint": "markdownlint-cli2 \"**/*.md\" \"#.git\""
+    "lint": "markdownlint-cli2 \"**/*.md\" \"#.git\" \"#node_modules\""
   },
   "devDependencies": {
     "markdownlint-cli2": "^0.14.0"

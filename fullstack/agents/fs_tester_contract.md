@@ -67,7 +67,7 @@
 | 响应泛型 | 前端 `ApiResponse<T>` 中的 T 是否与契约定义的 data 字段结构一致 | 字段名、类型、嵌套结构一一对应 |
 | 分页结构 | 列表接口响应的 pagination 字段与契约一致 | {page, pageSize, total, totalPages} |
 | 错误响应 | 前端提取的错误字段（code, message, errors）与契约一致 | code 为 number, message 为 string |
-| 可空字段 | 前端类型中的 `| null` 是否与契约可选字段一致 | 契约中可选的字段，前端类型标注为 `类型 | null` 或 `类型 | undefined` |
+| 可空字段 | 前端类型中的 `\| null` 是否与契约可选字段一致 | 契约中可选的字段，前端类型标注为 `类型 \| null` 或 `类型 \| undefined` |
 | 枚举值 | 前后端枚举值是否一致 | 数字/字符串值完全一致 |
 
 #### 3.4 类型定义一致性

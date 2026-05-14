@@ -22,39 +22,39 @@ jobs:
           done
           echo "All required directories present"
 
-      - name: Check each agent has YAML frontmatter
+      - name: Check each agent has Skill header
         run: |
           errors=0
           for agent in architecture/agents/*.md backend/agents/*.md frontend/agents/*.md fullstack/agents/*.md flutter/agents/*.md deploy/agents/*.md blockchain/agents/*.md; do
-            if ! head -1 "$agent" | grep -q '^---$'; then
-              echo "ERROR: $agent missing YAML frontmatter"
+            if ! head -1 "$agent" | grep -qP '^# Skill:\s*[a-z0-9_-]+$'; then
+              echo "ERROR: $agent missing valid '# Skill: <name>' header"
               errors=$((errors+1))
             fi
           done
           if [ $errors -gt 0 ]; then
-            echo "Found $errors agents without YAML frontmatter"
+            echo "Found $errors agents with invalid Skill header"
             exit 1
           fi
-          echo "All agents have YAML frontmatter"
+          echo "All agents have valid Skill header"
 
-      - name: Validate agent YAML has required fields
+      - name: Validate agent markdown sections
         run: |
           errors=0
           for agent in architecture/agents/*.md backend/agents/*.md frontend/agents/*.md fullstack/agents/*.md flutter/agents/*.md deploy/agents/*.md blockchain/agents/*.md; do
-            # Extract YAML frontmatter
-            sed -n '/^---$/,/^---$/p' "$agent" | head -n -1 | tail -n +2 > /tmp/frontmatter.yml
-            for field in name description tools model; do
-              if ! grep -q "^${field}:" /tmp/frontmatter.yml; then
-                echo "ERROR: $agent missing required field: $field"
-                errors=$((errors+1))
-              fi
-            done
+            if ! grep -q '^## When to Use This Skill$' "$agent"; then
+              echo "ERROR: $agent missing section: ## When to Use This Skill"
+              errors=$((errors+1))
+            fi
+            if ! grep -qP '^## Core (Workflow|Content)$' "$agent"; then
+              echo "ERROR: $agent missing section: ## Core Workflow/Content"
+              errors=$((errors+1))
+            fi
           done
           if [ $errors -gt 0 ]; then
-            echo "Found $errors missing required fields"
+            echo "Found $errors missing required sections"
             exit 1
           fi
-          echo "All agents have required YAML fields"
+          echo "All agents have required markdown sections"
 
   naming:
     runs-on: ubuntu-latest
@@ -151,37 +151,69 @@ jobs:
           fi
           echo "Blockchain naming conventions OK"
 
+      - name: Check architecture agent naming consistency
+        run: |
+          errors=0
+          names=$(ls architecture/agents/ | sed 's/\.md$//')
+          for agent in fa_techstack fa_data fa_infra fa_security fa_api_design fa_uiux; do
+            if ! echo "$names" | grep -q "$agent"; then
+              echo "ERROR: Expected architecture agent: $agent"
+              errors=$((errors+1))
+            fi
+          done
+          if [ $errors -gt 0 ]; then
+            exit 1
+          fi
+          echo "Architecture naming conventions OK"
+
+      - name: Check deploy agent naming consistency
+        run: |
+          errors=0
+          names=$(ls deploy/agents/ | sed 's/\.md$//')
+          for agent in deploy_planner deploy_infra deploy_verifier; do
+            if ! echo "$names" | grep -q "$agent"; then
+              echo "ERROR: Expected deploy agent: $agent"
+              errors=$((errors+1))
+            fi
+          done
+          if [ $errors -gt 0 ]; then
+            exit 1
+          fi
+          echo "Deploy naming conventions OK"
+
   cross-ref:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check subagent_type references in master prompts exist
+      - name: Check skill(name) references in master prompts exist
         run: |
           errors=0
-          # Collect all defined agent names from YAML frontmatter
+          # Collect all defined skill names from '# Skill: <name>' headers
           defined_agents=""
           for agent in architecture/agents/*.md backend/agents/*.md frontend/agents/*.md fullstack/agents/*.md flutter/agents/*.md deploy/agents/*.md blockchain/agents/*.md; do
-            name=$(sed -n '/^---$/,/^---$/p' "$agent" | grep '^name:' | sed 's/^name: *//')
-            defined_agents="$defined_agents $name"
+            name=$(head -1 "$agent" | sed -n 's/^# Skill:[[:space:]]*//p')
+            if [ -n "$name" ]; then
+              defined_agents="$defined_agents $name"
+            fi
           done
 
-          # Extract subagent_type references from master prompts and check them
+          # Extract skill(name: "...") references from master prompts and check them
           for master in architecture/main_agent_prompt*.md backend/main_agent_prompt*.md frontend/main_agent_prompt*.md fullstack/main_agent_prompt*.md flutter/main_agent_prompt*.md deploy/main_agent_prompt*.md blockchain/main_agent_prompt*.md; do
-            refs=$(grep -oP 'subagent_type:\s*"\K[^"]+' "$master" 2>/dev/null)
+            refs=$(grep -oP 'skill\(name:\s*"\K[a-z0-9_-]+' "$master" 2>/dev/null)
             for ref in $refs; do
               if ! echo "$defined_agents" | grep -qw "$ref"; then
-                echo "ERROR: $master references undefined agent type: $ref"
+                echo "ERROR: $master references undefined skill: $ref"
                 errors=$((errors+1))
               fi
             done
           done
 
           if [ $errors -gt 0 ]; then
-            echo "Found $errors unresolved agent type references"
+            echo "Found $errors unresolved skill references"
             exit 1
           fi
-          echo "All subagent_type references resolve to defined agents"
+          echo "All skill(name) references resolve to defined agents"
 
   markdown:
     runs-on: ubuntu-latest
@@ -220,18 +252,7 @@ jobs:
           echo "$CHANGED_MD"
           mapfile -t md_files <<< "$CHANGED_MD"
           set +e
-          npx markdownlint-cli2 "${md_files[@]}" --config '{
-            "default": true,
-            "line-length": false,
-            "no-inline-html": false,
-            "no-duplicate-heading": false,
-            "no-trailing-punctuation": false,
-            "no-blanks-blockquote": false,
-            "single-trailing-newline": false,
-            "no-emphasis-as-heading": false,
-            "first-line-heading": false,
-            "no-alt-text": false
-          }' > /tmp/markdownlint.out 2>&1
+          npx markdownlint-cli2 "${md_files[@]}" > /tmp/markdownlint.out 2>&1
           lint_exit=$?
           set -e
 
@@ -276,13 +297,30 @@ jobs:
       - name: Check for broken internal links
         run: |
           errors=0
-          # Check referenced files exist
-          for file in README.md notes_multi_agent_collaboration_design.md; do
-            # Extract relative file paths from markdown links
-            grep -oP '\[.*?\]\(\./.*?\.md\)' "$file" | grep -oP '(?<=\(\./)[^)]+' | while read path; do
-              if [ ! -f "$path" ]; then
-                echo "WARNING: Broken link in $file -> $path"
+          mapfile -t md_files < <(git ls-files '*.md')
+
+          for file in "${md_files[@]}"; do
+            while IFS= read -r raw_link; do
+              link="${raw_link%%#*}"
+              if [ -z "$link" ]; then
+                continue
               fi
-            done
+              case "$link" in
+                http://*|https://*|mailto:*|#*)
+                  continue
+                  ;;
+              esac
+
+              target=$(realpath -m "$(dirname "$file")/$link")
+              if [ ! -f "$target" ]; then
+                echo "ERROR: Broken link in $file -> $raw_link"
+                errors=$((errors+1))
+              fi
+            done < <(grep -oP '\[[^][]+\]\(\K[^)]+' "$file" || true)
           done
-          echo "Link check completed"
+
+          if [ "$errors" -gt 0 ]; then
+            echo "Found $errors broken internal links"
+            exit 1
+          fi
+          echo "Internal link check passed"

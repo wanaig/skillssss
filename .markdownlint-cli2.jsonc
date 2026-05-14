@@ -1,0 +1,26 @@
+{
+  "config": {
+    "default": true,
+    "blanks-around-fences": false,
+    "blanks-around-lists": false,
+    "fenced-code-language": false,
+    "ol-prefix": false,
+    "list-indent": false,
+    "single-title": false,
+    "blanks-around-headings": false,
+    "blanks-around-blockquote": false,
+    "no-space-in-code": false,
+    "code-block-style": false,
+    "table-pipe-style": false,
+    "no-multiple-blanks": false,
+    "line-length": false,
+    "no-inline-html": false,
+    "no-duplicate-heading": false,
+    "no-trailing-punctuation": false,
+    "no-blanks-blockquote": false,
+    "single-trailing-newline": false,
+    "no-emphasis-as-heading": false,
+    "first-line-heading": false,
+    "no-alt-text": false
+  }
+}
