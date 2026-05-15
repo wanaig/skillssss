@@ -503,9 +503,9 @@ Step 9: Write lib/services/secure_storage.dart（安全存储）
 Step 10: Write lib/config/（app_config + theme）
 Step 11: Write lib/app.dart（MaterialApp + ProviderScope + GoRouter 入口）
 Step 12: Write lessons-learned.md（含预置跨端陷阱）
-Step 13: Write design-guide.md（前3-4个模块）
-Step 14: Edit design-guide.md（追加第4-7个模块）
-Step 15: Edit design-guide.md（追加第8-11个模块）
+Step 13: Write design-guide.md（前4个模块）
+Step 14: Edit design-guide.md（追加第5-8个模块）
+Step 15: Edit design-guide.md（追加第9-12个模块）
 ... 每批3-4个模块，直到全部完成
 最后一步：返回文件路径列表
 ```

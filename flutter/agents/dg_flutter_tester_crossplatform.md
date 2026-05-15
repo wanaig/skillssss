@@ -150,8 +150,8 @@ FAIL时：
       "category": "{维度类别}",
       "file": "lib/screens/user_list_screen.dart",
       "line": 15,
-      "reason": "缺少邮箱格式验证，可接受任意字符串",
-      "suggestion": "添加邮箱正则验证"
+      "reason": "Platform API 调用未做平台分支判断",
+      "suggestion": "使用 Platform.isIOS / isAndroid 做条件分支"
     }
   ]
 }

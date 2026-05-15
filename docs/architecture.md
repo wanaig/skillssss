@@ -20,8 +20,8 @@ Harness Engineering 系统的全局架构、执行顺序、依赖关系、34 个
                         │         技术架构设计（必须最先执行）    │
                         │                                       │
                         │  6 个子Agent 并行分析 6 个维度：        │
-                        │  techstack · data · infra             │
-                        │  security · api-design                │
+│  techstack · data · infra             │
+│  security · api-design · ui-ux        │
                         │                                       │
                         │  产出：architecture-design.md          │
                         │       + 6 份维度分析文档               │
@@ -105,63 +105,71 @@ architecture/ ──▶  ┌─ backend/  ─┐    │    前后端联调
 
 | Agent | 角色 | 产出 |
 |-------|------|------|
-| `fa-techstack` | 技术栈评估 | `tech-stack.md` |
-| `fa-data` | 数据架构设计 | `data-architecture.md` |
-| `fa-infra` | 基础设施架构 | `infra-architecture.md` |
-| `fa-security` | 安全架构设计 | `security-architecture.md` |
-| `fa-api-design` | API 契约设计 | `api-contract.md` |
+| `fa_techstack` | 技术栈评估 | `tech-stack.md` |
+| `fa_data` | 数据架构设计 | `data-architecture.md` |
+| `fa_infra` | 基础设施架构 | `infra-architecture.md` |
+| `fa_security` | 安全架构设计 | `security-architecture.md` |
+| `fa_api_design` | API 契约设计 | `api-contract.md` |
+| `fa-ui-ux` | UI/UX 架构设计 | `ui-ux-architecture.md` |
 
 ### backend/ — 5 个 Agent
 
 | Agent | 角色 | 测试维度 |
 |-------|------|---------|
-| `be-planner` | 项目规划与脚手架 | — |
-| `be-api-dev` | 接口开发 | — |
-| `be-tester-functional` | 功能测试 | 业务逻辑正确性 |
-| `be-tester-performance` | 性能测试 | N+1查询/索引/缓存/超时 |
-| `be-tester-security` | 安全测试 | 注入/鉴权/加密/信息泄露 |
+| `be_planner` | 项目规划与脚手架 | — |
+| `be_api_dev` | 接口开发 | — |
+| `be_tester_functional` | 功能测试 | 业务逻辑正确性 |
+| `be_tester_performance` | 性能测试 | N+1查询/索引/缓存/超时 |
+| `be_tester_security` | 安全测试 | 注入/鉴权/加密/信息泄露 |
 
 ### frontend/ — 5 个 Agent
 
 | Agent | 角色 | 测试维度 |
 |-------|------|---------|
-| `dg-vue-planner` | 项目规划与脚手架 | — |
-| `dg-frontend-vue-dev` | 组件开发 | — |
-| `dg-vue-tester-component` | 组件结构测试 | Props/Emits/生命周期/组件树 |
-| `dg-vue-tester-logic` | 逻辑测试 | 响应式/Store/异步/类型安全 |
-| `dg-vue-tester-style` | 样式测试 | CSS作用域/响应式/无障碍/交互态 |
+| `dg_vue_planner` | 项目规划与脚手架 | — |
+| `dg_frontend_vue_dev` | 组件开发 | — |
+| `dg_vue_tester_component` | 组件结构测试 | Props/Emits/生命周期/组件树 |
+| `dg_vue_tester_logic` | 逻辑测试 | 响应式/Store/异步/类型安全 |
+| `dg_vue_tester_style` | 样式测试 | CSS作用域/响应式/无障碍/交互态 |
 
 ### fullstack/ — 5 个 Agent
 
 | Agent | 角色 | 测试维度 |
 |-------|------|---------|
-| `fs-planner` | 集成规划与基础设施 | — |
-| `fs-api-dev` | 接口对接开发 | — |
-| `fs-tester-contract` | 契约测试 | 类型定义/字段名/请求响应结构一致性 |
-| `fs-tester-dataflow` | 数据流测试 | loading/error/data三态/状态链路 |
-| `fs-tester-integration` | 集成测试 | CORS/鉴权流通/路由挂载/错误穿透 |
+| `fs_planner` | 集成规划与基础设施 | — |
+| `fs_api_dev` | 接口对接开发 | — |
+| `fs_tester_contract` | 契约测试 | 类型定义/字段名/请求响应结构一致性 |
+| `fs_tester_dataflow` | 数据流测试 | loading/error/data三态/状态链路 |
+| `fs_tester_integration` | 集成测试 | CORS/鉴权流通/路由挂载/错误穿透 |
 
 ### flutter/ — 5 个 Agent
 
 | Agent | 角色 | 测试维度 |
 |-------|------|---------|
-| `dg-flutter-planner` | 项目规划与工程化 | — |
-| `dg-flutter-dev` | 跨平台 Widget 开发 | — |
-| `dg-flutter-tester-crossplatform` | 跨端兼容测试 | Platform API / 自适应 / Web / 桌面 |
-| `dg-flutter-tester-logic` | 逻辑测试 | Riverpod / 异步 / 数据流 |
-| `dg-flutter-tester-style` | 样式测试 | Material 3 / 响应式 / 无障碍 |
+| `dg_flutter_planner` | 项目规划与工程化 | — |
+| `dg_flutter_dev` | 跨平台 Widget 开发 | — |
+| `dg_flutter_tester_crossplatform` | 跨端兼容测试 | Platform API / 自适应 / Web / 桌面 |
+| `dg_flutter_tester_logic` | 逻辑测试 | Riverpod / 异步 / 数据流 |
+| `dg_flutter_tester_style` | 样式测试 | Material 3 / 响应式 / 无障碍 |
 
 ### blockchain/ — 5 个 Agent
 
 | Agent | 角色 | 测试维度 |
 |-------|------|---------|
-| `bc-planner` | 合约项目规划与工程化 | — |
-| `bc-solidity-dev` | Solidity 智能合约开发 | — |
-| `bc-tester-functional` | 功能测试 | 业务逻辑 / 状态转移 / 事件完整性 |
-| `bc-tester-security` | 安全测试 | 重入 / 溢出 / 权限 / tx.origin / 签名 |
-| `bc-tester-gas` | 燃耗测试 | 存储布局 / 循环优化 / 数据类型 / Gas 估算 |
+| `bc_planner` | 合约项目规划与工程化 | — |
+| `bc_solidity_dev` | Solidity 智能合约开发 | — |
+| `bc_tester_functional` | 功能测试 | 业务逻辑 / 状态转移 / 事件完整性 |
+| `bc_tester_security` | 安全测试 | 重入 / 溢出 / 权限 / tx.origin / 签名 |
+| `bc_tester_gas` | 燃耗测试 | 存储布局 / 循环优化 / 数据类型 / Gas 估算 |
 
 ### deploy/ — 3 个 Agent
+
+| Agent | 角色 | 产出 |
+|-------|------|------|
+| `deploy_planner` | 部署计划制定 | `deploy-plan.md` |
+| `deploy_infra` | 基础设施部署 | `docker-compose.yml`, `k8s/` |
+| `deploy_verifier` | 部署验证 | `deploy-verification-report.md` |
+
 
 ## 各领域内部工作流程
 

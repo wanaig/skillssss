@@ -194,9 +194,9 @@ Step 3: Write dev-plan.md（开发计划，小文件）
 Step 4: Bash 创建项目脚手架 + 目录结构
 Step 5: Bash 安装依赖
 Step 6: Write lessons-learned.md
-Step 7: Write design-guide.md（前3-4个模块）
-Step 8: Edit design-guide.md（追加第4-7个模块）
-Step 9: Edit design-guide.md（追加第8-11个模块）
+Step 7: Write design-guide.md（前4个模块）
+Step 8: Edit design-guide.md（追加第5-8个模块）
+Step 9: Edit design-guide.md（追加第9-12个模块）
 ... 每批3-4个模块，直到全部完成
 最后一步: 返回文件路径列表
 ```

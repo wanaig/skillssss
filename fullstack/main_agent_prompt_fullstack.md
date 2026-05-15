@@ -166,7 +166,7 @@ skill(name: "fs_api_dev")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "对接任务：{接口1} ({描述}), {接口2} ({描述}), ...\nintegration-plan: {FRONTEND_ROOT}/integration-plan.md\nintegration-design-guide: {FRONTEND_ROOT}/integration-design-guide.md\nlessons-learned: {FRONTEND_ROOT}/lessons-learned.md\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nFlutter 项目根目录：{FLUTTER_ROOT}（如无则标记 N/A）\n区块链项目根目录：{BLOCKCHAIN_ROOT}（如无则标记 N/A）\n区块链合约 ABI 目录：{BLOCKCHAIN_ABI_DIR}（如无则标记 N/A）\nAPI 契约文档：{CONTRACT_FILE}\n\n请按顺序逐接口对接，确保前端类型定义、请求参数与后端响应格式完全一致。"
+  prompt: "对接任务：{接口1} ({描述}), {接口2} ({描述}), ...\nintegration-plan: {FRONTEND_ROOT}/integration-plan.md\nintegration-design-guide: {FRONTEND_ROOT}/integration-design-guide.md\nfullstack-lessons-learned: {FRONTEND_ROOT}/fullstack-lessons-learned.md\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nFlutter 项目根目录：{FLUTTER_ROOT}（如无则标记 N/A）\n区块链项目根目录：{BLOCKCHAIN_ROOT}（如无则标记 N/A）\n区块链合约 ABI 目录：{BLOCKCHAIN_ABI_DIR}（如无则标记 N/A）\nAPI 契约文档：{CONTRACT_FILE}\n\n请按顺序逐接口对接，确保前端类型定义、请求参数与后端响应格式完全一致。"
 )
 ```
 

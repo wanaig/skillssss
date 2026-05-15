@@ -163,7 +163,7 @@ FAIL时：
 **⚠️ 主Agent只读取 JSON 文件的 `verdict` 字段判定 PASS/FAIL，不读取 markdown 报告。你的 JSON 输出必须精确。**
 
 
-### 5. 运行时验证（可选增强）
+### 6. 运行时验证（可选增强）
 
 如果项目中存在 `docker-compose.test.yml`（由 be_planner 创建），可启动测试环境进行实际 API 调用验证，补充静态分析的不足：
 

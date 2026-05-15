@@ -90,6 +90,7 @@ REQUIREMENT_FILE
 TECH_STACK_FILE={ARCH_ROOT}\tech-stack.md
 CONTRACT_FILE={ARCH_ROOT}\api-contract.md
 SECURITY_FILE={ARCH_ROOT}\security-architecture.md
+UI_UX_FILE={ARCH_ROOT}\ui-ux-architecture.md
 IMPLEMENTATION_ROADMAP_FILE={ARCH_ROOT}\implementation-roadmap.md
 BATCH_SIZE=1
 ```
@@ -119,6 +120,7 @@ REQUIREMENT_FILE
 TECH_STACK_FILE={ARCH_ROOT}\tech-stack.md
 CONTRACT_FILE={ARCH_ROOT}\api-contract.md
 SECURITY_FILE={ARCH_ROOT}\security-architecture.md
+UI_UX_FILE={ARCH_ROOT}\ui-ux-architecture.md
 IMPLEMENTATION_ROADMAP_FILE={ARCH_ROOT}\implementation-roadmap.md
 BATCH_SIZE=1
 ```
@@ -149,9 +151,12 @@ FRONTEND_ROOT
 BACKEND_ROOT
 FLUTTER_ROOT={可选}
 BLOCKCHAIN_ROOT={可选}
+UI_UX_FILE={ARCH_ROOT}\ui-ux-architecture.md
 CONTRACT_FILE={ARCH_ROOT}\api-contract.md
 TECH_STACK_FILE={ARCH_ROOT}\tech-stack.md
 DATA_ARCHITECTURE_FILE={ARCH_ROOT}\data-architecture.md
+INFRA_FILE={ARCH_ROOT}\infra-architecture.md
+SECURITY_FILE={ARCH_ROOT}\security-architecture.md
 IMPLEMENTATION_ROADMAP_FILE={ARCH_ROOT}\implementation-roadmap.md
 BATCH_SIZE=1
 ```
@@ -167,6 +172,8 @@ SECURITY_FILE={ARCH_ROOT}\security-architecture.md
 IMPLEMENTATION_ROADMAP_FILE={ARCH_ROOT}\implementation-roadmap.md
 FRONTEND_ROOT
 BACKEND_ROOT
+FLUTTER_ROOT={可选}
+BLOCKCHAIN_ROOT={可选}
 DEPLOY_ROOT
 ```
 

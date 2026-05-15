@@ -283,7 +283,7 @@ Step 2: Write dev-plan.md（开发计划，小文件）
 Step 3: Bash mkdir 创建项目包结构
 Step 4: Write 基础配置文件（pom.xml / application.yml / 启动类 / 异常处理 / 统一响应 / JWT工具）
 Step 5: Write lessons-learned.md
-Step 6: Write api-design-guide.md（前3-4个接口）
+Step 6: Write api-design-guide.md（前4个接口）
 Step 7: Edit api-design-guide.md（追加第5-8个接口）
 Step 8: Edit api-design-guide.md（追加第9-12个接口）
 ... 每批3-4个接口，直到全部完成

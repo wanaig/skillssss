@@ -157,8 +157,8 @@ FAIL时：
       "category": "{维度类别}",
       "file": "src/views/UserList.vue",
       "line": 15,
-      "reason": "缺少邮箱格式验证，可接受任意字符",
-      "suggestion": "添加邮箱正则验证"
+      "reason": "组件树中未声明父组件传递的必要 Props",
+      "suggestion": "在父组件模板中添加缺失的 Props 绑定"
     }
   ]
 }

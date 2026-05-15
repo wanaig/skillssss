@@ -150,8 +150,8 @@ FAIL时：
       "category": "{维度类别}",
       "file": "lib/screens/user_list_screen.dart",
       "line": 15,
-      "reason": "缺少邮箱格式验证，可接受任意字符串",
-      "suggestion": "添加邮箱正则验证"
+      "reason": "widget 未遵循 Material 3 Design Token 颜色规范",
+      "suggestion": "使用 Theme.of(context).colorScheme 替代硬编码颜色"
     }
   ]
 }

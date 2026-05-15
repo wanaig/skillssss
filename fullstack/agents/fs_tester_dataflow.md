@@ -251,8 +251,8 @@ FAIL时：
       "category": "{维度类别}",
       "file": "src/stores/user.ts",
       "line": 15,
-      "reason": "缺少邮箱格式验证，可接受任意字符串",
-      "suggestion": "添加邮箱正则验证"
+      "reason": "API 调用未设置 loading 状态",
+      "suggestion": "在 try 前设置 loading=true，在 finally 中重置"
     }
   ]
 }
@@ -273,21 +273,21 @@ FAIL时：
 
 **优先：jq**（如环境有 jq）：
 ```bash
-mkdir -p {项目根目录}/fullstack-agent-registry
+mkdir -p {项目根目录}/agent-registry
 echo '{"id":"YOUR_AGENT_ID","type":"fs_tester_dataflow","updated":"CURRENT_TIME"}' > {项目根目录}/agent-registry/fullstack_dataflow.json
 ```
 
 **否则：Python**（jq 不可用时）：
 ```python
 import json, os
-os.makedirs("{项目根目录}/fullstack-agent-registry", exist_ok=True)
+os.makedirs("{项目根目录}/agent-registry", exist_ok=True)
 with open("{项目根目录}/agent-registry/fullstack_dataflow.json", "w") as f:
     json.dump({"id":"YOUR_AGENT_ID","type":"fs_tester_dataflow","updated":"CURRENT_TIME"}, f)
 ```
 
 **否则直接 echo**（最后手段）：
 ```bash
-mkdir -p {项目根目录}/fullstack-agent-registry && echo "YOUR_AGENT_ID" > {项目根目录}/fullstack-agent-registry/test_dataflow.id
+mkdir -p {项目根目录}/agent-registry && echo '{"id":"YOUR_AGENT_ID","type":"fs_tester_dataflow","updated":"CURRENT_TIME"}' > {项目根目录}/agent-registry/fullstack_dataflow.json
 ```
 
 **经验贡献**：

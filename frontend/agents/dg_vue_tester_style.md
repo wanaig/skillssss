@@ -183,8 +183,8 @@ FAIL时：
       "category": "{维度类别}",
       "file": "src/views/UserList.vue",
       "line": 15,
-      "reason": "缺少邮箱格式验证，可接受任意字符",
-      "suggestion": "添加邮箱正则验证"
+      "reason": "组件在移动端断点下布局未调整为单列",
+      "suggestion": "添加媒体查询或使用响应式栅格"
     }
   ]
 }

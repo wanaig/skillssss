@@ -348,7 +348,7 @@ echo '{"id":"{你的Agent ID}","type":"fs_api_dev","updated":"{时间戳}"}' > {
 简短确认：
 
 ```
-修正完成，已更新 lessons-learned.md
+修正完成，已更新 fullstack-lessons-learned.md
 ```
 
 **不返回修改内容**，保持主Agent上下文整洁。

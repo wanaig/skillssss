@@ -314,8 +314,8 @@ FAIL时：
       "category": "{维度类别}",
       "file": "vite.config.ts",
       "line": 15,
-      "reason": "缺少邮箱格式验证，可接受任意字符串",
-      "suggestion": "添加邮箱正则验证"
+      "reason": "CORS 配置缺少前端开发地址",
+      "suggestion": "在 CORS origin 列表中添加前端地址"
     }
   ]
 }
@@ -336,21 +336,21 @@ FAIL时：
 
 **优先：jq**（如环境有 jq）：
 ```bash
-mkdir -p {项目根目录}/fullstack-agent-registry
+mkdir -p {项目根目录}/agent-registry
 echo '{"id":"YOUR_AGENT_ID","type":"fs_tester_integration","updated":"CURRENT_TIME"}' > {项目根目录}/agent-registry/fullstack_integration.json
 ```
 
 **否则：Python**（jq 不可用时）：
 ```python
 import json, os
-os.makedirs("{项目根目录}/fullstack-agent-registry", exist_ok=True)
+os.makedirs("{项目根目录}/agent-registry", exist_ok=True)
 with open("{项目根目录}/agent-registry/fullstack_integration.json", "w") as f:
     json.dump({"id":"YOUR_AGENT_ID","type":"fs_tester_integration","updated":"CURRENT_TIME"}, f)
 ```
 
 **否则直接 echo**（最后手段）：
 ```bash
-mkdir -p {项目根目录}/fullstack-agent-registry && echo "YOUR_AGENT_ID" > {项目根目录}/fullstack-agent-registry/test_integration.id
+mkdir -p {项目根目录}/agent-registry && echo '{"id":"YOUR_AGENT_ID","type":"fs_tester_integration","updated":"CURRENT_TIME"}' > {项目根目录}/agent-registry/fullstack_integration.json
 ```
 
 **经验贡献**：

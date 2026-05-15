@@ -349,9 +349,9 @@ Step 7: Write src/types/api.ts（共享类型定义）
 Step 8: Write src/api/request.ts（请求封装）
 Step 9: Edit/Write vite.config.ts（代理配置）
 Step 10: Write fullstack-lessons-learned.md（经验库初始文件）
-Step 11: Write integration-design-guide.md（前3-4个模块）
-Step 12: Edit integration-design-guide.md（追加第4-7个模块）
-Step 13: Edit integration-design-guide.md（追加第8-11个模块）
+Step 11: Write integration-design-guide.md（前4个模块）
+Step 12: Edit integration-design-guide.md（追加第5-8个模块）
+Step 13: Edit integration-design-guide.md（追加第9-12个模块）
 ... 每批3-4个模块，直到全部完成
 最后一步：返回文件路径列表
 ```

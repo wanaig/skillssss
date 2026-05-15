@@ -212,8 +212,8 @@ FAIL时：
       "category": "{维度类别}",
       "file": "src/api/user.ts",
       "line": 15,
-      "reason": "缺少邮箱格式验证，可接受任意字符串",
-      "suggestion": "添加邮箱正则验证"
+      "reason": "前端类型字段与契约响应字段不对应",
+      "suggestion": "对齐前后端字段命名和类型"
     }
   ]
 }
@@ -234,21 +234,21 @@ FAIL时：
 
 **优先：jq**（如环境有 jq）：
 ```bash
-mkdir -p {项目根目录}/fullstack-agent-registry
+mkdir -p {项目根目录}/agent-registry
 echo '{"id":"YOUR_AGENT_ID","type":"fs_tester_contract","updated":"CURRENT_TIME"}' > {项目根目录}/agent-registry/fullstack_contract.json
 ```
 
 **否则：Python**（jq 不可用时）：
 ```python
 import json, os
-os.makedirs("{项目根目录}/fullstack-agent-registry", exist_ok=True)
+os.makedirs("{项目根目录}/agent-registry", exist_ok=True)
 with open("{项目根目录}/agent-registry/fullstack_contract.json", "w") as f:
     json.dump({"id":"YOUR_AGENT_ID","type":"fs_tester_contract","updated":"CURRENT_TIME"}, f)
 ```
 
 **否则直接 echo**（最后手段）：
 ```bash
-mkdir -p {项目根目录}/fullstack-agent-registry && echo "YOUR_AGENT_ID" > {项目根目录}/fullstack-agent-registry/test_contract.id
+mkdir -p {项目根目录}/agent-registry && echo '{"id":"YOUR_AGENT_ID","type":"fs_tester_contract","updated":"CURRENT_TIME"}' > {项目根目录}/agent-registry/fullstack_contract.json
 ```
 
 **经验贡献**：

@@ -150,8 +150,8 @@ FAIL时：
       "category": "{维度类别}",
       "file": "lib/providers/user_provider.dart",
       "line": 15,
-      "reason": "缺少邮箱格式验证，可接受任意字符串",
-      "suggestion": "添加邮箱正则验证"
+      "reason": "Riverpod provider 中异步调用未处理 loading 状态",
+      "suggestion": "使用 AsyncValue 或自定义 loading ref 管理状态"
     }
   ]
 }

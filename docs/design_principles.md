@@ -225,12 +225,12 @@ Phase Last: 整体集成测试
 
 | 前缀 | 领域 | 示例 |
 |------|------|------|
-| `fa-` | 全栈架构设计 (Fullstack Architecture) | `fa-techstack`, `fa-data` |
-| `be-` | 后端 (Backend) | `be-planner`, `be-api-dev`, `be-tester-functional` |
-| `dg-` | 设计/开发 (Design/Dev Group) | `dg-vue-planner`, `dg-frontend-vue-dev`, `dg-vue-tester-component` |
-| `fs-` | 全栈联调 | `fs-planner`, `fs-api-dev`, `fs-tester-contract` |
-| `dg-flutter-` | Flutter 跨端 | `dg-flutter-planner`, `dg-flutter-dev`, `dg-flutter-tester-crossplatform` |
-| `bc-` | 区块链合约 (Blockchain Contract) | `bc-planner`, `bc-solidity-dev`, `bc-tester-functional` |
+| `fa_` | 全栈架构设计 (Fullstack Architecture) | `fa_techstack`, `fa_data` |
+| `be_` | 后端 (Backend) | `be_planner`, `be_api_dev`, `be_tester_functional` |
+| `dg_` | 设计/开发 (Design/Dev Group) | `dg_vue_planner`, `dg_frontend_vue_dev`, `dg_vue_tester_component` |
+| `fs_` | 全栈联调 | `fs_planner`, `fs_api_dev`, `fs_tester_contract` |
+| `dg_flutter_` | Flutter 跨端 | `dg_flutter_planner`, `dg_flutter_dev`, `dg_flutter_tester_crossplatform` |
+| `bc_` | 区块链合约 (Blockchain Contract) | `bc_planner`, `bc_solidity_dev`, `bc_tester_functional` |
 
 ---
 
