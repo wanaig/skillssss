@@ -71,8 +71,8 @@ Correction loops must resume the same sub-agent, not start new ones. This depend
 **Master Agent responsibilities**:
 1. Create `{PROJECT_ROOT}/agent-registry/` directory during initialization
 2. After sub-agent completes, read the corresponding file to get Agent ID:
-```bash
-cat {PROJECT_ROOT}/agent-registry/blockchain_dev.json | jq -r '.id // empty'
+```text
+使用 Read 或 Grep 工具读取 {PROJECT_ROOT}/agent-registry/blockchain_dev.json 提取 id
 ```
 If `jq` is unavailable, use Grep to extract.
 
@@ -151,19 +151,19 @@ skill(name: "bc_tester_functional")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "功能测试：{本批所有合约列表，逗号分隔}\n待测项目：{PROJECT_ROOT}\ncontract-design-guide: {PROJECT_ROOT}/contract-design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {合约名}-functional-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。"
+  prompt: "功能测试：{本批所有合约列表，逗号分隔}\n待测项目：{PROJECT_ROOT}\ncontract-design-guide: {PROJECT_ROOT}/contract-design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {合约名}-functional-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
 
 skill(name: "bc_tester_security")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "安全测试：{本批所有合约列表，逗号分隔}\n待测项目：{PROJECT_ROOT}\ncontract-design-guide: {PROJECT_ROOT}/contract-design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {合约名}-security-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。"
+  prompt: "安全测试：{本批所有合约列表，逗号分隔}\n待测项目：{PROJECT_ROOT}\ncontract-design-guide: {PROJECT_ROOT}/contract-design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {合约名}-security-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
 
 skill(name: "bc_tester_gas")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "燃耗测试：{本批所有合约列表，逗号分隔}\n待测项目：{PROJECT_ROOT}\ncontract-design-guide: {PROJECT_ROOT}/contract-design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {合约名}-gas-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。"
+  prompt: "燃耗测试：{本批所有合约列表，逗号分隔}\n待测项目：{PROJECT_ROOT}\ncontract-design-guide: {PROJECT_ROOT}/contract-design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {合约名}-gas-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
 ```
 
 > **Concurrency limit = 3**: Regardless of batch size, testing always has only 3 agents running in parallel.

@@ -112,10 +112,10 @@ Grep(pattern="并发|性能|响应|SLA|延迟|concurrency|performance|latency|QP
 **主Agent的职责**：
 1. 初始化时创建 `{PROJECT_ROOT}/agent-registry/` 目录
 2. 子Agent 完成后，读取对应文件获取 ID：
-```bash
-cat {PROJECT_ROOT}/agent-registry/fa_techstack.json | jq -r '.id // empty'
+```text
+使用 Read 或 Grep 工具读取 {PROJECT_ROOT}/agent-registry/fa_techstack.json 提取 id
 ```
-如果 `jq` 不可用，用 Grep 提取
+获取到 ID 后，必须记录在日志中。
 
 **子Agent的职责**：
 - 完成后将 Agent ID 写入 `{PROJECT_ROOT}/agent-registry/{key}.json`
@@ -144,37 +144,37 @@ skill(name: "fa_techstack")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 tech-stack.md 初稿。要求：每个技术选型必须列出备选方案对比（至少 2 个备选），给出推荐理由和取舍。完成后只返回文件路径。"
+  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 tech-stack.md 初稿。要求：每个技术选型必须列出备选方案对比（至少 2 个备选），给出推荐理由和取舍。完成后只返回文件路径。")
 
 skill(name: "fa_data")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 data-architecture.md 初稿。\n\n精度要求（非建议，必须产出）：\n1. 每个实体列出完整字段清单（字段名、类型、约束、默认值、注释）\n2. 索引策略（主键/唯一/普通/联合索引，含索引选择理由）\n3. 分库分表策略（如需要）\n4. 迁移脚本模板（liquibase/flyway 格式）\n5. 存储策略（主库/缓存/对象存储/搜索引擎，含 Key 设计/TTL/一致性策略）\n6. 完整实体关系图\n完成后只返回文件路径。"
+  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 data-architecture.md 初稿。\n\n精度要求（非建议，必须产出）：\n1. 每个实体列出完整字段清单（字段名、类型、约束、默认值、注释）\n2. 索引策略（主键/唯一/普通/联合索引，含索引选择理由）\n3. 分库分表策略（如需要）\n4. 迁移脚本模板（liquibase/flyway 格式）\n5. 存储策略（主库/缓存/对象存储/搜索引擎，含 Key 设计/TTL/一致性策略）\n6. 完整实体关系图\n完成后只返回文件路径。")
 
 skill(name: "fa_infra")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 infra-architecture.md 初稿。\n\n精度要求：\n1. 部署拓扑图（节点/网络/存储）\n2. CI/CD 流水线设计（含阶段定义和触发条件）\n3. 环境规划（dev/staging/prod 完整配置矩阵）\n4. docker-compose.yml 骨架（服务/端口/卷/网络定义）\n5. 监控和日志方案（指标/告警规则/日志收集）\n6. 容量规划（CPU/内存/存储/带宽估算）\n完成后只返回文件路径。"
+  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 infra-architecture.md 初稿。\n\n精度要求：\n1. 部署拓扑图（节点/网络/存储）\n2. CI/CD 流水线设计（含阶段定义和触发条件）\n3. 环境规划（dev/staging/prod 完整配置矩阵）\n4. docker-compose.yml 骨架（服务/端口/卷/网络定义）\n5. 监控和日志方案（指标/告警规则/日志收集）\n6. 容量规划（CPU/内存/存储/带宽估算）\n完成后只返回文件路径。")
 
 skill(name: "fa_security")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 security-architecture.md 初稿。要求：包含威胁建模、认证授权方案、数据安全策略、安全审计设计。完成后只返回文件路径。"
+  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 security-architecture.md 初稿。要求：包含威胁建模、认证授权方案、数据安全策略、安全审计设计。完成后只返回文件路径。")
 
 skill(name: "fa_api_design")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 api-contract.md 初稿。\n\n精度要求（非建议，必须产出）：\n1. 每个端点：Method + Path + 请求字段（名/类型/必填/校验规则/示例值）\n2. 每个端点：响应字段（名/类型/含义/示例值）、错误码（HTTP状态码+业务码+message）\n3. 枚举字段列出全部合法值\n4. DTO/Entity 映射对照（API 字段 ↔ 数据库字段）\n5. 认证/鉴权要求标注（每个端点标注需要的角色/权限）\n6. 分页/排序/筛选参数规范化\n7. OpenAPI 3.0 YAML 骨架（info/paths/components 三节点完整）\n完成后只返回文件路径。"
+  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 api-contract.md 初稿。\n\n精度要求（非建议，必须产出）：\n1. 每个端点：Method + Path + 请求字段（名/类型/必填/校验规则/示例值）\n2. 每个端点：响应字段（名/类型/含义/示例值）、错误码（HTTP状态码+业务码+message）\n3. 枚举字段列出全部合法值\n4. DTO/Entity 映射对照（API 字段 ↔ 数据库字段）\n5. 认证/鉴权要求标注（每个端点标注需要的角色/权限）\n6. 分页/排序/筛选参数规范化\n7. OpenAPI 3.0 YAML 骨架（info/paths/components 三节点完整）\n完成后只返回文件路径。")
 
 skill(name: "fa-ui-ux")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 ui-ux-architecture.md 初稿。\n\n精度要求（非建议，必须产出）：\n1. 完整页面/路由树（页面名、路由路径、页面组件、权限要求）\n2. 组件树架构（Layout → Page → Section → Component 层级，标明可复用组件）\n3. 页面布局规格（每页面列出板块分区、响应式断点策略）\n4. 设计 Token（颜色/字体/间距/圆角/阴影 规范表）\n5. 页面状态覆盖（每页面列出 loading/empty/error/edge-case 态）\n6. 交互流图（核心用户旅程的页面跳转流程图）\n7. API-页面映射表（每页面列出调用的 API 端点）\n完成后只返回文件路径。"
+  prompt: "阶段：初稿 v1\n需求文件：{REQUIREMENT_FILE}\n输出目录：{PROJECT_ROOT}\n\n## 项目约束\n{团队技能/规模/预算/约束等Step 0收集的信息}\n{PRD质量预检风险项，如有}\n\n产出 ui-ux-architecture.md 初稿。\n\n精度要求（非建议，必须产出）：\n1. 完整页面/路由树（页面名、路由路径、页面组件、权限要求）\n2. 组件树架构（Layout → Page → Section → Component 层级，标明可复用组件）\n3. 页面布局规格（每页面列出板块分区、响应式断点策略）\n4. 设计 Token（颜色/字体/间距/圆角/阴影 规范表）\n5. 页面状态覆盖（每页面列出 loading/empty/error/edge-case 态）\n6. 交互流图（核心用户旅程的页面跳转流程图）\n7. API-页面映射表（每页面列出调用的 API 端点）\n完成后只返回文件路径。")
 ```
 
 > **并发 = 6**：6 个分析Agent同时启动，无依赖关系。

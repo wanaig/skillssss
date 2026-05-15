@@ -73,10 +73,10 @@
 **主Agent的职责**：
 1. 初始化时创建 `{PROJECT_ROOT}/agent-registry/` 目录
 2. 子Agent 完成后，读取对应文件获取 Agent ID：
-```bash
-cat {PROJECT_ROOT}/agent-registry/frontend_dev.json | jq -r '.id // empty'
+```text
+使用 Read 或 Grep 工具读取 {PROJECT_ROOT}/agent-registry/frontend_dev.json 提取 id
 ```
-如果 `jq` 不可用，用 Grep 提取
+获取到 ID 后，必须记录在日志中。
 
 **子Agent的职责**：
 - 完成后将 Agent ID 写入 `{PROJECT_ROOT}/agent-registry/{key}.json`
@@ -154,19 +154,19 @@ skill(name: "dg_vue_tester_component")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "组件测试：{本批所有模块列表，逗号分隔}\n项目根目录：{PROJECT_ROOT}\ndesign-guide: {PROJECT_ROOT}/design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {模块}-{dimension}-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。"
+  prompt: "组件测试：{本批所有模块列表，逗号分隔}\n项目根目录：{PROJECT_ROOT}\ndesign-guide: {PROJECT_ROOT}/design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {模块}-{dimension}-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
 
 skill(name: "dg_vue_tester_logic")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "逻辑测试：{本批所有模块列表，逗号分隔}\n项目根目录：{PROJECT_ROOT}\ndesign-guide: {PROJECT_ROOT}/design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {模块}-{dimension}-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。"
+  prompt: "逻辑测试：{本批所有模块列表，逗号分隔}\n项目根目录：{PROJECT_ROOT}\ndesign-guide: {PROJECT_ROOT}/design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {模块}-{dimension}-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
 
 skill(name: "dg_vue_tester_style")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "样式测试：{本批所有模块列表，逗号分隔}\n项目根目录：{PROJECT_ROOT}\ndesign-guide: {PROJECT_ROOT}/design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {模块}-{dimension}-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。"
+  prompt: "样式测试：{本批所有模块列表，逗号分隔}\n项目根目录：{PROJECT_ROOT}\ndesign-guide: {PROJECT_ROOT}/design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {模块}-{dimension}-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
 ```
 
 > **并发上限 = 3**：无论批量大小，测试始终只有 3 个 Agent 并行运行。
@@ -177,24 +177,7 @@ Task(
 
 > **后台Agent完成时**：系统会自动通知，收到通知后立即提取结果并记录日志，不要等三个都完成再处理。
 
-> **超时应对策略**：如果 TaskOutput 超时（300s），**不要**用 Bash ls 或 Read 读取报告内容。读取 JSON 测试报告提取判定。如 jq 不可用，用 Grep 提取 `"verdict"` 字段。报告路径传给修复Agent让它自己读。
-> ```bash
-> # 完整性校验 + 判定提取
-> REPORT="{PROJECT_ROOT}/test-reports/{模块}-{dimension}-report.json"
-> if [ -f "$REPORT" ]; then
->   verdict=$(jq -r ".verdict // empty" "$REPORT" 2>/dev/null)
->   round=$(jq -r ".round // empty" "$REPORT" 2>/dev/null)
->   if [ -z "$verdict" ]; then
->     echo "⚠️ JSON不完整或解析失败，报告路径：$REPORT"
->   elif [ "$round" != "{expected_round}" ]; then
->     echo "⚠️ 报告轮次不匹配（期望{expected_round}轮，实际${round}轮），报告路径：$REPORT"
->   else
->     echo "判定：$verdict"
->   fi
-> else
->   echo "⚠️ 报告文件不存在：$REPORT"
-> fi
-> ```
+> **超时应对策略**：如果 TaskOutput 超时（300s）导致你未能直接收到返回结果，请使用你的 `Read` 或 `Grep` 工具去读取 `test-reports/` 目录下对应的 JSON 报告文件（仅读取 JSON 中的 `verdict` 字段来提取判定）。**严禁使用 Bash 命令去解析文件**，也**不要**读取 markdown 格式的全文报告以免污染上下文。直接将报告路径传给修复 Agent 让它自己读全文。
 
 **日志写入**：
 ```
