@@ -336,12 +336,12 @@ function transformKeys(obj: any): any {
 修改完成后，将你的 Agent ID 写入注册表文件：
 
 ```bash
-echo '{"id":"{你的Agent ID}","type":"fs_api_dev","updated":"{时间戳}"}' > {FRONTEND_ROOT}/agent-registry/fullstack_dev.json
+echo '{"id":"{你的Agent ID}","type":"fs_api_dev","updated":"{时间戳}"}' > {FRONTEND_ROOT}/outputs/agent-registry/fullstack_dev.json
 ```
 
 > 注意：如果你的环境无法直接获取 Agent ID，请在返回消息中包含 `AGENT_ID:{你的ID}`，主Agent 会解析并写入注册表。
 
-**⚠️ 无论何种模式调用（开发/修正），完成后必须将你的 Agent ID 写入 `{FRONTEND_ROOT}/agent-registry/fullstack_dev.json`，格式 `{"id":"{你的ID}","type":"fs_api_dev","updated":"{时间戳}"}`。这是主Agent resume 你的唯一方式。**
+**⚠️ 无论何种模式调用（开发/修正），完成后必须将你的 Agent ID 写入 `{FRONTEND_ROOT}/outputs/agent-registry/fullstack_dev.json`，格式 `{"id":"{你的ID}","type":"fs_api_dev","updated":"{时间戳}"}`。这是主Agent resume 你的唯一方式。**
 
 #### Step 5: 输出
 

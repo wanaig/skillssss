@@ -45,7 +45,7 @@
 ### Step 2: 必读文件（按顺序）
 
 0. **项目现有结构**（增量开发场景）：如果项目目录已存在代码：
-   - 用 Glob 扫描 `{FRONTEND_ROOT}/src/` 和 `{BACKEND_ROOT}/src/` 下的完整目录树
+   - 用 Glob 扫描 `{FRONTEND_ROOT}/project/src/` 和 `{BACKEND_ROOT}/src/` 下的完整目录树
    - 读取 `package.json`（两端）了解已有依赖
    - 用 Grep 搜索已有的路由、store、组件、控制器清单
    - 生成 `existing-architecture-analysis.md`，记录：
@@ -59,7 +59,7 @@
 2. **TECH_STACK_FILE**：确认前端框架/UI库/状态管理，后端框架/ORM/架构模式，共享类型生成方式
 3. **DATA_ARCHITECTURE_FILE**：确认数据实体 Schema，用于校验 API 响应字段与数据库字段的一致性
 4. **IMPLEMENTATION_ROADMAP_FILE**：了解 Phased 实施顺序，据此确定对接优先级和批次划分
-5. **前端项目代码**：用 Glob 了解 `{FRONTEND_ROOT}/src/` 下的目录结构，读 `package.json` 确认依赖
+5. **前端项目代码**：用 Glob 了解 `{FRONTEND_ROOT}/project/src/` 下的目录结构，读 `package.json` 确认依赖
 5. **后端项目代码**：用 Glob 了解 `{BACKEND_ROOT}/src/` 下的目录结构，特别是已有的路由、控制器、中间件
 6. **前端 store 和 views**：搜索已有的 Pinia store 和页面组件，了解前端已有哪些数据消费点
 7. **后端已有接口**：搜索已有的路由定义，了解后端已实现了哪些接口
@@ -170,8 +170,8 @@
 
 **创建前端 API 层目录**：
 ```bash
-mkdir -p {FRONTEND_ROOT}/src/{api,types}  # 如不存在则创建
-mkdir -p {FRONTEND_ROOT}/fullstack-test-reports
+mkdir -p {FRONTEND_ROOT}/project/src/{api,types}  # 如不存在则创建
+# test-reports 目录已由主智能体在 outputs/ 下按 agent 创建
 ```
 
 **创建前端共享类型文件** `src/types/api.ts`：
@@ -300,7 +300,7 @@ async function refreshAccessToken(): Promise<boolean> {
 }
 ```
 
-**配置 Vite 代理**（在 `{FRONTEND_ROOT}/vite.config.ts` 中添加或创建）：
+**配置 Vite 代理**（在 `{FRONTEND_ROOT}/project/vite.config.ts` 中添加或创建）：
 
 ```typescript
 // 如果文件不存在则创建，如果已存在则在 server 配置中添加 proxy
@@ -364,13 +364,13 @@ Step 13: Edit integration-design-guide.md（追加第9-12个模块）
 
 ```
 集成计划完成，产出文件：
-- {FRONTEND_ROOT}/integration-plan.md
-- {FRONTEND_ROOT}/integration-design-guide.md
-- {FRONTEND_ROOT}/fullstack-lessons-learned.md
-- {FRONTEND_ROOT}/src/api/request.ts
-- {FRONTEND_ROOT}/src/types/api.ts
-- {FRONTEND_ROOT}/vite.config.ts（已更新代理配置）
-- {FRONTEND_ROOT}/fullstack-test-reports/（目录已创建）
+- {FRONTEND_ROOT}/outputs/fs_planner/integration-plan.md
+- {FRONTEND_ROOT}/outputs/fs_planner/integration-design-guide.md
+- {FRONTEND_ROOT}/outputs/fs_api_dev/fullstack-lessons-learned.md
+- {FRONTEND_ROOT}/project/src/api/request.ts
+- {FRONTEND_ROOT}/project/src/types/api.ts
+- {FRONTEND_ROOT}/project/vite.config.ts（已更新代理配置）
+- {FRONTEND_ROOT}/outputs/（目录已创建）
 
 共 {N} 个模块对接任务。
 前后端接口状态：{X} 个已匹配 / {Y} 个需调整 / {Z} 个待开发。

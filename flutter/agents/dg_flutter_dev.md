@@ -244,12 +244,12 @@ cd {PROJECT_ROOT} && dart run build_runner build --delete-conflicting-outputs
 修改完成后，将你的 Agent ID 写入注册表文件：
 
 ```bash
-echo '{"id":"{你的Agent ID}","type":"dg_flutter_dev","updated":"{时间戳}"}' > {PROJECT_ROOT}/agent-registry/flutter_dev.json
+echo '{"id":"{你的Agent ID}","type":"dg_flutter_dev","updated":"{时间戳}"}' > {PROJECT_ROOT}/outputs/agent-registry/flutter_dev.json
 ```
 
 > 注意：如果你的环境无法直接获取 Agent ID，请在返回消息中包含 `AGENT_ID:{你的ID}`，主Agent 会解析并写入注册表。
 
-**⚠️ 无论何种模式调用（开发/修正），完成后必须将你的 Agent ID 写入 `{PROJECT_ROOT}/agent-registry/flutter_dev.json`，格式 `{"id":"{你的ID}","type":"dg_flutter_dev","updated":"{时间戳}"}`。这是主Agent resume 你的唯一方式。**
+**⚠️ 无论何种模式调用（开发/修正），完成后必须将你的 Agent ID 写入 `{PROJECT_ROOT}/outputs/agent-registry/flutter_dev.json`，格式 `{"id":"{你的ID}","type":"dg_flutter_dev","updated":"{时间戳}"}`。这是主Agent resume 你的唯一方式。**
 
 #### 5. 输出
 

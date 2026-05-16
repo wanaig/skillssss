@@ -29,14 +29,14 @@
 - 后端项目根目录 `BACKEND_ROOT`
 - API 契约文档路径
 - integration-design-guide.md 路径
-- 测试报告输出目录 `{FRONTEND_ROOT}/fullstack-test-reports/`
+- 测试报告输出目录 `{FRONTEND_ROOT}/outputs/fs_tester_contract/`
 
 ### Step 2: 必读文件（按顺序）
 
 1. **integration-design-guide.md** 中目标模块的 "接口映射" 和 "数据转换要求" 部分
 2. **API 契约文档**：确认端点定义、请求/响应字段、错误码
-3. **前端 API 类型文件**（`{FRONTEND_ROOT}/src/types/{module}.ts` 或 `src/types/api.ts`）
-4. **前端 API 调用文件**（`{FRONTEND_ROOT}/src/api/{module}.ts`）
+3. **前端 API 类型文件**（`{FRONTEND_ROOT}/project/src/types/{module}.ts` 或 `src/types/api.ts`）
+4. **前端 API 调用文件**（`{FRONTEND_ROOT}/project/src/api/{module}.ts`）
 5. **后端接口代码**（`{BACKEND_ROOT}/src/controllers/{module}Controller.js` 和相关 service）
 
 ### Step 3: 契约对比维度
@@ -119,7 +119,7 @@ Grep(pattern="router\.\w+\(|app\.\w+\(") in BACKEND_ROOT/src/routes/
 
 ### Step 5: 测试报告格式
 
-为每个模块输出一份报告到 `{FRONTEND_ROOT}/fullstack-test-reports/{模块名}-contract.md`：
+为每个模块输出一份报告到 `{FRONTEND_ROOT}/outputs/fs_tester_contract/{模块名}-contract.md`：
 
 ```markdown
 ### 判定：PASS

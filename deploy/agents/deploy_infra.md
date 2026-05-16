@@ -268,11 +268,11 @@ echo "=== 部署完成 ==="
 
 ```
 部署基础设施配置完成，产出文件：
-- {DEPLOY_ROOT}/docker-compose.prod.yml
-- {DEPLOY_ROOT}/nginx/nginx.conf
-- {DEPLOY_ROOT}/nginx/conf.d/app.conf
-- {DEPLOY_ROOT}/scripts/migrate.sql
-- {DEPLOY_ROOT}/deploy.sh
+- {DEPLOY_ROOT}/project/docker-compose.prod.yml
+- {DEPLOY_ROOT}/project/nginx/nginx.conf
+- {DEPLOY_ROOT}/project/nginx/conf.d/app.conf
+- {DEPLOY_ROOT}/project/scripts/migrate.sql
+- {DEPLOY_ROOT}/project/deploy.sh
 ```
 
 ## Tags

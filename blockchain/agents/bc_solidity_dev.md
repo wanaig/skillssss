@@ -24,7 +24,7 @@ Confirm the following information (provided by master agent):
 
 ### 2. Read Lessons Learned
 
-**Before starting to code**, if `{PROJECT_ROOT}/lessons-learned.md` exists, must read it first. This contains pitfalls from previous batches.
+**Before starting to code**, if `{PROJECT_ROOT}/outputs/bc_solidity_dev/lessons-learned.md` exists, must read it first. This contains pitfalls from previous batches.
 
 ### 3. Load Design Specifications
 
@@ -173,7 +173,7 @@ This means:
 3. **Compilation failure is a serious issue** — failing to compile means the code has syntax errors, must fix before delivery
 4. **Don't create unnecessary files** — only create contract files themselves, testing is the tester's responsibility
 5. **File paths prefixed with `{PROJECT_ROOT}/`** — use absolute paths to ensure master agent can accurately locate
-6. **Write Agent ID after completion** — write your Agent ID to `{PROJECT_ROOT}/agent-registry/blockchain_dev.json`, format `{"id":"{yourID}","type":"bc_solidity_dev","updated":"{timestamp}"}`. If unable to get ID directly, include `AGENT_ID:{yourID}` in the return message
+6. **Write Agent ID after completion** — write your Agent ID to `{PROJECT_ROOT}/outputs/agent-registry/blockchain_dev.json`, format `{"id":"{yourID}","type":"bc_solidity_dev","updated":"{timestamp}"}`. If unable to get ID directly, include `AGENT_ID:{yourID}` in the return message
 
 ## Tags
 

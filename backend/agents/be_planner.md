@@ -188,11 +188,11 @@ API设计指南。包含**业务设计**和**接口规格**两个区块。业务
 
 ```bash
 # 创建 Spring Boot 项目目录结构（Maven 标准布局）
-mkdir -p {PROJECT_ROOT}/src/main/java/{basePackage}/{controller,service,repository,entity,config,dto,exception,util}
-mkdir -p {PROJECT_ROOT}/src/main/resources
-mkdir -p {PROJECT_ROOT}/src/test/java/{basePackage}
-mkdir -p {PROJECT_ROOT}/docs
-mkdir -p {PROJECT_ROOT}/test-reports
+mkdir -p {PROJECT_ROOT}/project/src/main/java/{basePackage}/{controller,service,repository,entity,config,dto,exception,util}
+mkdir -p {PROJECT_ROOT}/project/src/main/resources
+mkdir -p {PROJECT_ROOT}/project/src/test/java/{basePackage}
+mkdir -p {PROJECT_ROOT}/project/docs
+mkdir -p {PROJECT_ROOT}/project/scripts
 ```
 
 **创建基础配置和代码文件**（Spring Boot 项目）：
@@ -298,13 +298,13 @@ Step 8: Edit api-design-guide.md（追加第9-12个接口）
 
 ```
 计划完成，产出文件：
-- {PROJECT_ROOT}/dev-plan.md
-- {PROJECT_ROOT}/api-design-guide.md
-- {PROJECT_ROOT}/src/（项目基础框架）
-- {PROJECT_ROOT}/lessons-learned.md
-- {PROJECT_ROOT}/test-reports/ (目录已创建)
-- {PROJECT_ROOT}/docker-compose.test.yml
-- {PROJECT_ROOT}/scripts/seed-test-data.sql
+- {PROJECT_ROOT}/outputs/be_planner/dev-plan.md
+- {PROJECT_ROOT}/outputs/be_planner/api-design-guide.md
+- {PROJECT_ROOT}/project/src/（项目基础框架）
+- {PROJECT_ROOT}/outputs/be_api_dev/lessons-learned.md
+- {PROJECT_ROOT}/outputs/（含各 Agent 产出目录）
+- {PROJECT_ROOT}/project/docker-compose.test.yml
+- {PROJECT_ROOT}/project/scripts/seed-test-data.sql
 
 共 {N} 个接口开发任务
 ```

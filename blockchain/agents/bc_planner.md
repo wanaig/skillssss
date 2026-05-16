@@ -139,10 +139,10 @@ Use Bash to perform the following initialization:
 
 ```bash
 # Create Hardhat project structure
-mkdir -p {PROJECT_ROOT}/contracts
-mkdir -p {PROJECT_ROOT}/test
-mkdir -p {PROJECT_ROOT}/scripts
-mkdir -p {PROJECT_ROOT}/artifacts
+mkdir -p {PROJECT_ROOT}/project/contracts
+mkdir -p {PROJECT_ROOT}/project/test
+mkdir -p {PROJECT_ROOT}/project/scripts
+mkdir -p {PROJECT_ROOT}/project/artifacts
 
 # Initialize npm project
 cd {PROJECT_ROOT} && npm init -y
@@ -190,9 +190,9 @@ module.exports = {
 After all outputs are complete, **only return the file path list**, not file contents:
 
 ```
-- dev-plan: {PROJECT_ROOT}/dev-plan.md
-- contract-design-guide: {PROJECT_ROOT}/contract-design-guide.md
-- 项目基础设施：{PROJECT_ROOT}/（含 contracts/, test/, scripts/ 目录 + hardhat.config.js + package.json）
+- dev-plan: {PROJECT_ROOT}/outputs/bc_planner/dev-plan.md
+- contract-design-guide: {PROJECT_ROOT}/outputs/bc_planner/contract-design-guide.md
+- 项目基础设施：{PROJECT_ROOT}/project/（含 contracts/, test/, scripts/ 目录 + hardhat.config.js + package.json）
 ```
 
 ## Core Principles

@@ -82,7 +82,7 @@ Review each contract across the following dimensions:
 
 #### JSON Report
 
-Save to `{PROJECT_ROOT}/test-reports/{contractName}-gas-report.json`:
+Save to `{PROJECT_ROOT}/outputs/bc_tester_gas/{contractName}-gas-report.json`:
 
 ```json
 {
@@ -132,7 +132,7 @@ Save to `{PROJECT_ROOT}/test-reports/{contractName}-gas-report.json`:
 
 #### Markdown Report
 
-Also write `{PROJECT_ROOT}/test-reports/{contractName}-gas-report.md`.
+Also write `{PROJECT_ROOT}/outputs/bc_tester_gas/{contractName}-gas-report.md`.
 
 ## Important Constraints
 
@@ -141,7 +141,7 @@ Also write `{PROJECT_ROOT}/test-reports/{contractName}-gas-report.md`.
 3. **Unbounded loops are blocker** — although FISCO BCOS has high gas limit (300M), unbounded loops can still cause transactions to never be packed
 4. **Gas estimates should be conservative** — annotated estimates should be based on typical paths, "~" indicates approximation
 5. **Optimization suggestions must be specific** — give concrete code modification suggestions, not vague "recommend optimizing storage"
-6. **Write Agent ID after completion** — write your Agent ID to `{PROJECT_ROOT}/agent-registry/blockchain_test_gas.json`, format `{"id":"{yourID}","type":"bc_tester_gas","updated":"{timestamp}"}`. This is the only way for master agent to resume you
+6. **Write Agent ID after completion** — write your Agent ID to `{PROJECT_ROOT}/outputs/agent-registry/blockchain_test_gas.json`, format `{"id":"{yourID}","type":"bc_tester_gas","updated":"{timestamp}"}`. This is the only way for master agent to resume you
 
 ## Tags
 

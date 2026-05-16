@@ -35,9 +35,9 @@
 3. **DEPLOY_CHECKLIST_FILE** — 逐项对照检查
 4. **INFRA_FILE** — 确认中间件、监控、扩缩容配置是否落实
 5. **SECURITY_FILE** — 确认安全要求是否在部署配置中体现
-6. **{DEPLOY_ROOT}/docker-compose.prod.yml** — 审查 Docker 配置
-7. **{DEPLOY_ROOT}/nginx/nginx.conf + conf.d/*.conf** — 审查反向代理配置
-8. **{DEPLOY_ROOT}/deploy.sh** — 审查部署脚本逻辑
+6. **{DEPLOY_ROOT}/project/docker-compose.prod.yml** — 审查 Docker 配置
+7. **{DEPLOY_ROOT}/project/nginx/nginx.conf + conf.d/*.conf** — 审查反向代理配置
+8. **{DEPLOY_ROOT}/project/deploy.sh** — 审查部署脚本逻辑
 
 ### Step 3：验证维度
 
@@ -78,7 +78,7 @@
 
 验证报告同时输出 markdown 和 JSON 格式：
 
-**JSON 格式** `{DEPLOY_ROOT}/deploy-verification-report.json`：
+**JSON 格式** `{DEPLOY_ROOT}/outputs/deploy_verifier/deploy-verification-report.json`：
 
 ```json
 {
@@ -130,7 +130,7 @@
 
 ### Step 5：写 Agent ID
 
-完成后将 Agent ID 写入独立文件 `{DEPLOY_ROOT}/agent-registry/deploy_verifier.json`
+完成后将 Agent ID 写入独立文件 `{DEPLOY_ROOT}/outputs/agent-registry/deploy_verifier.json`
 
 ### Step 6：输出给主Agent
 
@@ -138,7 +138,7 @@
 ```
 部署验证完成
 判定：{PASS / FAIL / WARN}
-报告：{DEPLOY_ROOT}/deploy-verification-report.json
+报告：{DEPLOY_ROOT}/outputs/deploy_verifier/deploy-verification-report.json
 ```
 
 ## Tags

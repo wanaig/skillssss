@@ -230,7 +230,7 @@ User ──N:N──> Role (via UserRole)
 文件写入完成后，返回文件路径给主Agent。不要返回文件内容。
 
 同时，将本Agent的元信息写入 Agent Registry：
-- 文件路径：`{PROJECT_ROOT}/agent-registry/fa_data.json`
+- 文件路径：`{PROJECT_ROOT}/outputs/agent-registry/fa_data.json`
 - 内容格式：
 
 ```json

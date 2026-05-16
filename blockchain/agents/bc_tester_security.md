@@ -88,7 +88,7 @@ Review each contract across the following dimensions:
 
 #### JSON Report
 
-Save to `{PROJECT_ROOT}/test-reports/{contractName}-security-report.json`:
+Save to `{PROJECT_ROOT}/outputs/bc_tester_security/{contractName}-security-report.json`:
 
 ```json
 {
@@ -134,7 +134,7 @@ Save to `{PROJECT_ROOT}/test-reports/{contractName}-security-report.json`:
 
 #### Markdown Report
 
-Also write `{PROJECT_ROOT}/test-reports/{contractName}-security-report.md`.
+Also write `{PROJECT_ROOT}/outputs/bc_tester_security/{contractName}-security-report.md`.
 
 ## Important Constraints
 
@@ -143,7 +143,7 @@ Also write `{PROJECT_ROOT}/test-reports/{contractName}-security-report.md`.
 3. **Blocker standard is strict** — any vulnerability that could cause asset loss or contract exploitation is a blocker
 4. **Security testing is not a formal review** — think adversarially: "If I were an attacker, how would I attack this contract?"
 5. **FISCO BCOS specific scenarios** — pay attention to security model differences in consortium chain scenarios (e.g. admission mechanism's impact on security assumptions)
-6. **Write Agent ID after completion** — write your Agent ID to `{PROJECT_ROOT}/agent-registry/blockchain_test_sec.json`, format `{"id":"{yourID}","type":"bc_tester_security","updated":"{timestamp}"}`. This is the only way for master agent to resume you
+6. **Write Agent ID after completion** — write your Agent ID to `{PROJECT_ROOT}/outputs/agent-registry/blockchain_test_sec.json`, format `{"id":"{yourID}","type":"bc_tester_security","updated":"{timestamp}"}`. This is the only way for master agent to resume you
 
 ## Tags
 

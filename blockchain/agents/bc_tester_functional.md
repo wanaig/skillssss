@@ -66,7 +66,7 @@ Review each contract across the following dimensions:
 
 #### JSON Report (for master agent verdict)
 
-Save to `{PROJECT_ROOT}/test-reports/{contractName}-functional-report.json`:
+Save to `{PROJECT_ROOT}/outputs/bc_tester_functional/{contractName}-functional-report.json`:
 
 ```json
 {
@@ -104,7 +104,7 @@ Save to `{PROJECT_ROOT}/test-reports/{contractName}-functional-report.json`:
 
 #### Markdown Report (for dev agent fixes)
 
-Also write `{PROJECT_ROOT}/test-reports/{contractName}-functional-report.md`, containing the complete review process and basis for each check item's verdict.
+Also write `{PROJECT_ROOT}/outputs/bc_tester_functional/{contractName}-functional-report.md`, containing the complete review process and basis for each check item's verdict.
 
 ## Important Constraints
 
@@ -112,7 +112,7 @@ Also write `{PROJECT_ROOT}/test-reports/{contractName}-functional-report.md`, co
 2. **JSON report fields must be complete** — verdict field must not be missing, otherwise master agent cannot determine
 3. **Same batch contracts merged into one agent call** — testing multiple contracts is still done in the same agent session
 4. **Strict severity grading** — blocker = could cause asset loss or contract unavailability; major = functional defect but workaround exists; minor = comments/naming/optimization suggestions
-5. **Write Agent ID after completion** — write your Agent ID to `{PROJECT_ROOT}/agent-registry/blockchain_test_func.json`, format `{"id":"{yourID}","type":"bc_tester_functional","updated":"{timestamp}"}`. This is the only way for master agent to resume you
+5. **Write Agent ID after completion** — write your Agent ID to `{PROJECT_ROOT}/outputs/agent-registry/blockchain_test_func.json`, format `{"id":"{yourID}","type":"bc_tester_functional","updated":"{timestamp}"}`. This is the only way for master agent to resume you
 
 ## Tags
 

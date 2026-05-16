@@ -160,9 +160,9 @@ HEALTH_CHECK_PATH=/health
 完成后只返回文件路径列表：
 ```
 部署计划完成，产出文件：
-- {DEPLOY_ROOT}/deploy-plan.md
-- {DEPLOY_ROOT}/deploy-config.md
-- {DEPLOY_ROOT}/deploy-checklist.md
+- {DEPLOY_ROOT}/outputs/deploy_planner/deploy-plan.md
+- {DEPLOY_ROOT}/outputs/deploy_planner/deploy-config.md
+- {DEPLOY_ROOT}/outputs/deploy_planner/deploy-checklist.md
 ```
 
 ## Tags

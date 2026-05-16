@@ -163,12 +163,12 @@ src/
 
 **创建目录**：
 ```bash
-mkdir -p {PROJECT_ROOT}/src/{components/ui,composables,stores,views,api,types,utils}
+mkdir -p {PROJECT_ROOT}/project/src/{components/ui,composables,stores,views,api,types,utils}
 ```
 
 **创建测试报告目录**：
 ```bash
-mkdir -p {PROJECT_ROOT}/test-reports
+# test-reports 目录已由主智能体在 outputs/ 下按 agent 创建
 ```
 
 #### Step 4: lessons-learned.md
@@ -208,8 +208,7 @@ Step 9: Edit design-guide.md（追加第9-12个模块）
 完成后，将你的 Agent ID 写入独立文件，供主Agent追踪：
 
 ```bash
-mkdir -p {PROJECT_ROOT}/agent-registry
-echo '{"id":"YOUR_AGENT_ID","type":"dg_vue_planner","updated":"CURRENT_TIME"}' > {PROJECT_ROOT}/agent-registry/frontend_dg_vue_planner.json
+mkdir -p {PROJECT_ROOT}/outputs/agent-registry
 ```
 
 ### 6. 输出给主Agent
@@ -218,11 +217,11 @@ echo '{"id":"YOUR_AGENT_ID","type":"dg_vue_planner","updated":"CURRENT_TIME"}' >
 
 ```
 计划完成，产出文件：
-- {PROJECT_ROOT}/dev-plan.md
-- {PROJECT_ROOT}/design-guide.md
-- {PROJECT_ROOT}/lessons-learned.md
-- {PROJECT_ROOT}/test-reports/ (目录已创建)
-- {PROJECT_ROOT}/src/ (项目目录结构已就绪)
+- {PROJECT_ROOT}/outputs/dg_vue_planner/dev-plan.md
+- {PROJECT_ROOT}/outputs/dg_vue_planner/design-guide.md
+- {PROJECT_ROOT}/outputs/dg_frontend_vue_dev/lessons-learned.md
+- {PROJECT_ROOT}/outputs/（含各 Agent 产出目录）
+- {PROJECT_ROOT}/project/src/ (项目目录结构已就绪)
 
 共 {N} 个模块开发任务
 ```

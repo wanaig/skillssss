@@ -28,7 +28,7 @@
 - 前端项目根目录 `FRONTEND_ROOT`
 - 后端项目根目录 `BACKEND_ROOT`
 - integration-design-guide.md 路径
-- 测试报告输出目录 `{FRONTEND_ROOT}/fullstack-test-reports/`
+- 测试报告输出目录 `{FRONTEND_ROOT}/outputs/fs_tester_integration/`
 
 ### Step 2: 必读文件（按顺序）
 
@@ -182,7 +182,7 @@ Grep(pattern="proxy|/api") in FRONTEND_ROOT/vite.config.ts
 
 ### Step 5: 测试报告格式
 
-为每个模块输出一份报告到 `{FRONTEND_ROOT}/fullstack-test-reports/{模块名}-integration.md`：
+为每个模块输出一份报告到 `{FRONTEND_ROOT}/outputs/fs_tester_integration/{模块名}-integration.md`：
 
 ```markdown
 ### 判定：PASS

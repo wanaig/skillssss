@@ -37,8 +37,15 @@
    - **实施路线图路径**（architecture 产出的 `implementation-roadmap.md`），记为 `IMPLEMENTATION_ROADMAP_FILE`
 2. 确认项目根目录路径，记为 `PROJECT_ROOT`
 3. 记录以上所有路径（**注意：不要读取任何文件内容，只记录路径**）
-4. 创建日志文件 `{PROJECT_ROOT}/main-log.md`，写入项目信息
-5. **探测并缓存 Agent ID 路径**（见下方"Agent ID 收集"章节）
+4. 创建输出目录结构：
+   - `{PROJECT_ROOT}/outputs/dg_vue_planner/` — 计划产出
+   - `{PROJECT_ROOT}/outputs/dg_frontend_vue_dev/` — 开发经验
+   - `{PROJECT_ROOT}/outputs/dg_vue_tester_component/` — 组件测试报告
+   - `{PROJECT_ROOT}/outputs/dg_vue_tester_logic/` — 逻辑测试报告
+   - `{PROJECT_ROOT}/outputs/dg_vue_tester_style/` — 样式测试报告
+   - `{PROJECT_ROOT}/outputs/agent-registry/` — Agent ID 注册
+5. 创建日志文件 `{PROJECT_ROOT}/outputs/main-log.md`，写入项目信息
+6. 确认项目代码目录：`{PROJECT_ROOT}/project/`（如不存在则创建）
 6. **确认批量大小**，记为 `BATCH_SIZE`（默认值：1；用户可指定，如"一次开发3个模块"）
 
 **日志写入**：
@@ -59,11 +66,11 @@
 
 **获取方式：agent-registry/ 目录（每个Agent独立文件）**
 
-子Agent 完成后，将自身的 Agent ID 写入独立文件 `{PROJECT_ROOT}/agent-registry/{key}.json`，杜绝多Agent并发写入同一文件导致ID丢失。
+子Agent 完成后，将自身的 Agent ID 写入独立文件 `{PROJECT_ROOT}/outputs/agent-registry/{key}.json`，杜绝多Agent并发写入同一文件导致ID丢失。
 
 **`agent-registry/` 目录下的文件结构**：
 ```
-{PROJECT_ROOT}/agent-registry/
+{PROJECT_ROOT}/outputs/agent-registry/
 ├── frontend_dev.json          ← {"id":"abc123","type":"dg_frontend_vue_dev","updated":"..."}
 ├── frontend_test_component.json   ← {"id":"def456","type":"dg_vue_tester_component","updated":"..."}
 ├── frontend_test_logic.json       ← {"id":"ghi789","type":"dg_vue_tester_logic","updated":"..."}
@@ -71,15 +78,15 @@
 ```
 
 **主Agent的职责**：
-1. 初始化时创建 `{PROJECT_ROOT}/agent-registry/` 目录
+1. 初始化时创建 `{PROJECT_ROOT}/outputs/agent-registry/` 目录
 2. 子Agent 完成后，读取对应文件获取 Agent ID：
 ```text
-使用 Read 或 Grep 工具读取 {PROJECT_ROOT}/agent-registry/frontend_dev.json 提取 id
+使用 Read 或 Grep 工具读取 {PROJECT_ROOT}/outputs/agent-registry/frontend_dev.json 提取 id
 ```
 获取到 ID 后，必须记录在日志中。
 
 **子Agent的职责**：
-- 完成后将 Agent ID 写入 `{PROJECT_ROOT}/agent-registry/{key}.json`
+- 完成后将 Agent ID 写入 `{PROJECT_ROOT}/outputs/agent-registry/{key}.json`
 
 如果获取不到 ID，**禁止跳过、禁止启动新Agent**。暂停并报告错误。
 
@@ -100,7 +107,7 @@
 skill(name: "dg_vue_planner")
 Task(
   subagent_type: "general",
-  prompt: "需求文件路径：{REQUIREMENT_FILE}\n技术栈文档路径：{TECH_STACK_FILE}\nAPI 契约文档路径：{CONTRACT_FILE}\n安全架构文档路径：{SECURITY_FILE}\nUI/UX 架构文档路径：{UI_UX_FILE}\n实施路线图路径：{IMPLEMENTATION_ROADMAP_FILE}\n项目根目录：{PROJECT_ROOT}\n\n请阅读需求文档、架构文档及实施路线图，产出 dev-plan.md、design-guide.md，并搭建项目基础设施（Vite + Vue 3 + TS + Pinia + Vue Router）。完成后只返回文件路径列表。"
+  prompt: "需求文件路径：{REQUIREMENT_FILE}\n技术栈文档路径：{TECH_STACK_FILE}\nAPI 契约文档路径：{CONTRACT_FILE}\n安全架构文档路径：{SECURITY_FILE}\nUI/UX 架构文档路径：{UI_UX_FILE}\n实施路线图路径：{IMPLEMENTATION_ROADMAP_FILE}\n代码输出目录：{PROJECT_ROOT}/project\n计划输出目录：{PROJECT_ROOT}/outputs/dg_vue_planner\n\n请阅读需求文档、架构文档及实施路线图，产出 dev-plan.md、design-guide.md（写入计划输出目录），并搭建项目基础设施（写入代码输出目录）。完成后只返回文件路径列表。"
 )
 ```
 
@@ -115,7 +122,7 @@ Task(
 
 ### Phase 2：批量开发循环
 
-读取 `{PROJECT_ROOT}/dev-plan.md`，获取所有 ⏳ 任务。
+读取 `{PROJECT_ROOT}/outputs/dg_vue_planner/dev-plan.md`，获取所有 ⏳ 任务。
 
 将 ⏳ 任务按 `BATCH_SIZE` 分组，每组执行以下步骤：
 
@@ -132,7 +139,7 @@ skill(name: "dg_frontend_vue_dev")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "开发任务：{模块1} ({描述}), {模块2} ({描述}), ...\ndev-plan: {PROJECT_ROOT}/dev-plan.md\ndesign-guide: {PROJECT_ROOT}/design-guide.md\nlessons-learned: {PROJECT_ROOT}/lessons-learned.md\nAPI 契约文档：{CONTRACT_FILE}\n项目根目录：{PROJECT_ROOT}\n需求文件路径：{REQUIREMENT_FILE}\n\n请按顺序逐模块开发。"
+  prompt: "开发任务：{模块1} ({描述}), {模块2} ({描述}), ...\ndev-plan: {PROJECT_ROOT}/outputs/dg_vue_planner/dev-plan.md\ndesign-guide: {PROJECT_ROOT}/outputs/dg_vue_planner/design-guide.md\nlessons-learned: {PROJECT_ROOT}/outputs/dg_frontend_vue_dev/lessons-learned.md\nAPI 契约文档：{CONTRACT_FILE}\n项目根目录：{PROJECT_ROOT}/project\n需求文件路径：{REQUIREMENT_FILE}\n\n请按顺序逐模块开发。"
 )
 ```
 
@@ -154,19 +161,19 @@ skill(name: "dg_vue_tester_component")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "组件测试：{本批所有模块列表，逗号分隔}\n项目根目录：{PROJECT_ROOT}\ndesign-guide: {PROJECT_ROOT}/design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {模块}-{dimension}-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
+  prompt: "组件测试：{本批所有模块列表，逗号分隔}\n项目根目录：{PROJECT_ROOT}/project\ndesign-guide: {PROJECT_ROOT}/outputs/dg_vue_planner/design-guide.md\n输出目录: {PROJECT_ROOT}/outputs/dg_vue_tester_component/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {模块}-{dimension}-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
 
 skill(name: "dg_vue_tester_logic")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "逻辑测试：{本批所有模块列表，逗号分隔}\n项目根目录：{PROJECT_ROOT}\ndesign-guide: {PROJECT_ROOT}/design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {模块}-{dimension}-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
+  prompt: "逻辑测试：{本批所有模块列表，逗号分隔}\n项目根目录：{PROJECT_ROOT}/project\ndesign-guide: {PROJECT_ROOT}/outputs/dg_vue_planner/design-guide.md\n输出目录: {PROJECT_ROOT}/outputs/dg_vue_tester_logic/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {模块}-{dimension}-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
 
 skill(name: "dg_vue_tester_style")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "样式测试：{本批所有模块列表，逗号分隔}\n项目根目录：{PROJECT_ROOT}\ndesign-guide: {PROJECT_ROOT}/design-guide.md\n输出目录: {PROJECT_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {模块}-{dimension}-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
+  prompt: "样式测试：{本批所有模块列表，逗号分隔}\n项目根目录：{PROJECT_ROOT}/project\ndesign-guide: {PROJECT_ROOT}/outputs/dg_vue_planner/design-guide.md\n输出目录: {PROJECT_ROOT}/outputs/dg_vue_tester_style/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {模块}-{dimension}-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
 ```
 
 > **并发上限 = 3**：无论批量大小，测试始终只有 3 个 Agent 并行运行。
@@ -177,7 +184,7 @@ Task(
 
 > **后台Agent完成时**：系统会自动通知，收到通知后立即提取结果并记录日志，不要等三个都完成再处理。
 
-> **超时应对策略**：如果 TaskOutput 超时（300s）导致你未能直接收到返回结果，请使用你的 `Read` 或 `Grep` 工具去读取 `test-reports/` 目录下对应的 JSON 报告文件（仅读取 JSON 中的 `verdict` 字段来提取判定）。**严禁使用 Bash 命令去解析文件**，也**不要**读取 markdown 格式的全文报告以免污染上下文。直接将报告路径传给修复 Agent 让它自己读全文。
+> **超时应对策略**：如果 TaskOutput 超时（300s）导致你未能直接收到返回结果，请使用你的 `Read` 或 `Grep` 工具去读取 `outputs/dg_vue_tester_*/` 目录下对应的 JSON 报告文件（仅读取 JSON 中的 `verdict` 字段来提取判定）。**严禁使用 Bash 命令去解析文件**，也**不要**读取 markdown 格式的全文报告以免污染上下文。直接将报告路径传给修复 Agent 让它自己读全文。
 
 **日志写入**：
 ```
@@ -204,7 +211,7 @@ Task(
    Task(
      task_id: "{DEV_ID}",
      subagent_type: "general",
-     prompt: "请读取以下测试报告并修正所有问题：\n{所有FAIL报告的路径列表}\n\n目标模块：{FAIL模块名列表}\n项目根目录：{PROJECT_ROOT}\n\n修正完成后更新 lessons-learned.md。简短确认即可。")
+     prompt: "请读取以下测试报告并修正所有问题：\n{所有FAIL报告的路径列表}\n\n目标模块：{FAIL模块名列表}\n项目根目录：{PROJECT_ROOT}/project\nlessons-learned: {PROJECT_ROOT}/outputs/dg_frontend_vue_dev/lessons-learned.md\n\n修正完成后更新 lessons-learned.md。简短确认即可。")
    ```
 3. 记录日志：`- {yymmdd hhmm} 第1轮修正完成：{FAIL模块列表}(DEV_ID:{DEV_ID})`
 4. 对每个有 FAIL 的测试维度，resume 对应的测试 Agent 重新测试本批全部模块
@@ -242,7 +249,7 @@ Task(
 
 #### Step 4：批量状态更新 + 反馈
 
-- 更新 `{PROJECT_ROOT}/dev-plan.md` 中本批所有模块状态
+- 更新 `{PROJECT_ROOT}/outputs/dg_vue_planner/dev-plan.md` 中本批所有模块状态
 - 写入完成日志：
   ```
   - {yymmdd hhmm} {模块名} 完成，迭代{round}次
@@ -272,12 +279,12 @@ Task(
 3. 向用户报告完成
 4. 输出本阶段经验摘要（读取 lessons-learned.md 提取 3-5 条最高频/最通用的经验，追加到输出消息中供下游阶段参考）
 5. **跨 Phase 交接提示**：前端开发全部完成后，向用户输出以下信息：
-   > 前端开发已完成。已积累 {N} 条开发经验（见 {PROJECT_ROOT}/lessons-learned.md）。如需启动前后端联调，请使用 fullstack/ 主智能体，参数如下：
+   > 前端开发已完成。已积累 {N} 条开发经验（见 {PROJECT_ROOT}/outputs/dg_frontend_vue_dev/lessons-learned.md）。如需启动前后端联调，请使用 fullstack/ 主智能体，参数如下：
     > - FRONTEND_ROOT: {PROJECT_ROOT}
     > - BACKEND_ROOT: {后端项目路径}（请确认）
     > - FLUTTER_ROOT: {Flutter 项目路径}（如有）
     > - BLOCKCHAIN_ROOT: {区块链项目路径}（如有）
-    > - FRONTEND_LESSONS: {PROJECT_ROOT}/lessons-learned.md
+    > - FRONTEND_LESSONS: {PROJECT_ROOT}/outputs/dg_frontend_vue_dev/lessons-learned.md
     > - CONTRACT_FILE: {CONTRACT_FILE}
     > - UI_UX_FILE: {UI_UX_FILE}
     > - INFRA_FILE: {架构阶段产出的 infra-architecture.md 路径}
@@ -288,7 +295,7 @@ Task(
 
 ### 日志格式规范
 
-追加到 `{PROJECT_ROOT}/main-log.md`，每行以 `- ` 开头。
+追加到 `{PROJECT_ROOT}/outputs/main-log.md`，每行以 `- ` 开头。
 
 **时间格式**：使用 `yymmdd hhmm` 格式（如 `260506 1430`），精确到分钟。每次写日志时取当前时间。
 

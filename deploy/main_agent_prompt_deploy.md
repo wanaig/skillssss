@@ -50,8 +50,12 @@
     - **区块链项目根目录**（如无则不传），记为 `BLOCKCHAIN_ROOT`
     - **区块链合约 ABI 目录**（如无区块链项目则不传），记为 `BLOCKCHAIN_ABI_DIR`
     - **部署方案根目录**，记为 `DEPLOY_ROOT`（默认新建 `{项目父目录}/deploy/` 目录）
-2. 创建日志文件 `{DEPLOY_ROOT}/main-log.md`
-3. 创建 agent-registry 目录：`{DEPLOY_ROOT}/agent-registry/`
+2. 创建输出目录结构：
+   - `{DEPLOY_ROOT}/outputs/deploy_planner/` — 部署计划产出
+   - `{DEPLOY_ROOT}/outputs/deploy_infra/` — 基础设施配置产出
+   - `{DEPLOY_ROOT}/outputs/deploy_verifier/` — 部署验证报告
+   - `{DEPLOY_ROOT}/outputs/agent-registry/` — Agent ID 注册
+3. 创建日志文件 `{DEPLOY_ROOT}/outputs/main-log.md`
 
 **日志写入**：
 ```
@@ -72,11 +76,11 @@
 
 ### Step 2：Agent ID 收集
 
-子Agent 完成后，将自身的 Agent ID 写入独立文件 `{DEPLOY_ROOT}/agent-registry/{key}.json`。
+子Agent 完成后，将自身的 Agent ID 写入独立文件 `{DEPLOY_ROOT}/outputs/agent-registry/{key}.json`。
 
 **`agent-registry/` 目录下的文件结构**：
 ```
-{DEPLOY_ROOT}/agent-registry/
+{DEPLOY_ROOT}/outputs/agent-registry/
 ├── deploy_planner.json   ← {"id":"abc123","type":"deploy_planner","updated":"..."}
 ├── deploy_infra.json     ← {"id":"def456","type":"deploy_infra","updated":"..."}
 └── deploy_verifier.json  ← {"id":"ghi789","type":"deploy_verifier","updated":"..."}
@@ -97,7 +101,7 @@
 skill(name: "deploy_planner")
 Task(
   subagent_type: "general",
-  prompt: "技术栈文档：{TECH_STACK_FILE}\n基础设施架构文档：{INFRA_FILE}\n安全架构文档：{SECURITY_FILE}\n实施路线图：{IMPLEMENTATION_ROADMAP_FILE}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\n部署方案根目录：{DEPLOY_ROOT}\n\n请阅读架构文档和实施路线图，产出 deploy-plan.md、deploy-config.md 和 deploy-checklist.md。完成后只返回文件路径列表。"
+  prompt: "技术栈文档：{TECH_STACK_FILE}\n基础设施架构文档：{INFRA_FILE}\n安全架构文档：{SECURITY_FILE}\n实施路线图：{IMPLEMENTATION_ROADMAP_FILE}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\n计划输出目录：{DEPLOY_ROOT}/outputs/deploy_planner\n代码输出目录：{DEPLOY_ROOT}/project\n\n请阅读架构文档和实施路线图，产出 deploy-plan.md、deploy-config.md 和 deploy-checklist.md（写入计划输出目录），并将部署配置文件（docker-compose、nginx、脚本等）写入代码输出目录。完成后只返回文件路径列表。"
 )
 ```
 
@@ -106,9 +110,9 @@ Task(
 **日志写入**：
 ```
 - {yymmdd hhmm} 部署计划完成
-- {yymmdd hhmm} deploy-plan: {DEPLOY_ROOT}/deploy-plan.md
-- {yymmdd hhmm} deploy-config: {DEPLOY_ROOT}/deploy-config.md
-- {yymmdd hhmm} deploy-checklist: {DEPLOY_ROOT}/deploy-checklist.md
+- {yymmdd hhmm} deploy-plan: {DEPLOY_ROOT}/outputs/deploy_planner/deploy-plan.md
+- {yymmdd hhmm} deploy-config: {DEPLOY_ROOT}/outputs/deploy_planner/deploy-config.md
+- {yymmdd hhmm} deploy-checklist: {DEPLOY_ROOT}/outputs/deploy_planner/deploy-checklist.md
 ```
 
 ---
@@ -123,7 +127,7 @@ Task(
 skill(name: "deploy_infra")
 Task(
   subagent_type: "general",
-  prompt: "部署计划：{DEPLOY_ROOT}/deploy-plan.md\n部署配置：{DEPLOY_ROOT}/deploy-config.md\n基础设施架构文档：{INFRA_FILE}\n安全架构文档：{SECURITY_FILE}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\n部署方案根目录：{DEPLOY_ROOT}\n\n请根据部署计划和架构文档，创建 docker-compose.prod.yml、nginx 配置、迁移脚本和部署脚本。完成后只返回文件路径列表。"
+  prompt: "部署计划：{DEPLOY_ROOT}/outputs/deploy_planner/deploy-plan.md\n部署配置：{DEPLOY_ROOT}/outputs/deploy_planner/deploy-config.md\n基础设施架构文档：{INFRA_FILE}\n安全架构文档：{SECURITY_FILE}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\n代码输出目录：{DEPLOY_ROOT}/project\n\n请根据部署计划和架构文档，创建 docker-compose.prod.yml、nginx 配置、迁移脚本和部署脚本，写入代码输出目录。完成后只返回文件路径列表。"
 )
 ```
 
@@ -146,7 +150,7 @@ Task(
 skill(name: "deploy_verifier")
 Task(
   subagent_type: "general",
-  prompt: "部署计划：{DEPLOY_ROOT}/deploy-plan.md\n部署配置：{DEPLOY_ROOT}/deploy-config.md\n部署检查清单：{DEPLOY_ROOT}/deploy-checklist.md\n基础设施架构文档：{INFRA_FILE}\n安全架构文档：{SECURITY_FILE}\n部署方案根目录：{DEPLOY_ROOT}\n\n请对照架构文档和检查清单，验证所有部署配置的完整性和安全性。测试报告同时输出 markdown 和 JSON 格式，JSON 报告命名为 deploy-verification-report.json。所有判定均从 JSON 的 verdict 字段提取。"
+  prompt: "部署计划：{DEPLOY_ROOT}/outputs/deploy_planner/deploy-plan.md\n部署配置：{DEPLOY_ROOT}/outputs/deploy_planner/deploy-config.md\n部署检查清单：{DEPLOY_ROOT}/outputs/deploy_planner/deploy-checklist.md\n基础设施架构文档：{INFRA_FILE}\n安全架构文档：{SECURITY_FILE}\n输出目录：{DEPLOY_ROOT}/outputs/deploy_verifier\n\n请对照架构文档和检查清单，验证所有部署配置的完整性和安全性。测试报告同时输出 markdown 和 JSON 格式，JSON 报告命名为 deploy-verification-report.json。所有判定均从 JSON 的 verdict 字段提取。"
 )
 ```
 
@@ -170,7 +174,7 @@ Task(
    Task(
      task_id: "{DEPLOY_INFRA_ID}",
      subagent_type: "general",
-     prompt: "请读取 {DEPLOY_ROOT}/deploy-verification-report.json 并修正所有问题。完成后简短确认。")
+     prompt: "请读取 {DEPLOY_ROOT}/outputs/deploy_verifier/deploy-verification-report.json 并修正所有问题。完成后简短确认。")
    ```
 2. 重新启动 deploy_verifier 验证
 3. 记录日志
@@ -206,7 +210,7 @@ Task(
    > chmod +x deploy.sh && ./deploy.sh
    > ```
    >
-   > 详细检查清单：{DEPLOY_ROOT}/deploy-checklist.md
+   > 详细检查清单：{DEPLOY_ROOT}/outputs/deploy_planner/deploy-checklist.md
 
 2. 写入最终统计到 main-log.md：
    ```

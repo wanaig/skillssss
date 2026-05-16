@@ -50,9 +50,15 @@
     - **区块链经验库路径**（如存在），记为 `BLOCKCHAIN_LESSONS`
     - **区块链合约 ABI 目录路径**（如无区块链项目则不传），记为 `BLOCKCHAIN_ABI_DIR`
 2. 记录以上所有路径（**注意：不要读取任何文件内容，只记录路径**）
-3. 创建联调日志文件 `{FRONTEND_ROOT}/main-log.md`
-4. 确认日志文件路径 `{FRONTEND_ROOT}/main-log.md`，记为 `MAIN_LOG`
-5. 确认前端 API 层输出目录，记为 `API_LAYER_DIR`（默认 `{FRONTEND_ROOT}/src/api/`）
+3. 创建输出目录结构：
+   - `{FRONTEND_ROOT}/outputs/fs_planner/` — 集成计划产出
+   - `{FRONTEND_ROOT}/outputs/fs_api_dev/` — 对接经验
+   - `{FRONTEND_ROOT}/outputs/fs_tester_contract/` — 契约测试报告
+   - `{FRONTEND_ROOT}/outputs/fs_tester_dataflow/` — 数据流测试报告
+   - `{FRONTEND_ROOT}/outputs/fs_tester_integration/` — 集成测试报告
+   - `{FRONTEND_ROOT}/outputs/agent-registry/` — Agent ID 注册
+4. 创建联调日志文件 `{FRONTEND_ROOT}/outputs/main-log.md`
+5. 确认前端 API 层输出目录，记为 `API_LAYER_DIR`（默认 `{FRONTEND_ROOT}/project/src/api/`）
 6. **探测并缓存 Agent ID 路径**（见下方"Agent ID 收集"章节）
 7. **确认批量大小**，记为 `BATCH_SIZE`（默认值：1；用户可指定，如"一次对接3个接口"）
 
@@ -87,11 +93,11 @@
 
 #### 获取方式：agent-registry/ 目录（每个Agent独立文件）
 
-子Agent 完成后，将自身的 Agent ID 写入独立文件 `{FRONTEND_ROOT}/agent-registry/fullstack_{key}.json`，与前端自身的 agent-registry/ 隔离，杜绝 key 冲突。
+子Agent 完成后，将自身的 Agent ID 写入独立文件 `{FRONTEND_ROOT}/outputs/agent-registry/fullstack_{key}.json`，与前端自身的 agent-registry/ 隔离，杜绝 key 冲突。
 
 **`agent-registry/` 目录下的文件结构**：
 ```
-{FRONTEND_ROOT}/agent-registry/
+{FRONTEND_ROOT}/outputs/agent-registry/
 ├── ...                        ← 前端自身的 Agent ID 文件
 ├── fullstack_dev.json         ← {"id":"abc123","type":"fs_api_dev","updated":"..."}
 ├── fullstack_contract.json    ← {"id":"def456","type":"fs_tester_contract","updated":"..."}
@@ -100,15 +106,15 @@
 ```
 
 **主Agent的职责**：
-1. 初始化时确保 `{FRONTEND_ROOT}/agent-registry/` 目录存在
+1. 初始化时确保 `{FRONTEND_ROOT}/outputs/agent-registry/` 目录存在
 2. 子Agent 完成后，读取对应文件获取 Agent ID：
 ```text
-使用 Read 或 Grep 工具读取 {FRONTEND_ROOT}/agent-registry/fullstack_dev.json 提取 id
+使用 Read 或 Grep 工具读取 {FRONTEND_ROOT}/outputs/agent-registry/fullstack_dev.json 提取 id
 ```
 获取到 ID 后，必须记录在日志中。
 
 **子Agent的职责**：
-- 完成后将 Agent ID 写入 `{FRONTEND_ROOT}/agent-registry/fullstack_{key}.json`
+- 完成后将 Agent ID 写入 `{FRONTEND_ROOT}/outputs/agent-registry/fullstack_{key}.json`
 
 如果获取不到 ID，**禁止跳过、禁止启动新Agent**。暂停并报告错误。
 
@@ -132,7 +138,7 @@
 skill(name: "fs_planner")
 Task(
   subagent_type: "general",
-  prompt: "前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nFlutter 项目根目录：{FLUTTER_ROOT}（如无则标记 N/A）\n区块链项目根目录：{BLOCKCHAIN_ROOT}（如无则标记 N/A）\nUI/UX 架构文档路径：{UI_UX_FILE}\nAPI 契约文档路径：{CONTRACT_FILE}\n技术栈文档路径：{TECH_STACK_FILE}\n数据架构文档路径：{DATA_ARCHITECTURE_FILE}\n基础设施架构文档路径：{INFRA_FILE}\n安全架构文档路径：{SECURITY_FILE}\n实施路线图路径：{IMPLEMENTATION_ROADMAP_FILE}\n前端经验库路径：{FRONTEND_LESSONS}\n后端经验库路径：{BACKEND_LESSONS}\nFlutter 经验库路径：{FLUTTER_LESSONS}\n区块链经验库路径：{BLOCKCHAIN_LESSONS}\n区块链合约 ABI 目录：{BLOCKCHAIN_ABI_DIR}（如无则标记 N/A）\n\n请扫描各端代码现状、阅读 API 契约和架构文档，产出 integration-plan.md、integration-design-guide.md，并创建前端 API 调用层目录结构（{FRONTEND_ROOT}/src/api/）、共享类型文件（src/types/api.ts）和 Vite 代理配置。如有 BLOCKCHAIN_ROOT，额外创建 src/api/blockchain.ts 区块链调用层。完成后只返回文件路径列表。"
+  prompt: "前端项目根目录：{FRONTEND_ROOT}/project\n后端项目根目录：{BACKEND_ROOT}\nFlutter 项目根目录：{FLUTTER_ROOT}（如无则标记 N/A）\n区块链项目根目录：{BLOCKCHAIN_ROOT}（如无则标记 N/A）\nUI/UX 架构文档路径：{UI_UX_FILE}\nAPI 契约文档路径：{CONTRACT_FILE}\n技术栈文档路径：{TECH_STACK_FILE}\n数据架构文档路径：{DATA_ARCHITECTURE_FILE}\n基础设施架构文档路径：{INFRA_FILE}\n安全架构文档路径：{SECURITY_FILE}\n实施路线图路径：{IMPLEMENTATION_ROADMAP_FILE}\n前端经验库路径：{FRONTEND_LESSONS}\n后端经验库路径：{BACKEND_LESSONS}\nFlutter 经验库路径：{FLUTTER_LESSONS}\n区块链经验库路径：{BLOCKCHAIN_LESSONS}\n区块链合约 ABI 目录：{BLOCKCHAIN_ABI_DIR}（如无则标记 N/A）\n代码输出目录：{FRONTEND_ROOT}/project\n计划输出目录：{FRONTEND_ROOT}/outputs/fs_planner\n\n请扫描各端代码现状、阅读 API 契约和架构文档，产出 integration-plan.md、integration-design-guide.md（写入计划输出目录），并创建前端 API 调用层（写入代码输出目录的 src/api/）、共享类型文件（src/types/api.ts）和 Vite 代理配置。完成后只返回文件路径列表。"
 )
 ```
 
@@ -149,7 +155,7 @@ Task(
 
 ### Step 3: Phase 2 — 批量对接循环
 
-读取 `{FRONTEND_ROOT}/integration-plan.md`，获取所有 ⏳ 任务。
+读取 `{FRONTEND_ROOT}/outputs/fs_planner/integration-plan.md`，获取所有 ⏳ 任务。
 
 将 ⏳ 任务按 `BATCH_SIZE` 分组，每组执行以下步骤：
 
@@ -166,7 +172,7 @@ skill(name: "fs_api_dev")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "对接任务：{接口1} ({描述}), {接口2} ({描述}), ...\nintegration-plan: {FRONTEND_ROOT}/integration-plan.md\nintegration-design-guide: {FRONTEND_ROOT}/integration-design-guide.md\nfullstack-lessons-learned: {FRONTEND_ROOT}/fullstack-lessons-learned.md\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nFlutter 项目根目录：{FLUTTER_ROOT}（如无则标记 N/A）\n区块链项目根目录：{BLOCKCHAIN_ROOT}（如无则标记 N/A）\n区块链合约 ABI 目录：{BLOCKCHAIN_ABI_DIR}（如无则标记 N/A）\nAPI 契约文档：{CONTRACT_FILE}\n\n请按顺序逐接口对接，确保前端类型定义、请求参数与后端响应格式完全一致。"
+  prompt: "对接任务：{接口1} ({描述}), {接口2} ({描述}), ...\nintegration-plan: {FRONTEND_ROOT}/outputs/fs_planner/integration-plan.md\nintegration-design-guide: {FRONTEND_ROOT}/outputs/fs_planner/integration-design-guide.md\nfullstack-lessons-learned: {FRONTEND_ROOT}/outputs/fs_api_dev/fullstack-lessons-learned.md\n前端项目根目录：{FRONTEND_ROOT}/project\n后端项目根目录：{BACKEND_ROOT}\nFlutter 项目根目录：{FLUTTER_ROOT}（如无则标记 N/A）\n区块链项目根目录：{BLOCKCHAIN_ROOT}（如无则标记 N/A）\n区块链合约 ABI 目录：{BLOCKCHAIN_ABI_DIR}（如无则标记 N/A）\nAPI 契约文档：{CONTRACT_FILE}\n\n请按顺序逐接口对接，确保前端类型定义、请求参数与后端响应格式完全一致。"
 )
 ```
 
@@ -188,19 +194,19 @@ skill(name: "fs_tester_contract")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "契约测试：{本批所有接口列表，逗号分隔}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nAPI 契约文档：{CONTRACT_FILE}\nintegration-design-guide: {FRONTEND_ROOT}/integration-design-guide.md\n输出目录: {FRONTEND_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {接口名}-contract-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
+  prompt: "契约测试：{本批所有接口列表，逗号分隔}\n前端项目根目录：{FRONTEND_ROOT}/project\n后端项目根目录：{BACKEND_ROOT}\nAPI 契约文档：{CONTRACT_FILE}\nintegration-design-guide: {FRONTEND_ROOT}/outputs/fs_planner/integration-design-guide.md\n输出目录: {FRONTEND_ROOT}/outputs/fs_tester_contract/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {接口名}-contract-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
 
 skill(name: "fs_tester_dataflow")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "数据流测试：{本批所有接口列表，逗号分隔}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nAPI 契约文档：{CONTRACT_FILE}\nintegration-design-guide: {FRONTEND_ROOT}/integration-design-guide.md\n输出目录: {FRONTEND_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {接口名}-dataflow-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
+  prompt: "数据流测试：{本批所有接口列表，逗号分隔}\n前端项目根目录：{FRONTEND_ROOT}/project\n后端项目根目录：{BACKEND_ROOT}\nAPI 契约文档：{CONTRACT_FILE}\nintegration-design-guide: {FRONTEND_ROOT}/outputs/fs_planner/integration-design-guide.md\n输出目录: {FRONTEND_ROOT}/outputs/fs_tester_dataflow/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {接口名}-dataflow-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
 
 skill(name: "fs_tester_integration")
 Task(
   subagent_type: "general",
   run_in_background: true,
-  prompt: "集成测试：{本批所有接口列表，逗号分隔}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\nAPI 契约文档：{CONTRACT_FILE}\nintegration-design-guide: {FRONTEND_ROOT}/integration-design-guide.md\n输出目录: {FRONTEND_ROOT}/test-reports/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {接口名}-integration-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
+  prompt: "集成测试：{本批所有接口列表，逗号分隔}\n前端项目根目录：{FRONTEND_ROOT}/project\n后端项目根目录：{BACKEND_ROOT}\nAPI 契约文档：{CONTRACT_FILE}\nintegration-design-guide: {FRONTEND_ROOT}/outputs/fs_planner/integration-design-guide.md\n输出目录: {FRONTEND_ROOT}/outputs/fs_tester_integration/\n\n测试报告同时输出 markdown 和 JSON 格式。JSON 报告命名为 {接口名}-integration-report.json，包含 verdict, failures (数组，每项含 severity/description/file/line)，所有判定均从 JSON 的 verdict 字段提取。")
 ```
 
 > **并发上限 = 3**：无论批量大小，测试始终只有 3 个 Agent 并行运行。
@@ -211,7 +217,7 @@ Task(
 
 > **后台Agent完成时**：系统会自动通知，收到通知后立即提取结果并记录日志，不要等三个都完成再处理。
 
-> **超时应对策略**：如果 TaskOutput 超时（300s）导致你未能直接收到返回结果，请使用你的 `Read` 或 `Grep` 工具去读取 `test-reports/` 目录下对应的 JSON 报告文件（仅读取 JSON 中的 `verdict` 字段来提取判定）。**严禁使用 Bash 命令去解析文件**，也**不要**读取 markdown 格式的全文报告以免污染上下文。直接将报告路径传给修复 Agent 让它自己读全文。
+> **超时应对策略**：如果 TaskOutput 超时（300s）导致你未能直接收到返回结果，请使用你的 `Read` 或 `Grep` 工具去读取 `outputs/fs_tester_*/` 目录下对应的 JSON 报告文件（仅读取 JSON 中的 `verdict` 字段来提取判定）。**严禁使用 Bash 命令去解析文件**，也**不要**读取 markdown 格式的全文报告以免污染上下文。直接将报告路径传给修复 Agent 让它自己读全文。
 
 **日志写入**：
 ```
@@ -238,7 +244,7 @@ Task(
    Task(
      task_id: "{DEV_ID}",
      subagent_type: "general",
-     prompt: "请读取以下联调测试报告并修正所有问题：\n{所有FAIL报告的路径列表}\n\n目标接口：{FAIL接口名列表}\n前端项目根目录：{FRONTEND_ROOT}\n后端项目根目录：{BACKEND_ROOT}\n\n修正完成后更新 lessons-learned.md。简短确认即可。")
+     prompt: "请读取以下联调测试报告并修正所有问题：\n{所有FAIL报告的路径列表}\n\n目标接口：{FAIL接口名列表}\n前端项目根目录：{FRONTEND_ROOT}/project\n后端项目根目录：{BACKEND_ROOT}\nfullstack-lessons-learned: {FRONTEND_ROOT}/outputs/fs_api_dev/fullstack-lessons-learned.md\n\n修正完成后更新 lessons-learned.md。简短确认即可。")
    ```
 3. 记录日志：`- {yymmdd hhmm} 第1轮修正完成：{FAIL接口列表}(DEV_ID:{DEV_ID})`
 4. 对每个有 FAIL 的测试维度，resume 对应的测试 Agent 重新测试本批全部接口
@@ -276,7 +282,7 @@ Task(
 
 #### Step 3d：批量状态更新 + 反馈
 
-- 更新 `{FRONTEND_ROOT}/integration-plan.md` 中本批所有接口状态
+- 更新 `{FRONTEND_ROOT}/outputs/fs_planner/integration-plan.md` 中本批所有接口状态
 - 写入完成日志：
   ```
   - {yymmdd hhmm} {接口名} 联调完成，迭代{round}次
@@ -308,23 +314,23 @@ Task(
 3. 向用户报告完成
 4. 输出本阶段经验摘要（读取 lessons-learned.md 提取 3-5 条最高频/最通用的经验，追加到输出消息中供下游阶段参考）
 5. **跨 Phase 交接提示**：联调全部完成后，向用户输出以下信息：
-   > 前后端联调已完成。前后端接口已对齐，共覆盖 {N} 个接口。已积累 {K} 条联调经验（见 {FRONTEND_ROOT}/lessons-learned.md）。如需启动生产部署，请使用 deploy/ 主智能体，参数如下：
-   > - FRONTEND_ROOT: {FRONTEND_ROOT}
-   > - BACKEND_ROOT: {BACKEND_ROOT}
-    > - FLUTTER_ROOT: {FLUTTER_ROOT}（如有）
-    > - BLOCKCHAIN_ROOT: {BLOCKCHAIN_ROOT}（如有）
+    > 前后端联调已完成。前后端接口已对齐，共覆盖 {N} 个接口。已积累 {K} 条联调经验（见 {FRONTEND_ROOT}/outputs/fs_api_dev/lessons-learned.md）。如需启动生产部署，请使用 deploy/ 主智能体，参数如下：
+    > - FRONTEND_ROOT: {FRONTEND_ROOT}/project
+    > - BACKEND_ROOT: {BACKEND_ROOT}
+    > - FLUTTER_ROOT: {FLUTTER_ROOT}/project（如有 Flutter 项目）
+    > - BLOCKCHAIN_ROOT: {BLOCKCHAIN_ROOT}/project（如有区块链项目）
     > - BLOCKCHAIN_ABI_DIR: {BLOCKCHAIN_ABI_DIR}（如有区块链项目）
-   > - TECH_STACK_FILE: {TECH_STACK_FILE}
-   > - INFRA_FILE: {INFRA_FILE}
-   > - SECURITY_FILE: {SECURITY_FILE}
-   > - IMPLEMENTATION_ROADMAP_FILE: {IMPLEMENTATION_ROADMAP_FILE}
-   > - DEPLOY_ROOT: {部署方案目录}（建议新建目录）
+    > - TECH_STACK_FILE: {TECH_STACK_FILE}
+    > - INFRA_FILE: {INFRA_FILE}
+    > - SECURITY_FILE: {SECURITY_FILE}
+    > - IMPLEMENTATION_ROADMAP_FILE: {IMPLEMENTATION_ROADMAP_FILE}
+    > - DEPLOY_ROOT: {部署方案目录}（建议新建目录）
 
 ---
 
 ### 日志格式规范
 
-追加到 `{MAIN_LOG}`，每行以 `- ` 开头。
+追加到 `{FRONTEND_ROOT}/outputs/main-log.md`，每行以 `- ` 开头。
 
 #### 时间格式
 
