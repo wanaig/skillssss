@@ -31,6 +31,21 @@ BLOCKCHAIN_ROOT={D:\path\to\blockchain}      # 可选
 DEPLOY_ROOT={D:\path\to\deploy-output}
 ```
 
+## Phase -1：需求采集（外包平台入口）
+
+使用 `platform/main_agent_prompt_platform.md` 的 Phase 0 部分：
+
+```text
+CLIENT_INPUT={客户需求描述}
+PLATFORM_ROOT={平台项目根目录}
+```
+
+输出：
+- `{PLATFORM_ROOT}/outputs/pf_intake/prd.md` — 结构化 PRD 文档
+- `{PLATFORM_ROOT}/outputs/project-status.json` — 项目状态跟踪
+
+此阶段完成后，将产出 `prd.md` 的路径记为 `REQUIREMENT_FILE`，传递给后续所有阶段。
+
 ## Phase 0：架构设计（必须先执行）
 
 使用 `architecture/main_agent_prompt_fs_architect.md`：
@@ -151,6 +166,18 @@ FLUTTER_ROOT={可选}
 BLOCKCHAIN_ROOT={可选}
 DEPLOY_ROOT
 ```
+
+## Phase 4：交付验收（外包平台出口）
+
+使用 `platform/main_agent_prompt_platform.md` 的 Phase 4 部分：
+
+```text
+REQUIREMENT_FILE
+PLATFORM_ROOT
+```
+
+输出：
+- `{PLATFORM_ROOT}/outputs/pf_delivery/acceptance-report.md` — 客户验收报告
 
 ## 验证收尾
 

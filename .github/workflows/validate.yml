@@ -14,7 +14,7 @@ jobs:
 
       - name: Check required directories exist
         run: |
-          for dir in architecture backend frontend fullstack flutter deploy blockchain; do
+          for dir in architecture backend frontend fullstack flutter deploy blockchain platform; do
             if [ ! -d "$dir" ]; then
               echo "ERROR: Missing directory: $dir"
               exit 1
@@ -25,7 +25,7 @@ jobs:
       - name: Check each agent has Skill header
         run: |
           errors=0
-          for agent in architecture/agents/*.md backend/agents/*.md frontend/agents/*.md fullstack/agents/*.md flutter/agents/*.md deploy/agents/*.md blockchain/agents/*.md; do
+          for agent in architecture/agents/*.md backend/agents/*.md frontend/agents/*.md fullstack/agents/*.md flutter/agents/*.md deploy/agents/*.md blockchain/agents/*.md platform/agents/*.md; do
             if ! head -1 "$agent" | grep -qP '^# Skill:\s*[a-z0-9_-]+$'; then
               echo "ERROR: $agent missing valid '# Skill: <name>' header"
               errors=$((errors+1))
@@ -40,7 +40,7 @@ jobs:
       - name: Validate agent markdown sections
         run: |
           errors=0
-          for agent in architecture/agents/*.md backend/agents/*.md frontend/agents/*.md fullstack/agents/*.md flutter/agents/*.md deploy/agents/*.md blockchain/agents/*.md; do
+          for agent in architecture/agents/*.md backend/agents/*.md frontend/agents/*.md fullstack/agents/*.md flutter/agents/*.md deploy/agents/*.md blockchain/agents/*.md platform/agents/*.md; do
             if ! grep -q '^## When to Use This Skill$' "$agent"; then
               echo "ERROR: $agent missing section: ## When to Use This Skill"
               errors=$((errors+1))

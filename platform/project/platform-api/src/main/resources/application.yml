@@ -1,0 +1,22 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:platform
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  h2:
+    console:
+      enabled: false
+
+jwt:
+  secret: harness-platform-jwt-secret-key-must-be-at-least-256-bits-long
+  expiration-ms: 86400000
+
+harness:
+  platform:
+    root: /tmp/harness-outputs
